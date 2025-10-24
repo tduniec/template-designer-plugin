@@ -1,0 +1,5 @@
+- id: zip:directory
+  name: ZipDirectory
+  action: roadiehq:utils:zip
+  input:
+    path: /dupa

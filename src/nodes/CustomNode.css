@@ -1,0 +1,26 @@
+/* CustomNode.css */
+.custom-node {
+  background: #ffffff;
+  border: 2px solid #1976d2;
+  border-radius: 12px; /* ✅ Rounded rectangle */
+  padding: 12px 20px;
+  min-width: 160px;
+  min-height: 60px; /* ✅ Give it a visible height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  font-family: sans-serif;
+  transition: all 0.2s ease;
+}
+
+.custom-node:hover {
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+  transform: translateY(-2px);
+}
+
+.custom-node-content {
+  color: #333;
+  font-weight: 500;
+}

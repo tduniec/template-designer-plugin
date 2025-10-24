@@ -1,0 +1,49 @@
+[
+  {
+    "id": "fetch",
+    "name": "Fetch Template",
+    "action": "fetch:template",
+    "input": {
+      "a": "someVal",
+      "b": "someVal2"
+    }
+  },
+  {
+    "id": "publish",
+    "name": "Publish to GitHub",
+    "action": "publish:github",
+    "input": {
+      "repoUrl": "github.com/org/repo"
+    }
+  },
+  {
+    "id": "step3",
+    "name": "Step 3",
+    "action": "lint:code",
+    "input": {
+      "ktk": "twxmosds"
+    }
+  },
+  {
+    "id": "step4",
+    "name": "Step 4",
+    "action": "build:docker",
+    "input": {
+      "wgm": "cpmfgfar",
+      "xib": "tyluhvel",
+      "jtv": "lnxoduwx",
+      "ptc": "fnqrfgrt"
+    }
+  },
+  {
+    "id": "step5",
+    "name": "Step 5",
+    "action": "publish:github",
+    "input": {
+      "vvq": "moskhuns",
+      "afb": "vqnksaup",
+      "scu": "zxeznsee",
+      "stp": "llvxasvh"
+    }
+  }
+]
