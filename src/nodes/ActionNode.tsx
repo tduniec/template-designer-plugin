@@ -37,7 +37,7 @@ const Card = styled(Box)(({ theme }) => ({
   background: theme.palette.background.paper,
   border: `1px solid ${theme.palette.divider}`,
   borderRadius: 12,
-  width: 340,
+  width: 500, // card width
   padding: theme.spacing(1.5),
   boxShadow: theme.shadows[2],
   color: theme.palette.text.primary,
@@ -59,7 +59,7 @@ const Grid = styled(Box)(({ theme }) => ({
 
 const KvRow = styled(Box)(({ theme }) => ({
   display: 'grid',
-  gridTemplateColumns: '100px 1fr auto',
+  gridTemplateColumns: '200px 1fr auto',
   gap: theme.spacing(1),
   alignItems: 'center',
 }));
@@ -72,11 +72,6 @@ const ToolbarBtn = styled(Button)(({ theme }) => ({
 }));
 
 const DEFAULT_ACTION_OPTIONS = [
-  // TODO this is dummy so need to extend with call from API
-  'fetch:template',
-  'fetch:plain',
-  'publish:catalog',
-  'catalog:write',
 ];
 
 export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {

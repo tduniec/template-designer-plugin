@@ -27,8 +27,9 @@ import {
   createHandleUpdateInput,
 } from './handlers';
 import initialStepsYaml from '../../utils/initialNodes1.yaml';
-import actions from '../../utils/actionsDraft.json';
 import { convertYamlToJson } from '../../utils/yamlJsonConversion';
+import { scaffolderApiRef } from '@backstage/plugin-scaffolder-react';
+import { useApi } from '@backstage/core-plugin-api';
 
 const VERTICAL_SPACING = 400;
 const FIXED_X_POSITION = 100;
@@ -58,8 +59,7 @@ type ScaffolderAction = {
   };
 };
 
-const loadLocalScaffolderActions = () => {
-  const list = (actions as ScaffolderAction[]) ?? [];
+const buildScaffolderActionsCache = (list: ScaffolderAction[]) => {
   const { inputsById, outputsById } = list.reduce<{
     inputsById: Record<string, Record<string, unknown>>;
     outputsById: Record<string, Record<string, unknown>>;
@@ -79,12 +79,43 @@ const loadLocalScaffolderActions = () => {
   };
 };
 
+const useScaffolderActions = () => {
+  const scaffolderApi = useApi(scaffolderApiRef);
+  const [cache, setCache] = useState(() =>
+    buildScaffolderActionsCache(([]) ),
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    scaffolderApi
+      .listActions()
+      .then(remoteActions => {
+        if (cancelled) {
+          return;
+        }
+        setCache(buildScaffolderActionsCache(remoteActions));
+      })
+      .catch(error => {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('Failed to load scaffolder actions', error);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [scaffolderApi]);
+
+  return cache;
+};
+
 type DesignerFlowProps = {
   onNodesJsonChange?: (json: string) => void;
 };
 
 export default function App({ onNodesJsonChange }: DesignerFlowProps) {
-  const [scaffolderActionsCache] = useState(loadLocalScaffolderActions);
+  const scaffolderActionsCache = useScaffolderActions();
 
   const {
     ids: scaffolderActionIds,
