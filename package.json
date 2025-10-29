@@ -26,7 +26,10 @@
     "lint:all": "backstage-cli repo lint",
     "prettier:check": "prettier --check .",
     "prepack": "backstage-cli package prepack",
-    "postpack": "backstage-cli package postpack"
+    "postpack": "backstage-cli package postpack",
+    "validate": "tsc && backstage-cli package lint && prettier --check .",
+    "validate:fix": "tsc && backstage-cli package lint --fix && prettier -w .",
+    "validate:full": "tsc --skipLibCheck false --incremental false && backstage-cli repo lint && prettier --check ."
   },
   "dependencies": {
     "@backstage/core-components": "^0.18.2",
