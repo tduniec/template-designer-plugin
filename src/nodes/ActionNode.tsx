@@ -26,6 +26,8 @@ export type ActionNodeData = {
   scaffolderActionInputsById?: Record<string, Record<string, unknown>>;
   /** Cached action output schemas keyed by action id */
   scaffolderActionOutputsById?: Record<string, Record<string, unknown>>;
+  /** Suggestions for referencing previous step outputs */
+  stepOutputReferences?: string[];
 
   onAddNode?: (afterRfId: string) => void;
   onUpdateField?: (rfId: string, field: keyof TaskStep, value: string) => void;
@@ -79,6 +81,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
   const { rfId, step } = data;
   const [newKey, setNewKey] = useState('');
   const [newVal, setNewVal] = useState('');
+  const stepOutputReferences = data.stepOutputReferences ?? [];
 
   const theme = useTheme();
   const actionOptions =
@@ -90,9 +93,6 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
   const handleTop =
     (field: keyof TaskStep) => (e: React.ChangeEvent<HTMLInputElement>) =>
       data.onUpdateField?.(rfId, field, e.target.value);
-
-  const handleInput = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    data.onUpdateInput?.(rfId, k, e.target.value);
 
   const actionId = typeof step?.action === 'string' ? step.action : '';
   const actionInputOptions = useMemo(() => {
@@ -247,34 +247,63 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
           </Box>
         )}
 
-        {inputEntries.map(([k, v]) => (
-          <KvRow key={k}>
-            <Typography
-              variant="caption"
-              noWrap
-              title={k}
-              color="textSecondary"
-            >
-              {k}
-            </Typography>
-            <TextField
-              size="small"
-              value={typeof v === 'string' ? v : JSON.stringify(v)}
-              onChange={handleInput(k)}
-              fullWidth
-              {...stopAll}
-            />
-            <IconButton
-              size="small"
-              onClick={() => data.onRemoveInputKey?.(rfId, k)}
-              onPointerDown={e => e.stopPropagation()}
-              aria-label={`Remove ${k}`}
-              className="nodrag nowheel"
-            >
-              <DeleteOutlineIcon fontSize="small" />
-            </IconButton>
-          </KvRow>
-        ))}
+        {inputEntries.map(([k, v]) => {
+          const candidateValue =
+            typeof v === 'string' ? v : JSON.stringify(v);
+          const valueString = candidateValue ?? '';
+          return (
+            <KvRow key={k}>
+              <Typography
+                variant="caption"
+                noWrap
+                title={k}
+                color="textSecondary"
+              >
+                {k}
+              </Typography>
+              <Autocomplete
+                size="small"
+                freeSolo
+                options={stepOutputReferences}
+                value={valueString}
+                inputValue={valueString}
+                fullWidth
+                onChange={(_, value) =>
+                  data.onUpdateInput?.(rfId, k, value ?? '')
+                }
+                onInputChange={(_, value, reason) => {
+                  if (reason === 'reset') {
+                    return;
+                  }
+                  data.onUpdateInput?.(rfId, k, value ?? '');
+                }}
+                onPointerDown={stopAll.onPointerDown}
+                onKeyDown={stopAll.onKeyDown}
+                className={stopAll.className}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    size="small"
+                    placeholder="value"
+                    inputProps={{
+                      ...params.inputProps,
+                      ...stopAll.inputProps,
+                    }}
+                  />
+                )}
+              />
+              <IconButton
+                size="small"
+                onClick={() => data.onRemoveInputKey?.(rfId, k)}
+                onPointerDown={e => e.stopPropagation()}
+                aria-label={`Remove ${k}`}
+                className="nodrag nowheel"
+              >
+                <DeleteOutlineIcon fontSize="small" />
+              </IconButton>
+            </KvRow>
+          );
+        })}
 
         {/* Add new key/value */}
         <KvRow>
@@ -320,13 +349,34 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
               />
             )}
           />
-          <TextField
+          <Autocomplete
             size="small"
-            placeholder="new value"
+            freeSolo
+            options={stepOutputReferences}
             value={newVal}
-            onChange={e => setNewVal(e.target.value)}
+            inputValue={newVal}
             fullWidth
-            {...stopAll}
+            onChange={(_, value) => setNewVal(value ?? '')}
+            onInputChange={(_, value, reason) => {
+              if (reason === 'reset') {
+                return;
+              }
+              setNewVal(value ?? '');
+            }}
+            onPointerDown={stopAll.onPointerDown}
+            onKeyDown={stopAll.onKeyDown}
+            className={stopAll.className}
+            renderInput={params => (
+              <TextField
+                {...params}
+                size="small"
+                placeholder="new value"
+                inputProps={{
+                  ...params.inputProps,
+                  ...stopAll.inputProps,
+                }}
+              />
+            )}
           />
           <Button
             size="small"

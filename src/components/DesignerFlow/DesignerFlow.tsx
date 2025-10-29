@@ -147,6 +147,10 @@ export default function App({ onNodesJsonChange }: DesignerFlowProps) {
   const [edges, setEdges] = useState<Edge[]>(
     createSequentialEdges(initialNodes),
   );
+  const stepOutputReferencesByNode = useMemo(
+    () => collectStepOutputReferences(nodes),
+    [nodes],
+  );
 
   // ----- ReactFlow change handlers (keep your layout approach) -----
   const onNodesChange = useCallback(
@@ -227,9 +231,17 @@ export default function App({ onNodesJsonChange }: DesignerFlowProps) {
           onUpdateField,
           onUpdateInput,
           onRemoveInputKey,
+          stepOutputReferences: stepOutputReferencesByNode[node.id] ?? [],
         },
       })),
-    [nodes, handleAddNode, onUpdateField, onUpdateInput, onRemoveInputKey],
+    [
+      nodes,
+      handleAddNode,
+      onUpdateField,
+      onUpdateInput,
+      onRemoveInputKey,
+      stepOutputReferencesByNode,
+    ],
   );
 
   const nodesPreview = useMemo(
@@ -312,7 +324,9 @@ export default function App({ onNodesJsonChange }: DesignerFlowProps) {
             wordBreak: 'break-word',
           }}
         >
-          <pre style={{ margin: 0 }}>{collectStepOutputReferences(nodes)}</pre>
+          <pre style={{ margin: 0 }}>
+            {JSON.stringify(stepOutputReferencesByNode, null, 2)}
+          </pre>
         </Panel>
       </ReactFlow>
     </div>

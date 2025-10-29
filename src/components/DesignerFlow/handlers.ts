@@ -162,10 +162,18 @@ export const createHandleUpdateInput = (setNodes: SetNodes) => {
   };
 };
 
-export const collectStepOutputReferences = (nodes: Node[]): string[] => {
-  const references = new Set<string>();
 
-  nodes.forEach(node => {
+export const collectStepOutputReferences = (
+  nodes: Node[],
+): Record<string, string[]> => {
+  const referencesByNode: Record<string, string[]> = {};
+  const sortedNodes = [...nodes].sort((a, b) => a.position.y - b.position.y);
+  const accumulatedReferences: string[] = [];
+  const accumulatedSet = new Set<string>();
+
+  sortedNodes.forEach(node => {
+    referencesByNode[node.id] = [...accumulatedReferences];
+
     const data = node.data as ActionNodeData | undefined;
     if (!data) {
       return;
@@ -205,9 +213,13 @@ export const collectStepOutputReferences = (nodes: Node[]): string[] => {
     }
 
     outputKeys.forEach(outputKey => {
-      references.add(`steps[${stepId}].output.${outputKey}`);
+      const reference = `steps[${stepId}].output.${outputKey}`;
+      if (!accumulatedSet.has(reference)) {
+        accumulatedSet.add(reference);
+        accumulatedReferences.push(reference);
+      }
     });
   });
 
-  return Array.from(references);
+  return referencesByNode;
 };
