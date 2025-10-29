@@ -22,13 +22,13 @@ jobs:
 
       - name: Run code quality checks
         run: |
-          yarn tsc:full
-          yarn lint:all
+          yarn tsc
+          yarn lint
           yarn prettier:check
 
       - name: Run tests and build
         run: |
           yarn clean
-          yarn tsc:full
+          yarn tsc
           yarn build
           yarn test
