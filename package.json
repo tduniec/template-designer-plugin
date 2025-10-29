@@ -31,6 +31,7 @@
   "dependencies": {
     "@backstage/core-components": "^0.18.2",
     "@backstage/core-plugin-api": "^1.11.1",
+    "@backstage/plugin-scaffolder-common": "^1.7.2",
     "@backstage/theme": "^0.7.0",
     "@codemirror/lang-yaml": "^6.1.2",
     "@material-ui/core": "^4.9.13",
