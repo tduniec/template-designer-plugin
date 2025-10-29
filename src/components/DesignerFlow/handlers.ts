@@ -145,7 +145,7 @@ export const createHandleUpdateField = (setNodes: SetNodes) => {
 };
 
 export const createHandleUpdateInput = (setNodes: SetNodes) => {
-  return (rfId: string, key: string, value: string) => {
+  return (rfId: string, key: string, value: unknown) => {
     setNodes(nds =>
       nds.map(n => {
         if (n.id !== rfId) {
