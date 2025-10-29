@@ -21,6 +21,7 @@
     "lint": "backstage-cli package lint",
     "test": "backstage-cli package test",
     "clean": "backstage-cli package clean",
+    "tsc": "tsc",
     "tsc:full": "tsc --skipLibCheck false --incremental false",
     "lint:all": "backstage-cli repo lint",
     "prettier:check": "prettier --check .",
@@ -54,7 +55,9 @@
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.0.0",
     "msw": "^1.0.0",
-    "react": "^16.13.1 || ^17.0.0 || ^18.0.0"
+    "prettier": "^2.3.2",
+    "react": "^16.13.1 || ^17.0.0 || ^18.0.0",
+    "typescript": "~5.8.0"
   },
   "files": [
     "dist"
