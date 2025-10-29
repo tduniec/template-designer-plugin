@@ -21,6 +21,9 @@
     "lint": "backstage-cli package lint",
     "test": "backstage-cli package test",
     "clean": "backstage-cli package clean",
+    "tsc:full": "tsc --skipLibCheck false --incremental false",
+    "lint:all": "backstage-cli repo lint",
+    "prettier:check": "prettier --check .",
     "prepack": "backstage-cli package prepack",
     "postpack": "backstage-cli package postpack"
   },
