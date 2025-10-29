@@ -72,6 +72,7 @@ const ToolbarBtn = styled(Button)(({ theme }) => ({
 }));
 
 const DEFAULT_ACTION_OPTIONS = [
+  'fetch:template', // TODO to be fixed later to not uses default actions
 ];
 
 export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {

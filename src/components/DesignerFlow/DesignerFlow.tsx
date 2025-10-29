@@ -81,9 +81,7 @@ const buildScaffolderActionsCache = (list: ScaffolderAction[]) => {
 
 const useScaffolderActions = () => {
   const scaffolderApi = useApi(scaffolderApiRef);
-  const [cache, setCache] = useState(() =>
-    buildScaffolderActionsCache(([]) ),
-  );
+  const [cache, setCache] = useState(() => buildScaffolderActionsCache([]));
 
   useEffect(() => {
     let cancelled = false;
@@ -96,11 +94,7 @@ const useScaffolderActions = () => {
         }
         setCache(buildScaffolderActionsCache(remoteActions));
       })
-      .catch(error => {
-        if (process.env.NODE_ENV !== 'production') {
-          console.warn('Failed to load scaffolder actions', error);
-        }
-      });
+      .catch();
 
     return () => {
       cancelled = true;
