@@ -162,7 +162,6 @@ export const createHandleUpdateInput = (setNodes: SetNodes) => {
   };
 };
 
-
 export const collectStepOutputReferences = (
   nodes: Node[],
 ): Record<string, string[]> => {

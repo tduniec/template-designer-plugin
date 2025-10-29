@@ -96,7 +96,9 @@ type NormalizedSchemaType =
 const capitalize = (value: string) =>
   value.length > 0 ? value[0].toUpperCase() + value.slice(1) : value;
 
-const getFirstType = (type: string | string[] | undefined): NormalizedSchemaType => {
+const getFirstType = (
+  type: string | string[] | undefined,
+): NormalizedSchemaType => {
   if (!type) {
     return 'string';
   }
@@ -269,11 +271,8 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
     if (!actionId) {
       return {} as Record<string, JsonSchemaProperty>;
     }
-    const inputs =
-      (data.scaffolderActionInputsById?.[actionId] ?? {}) as Record<
-        string,
-        JsonSchemaProperty
-      >;
+    const inputs = (data.scaffolderActionInputsById?.[actionId] ??
+      {}) as Record<string, JsonSchemaProperty>;
     return inputs;
   }, [actionId, data.scaffolderActionInputsById]);
 
@@ -476,15 +475,9 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
           const typeLabel = buildTypeLabel(schema) || 'String';
           const enumOptions = extractEnumOptions(schema);
           const baseOptions =
-            normalizedType === 'boolean'
-              ? ['true', 'false']
-              : [];
+            normalizedType === 'boolean' ? ['true', 'false'] : [];
           const options = Array.from(
-            new Set([
-              ...baseOptions,
-              ...enumOptions,
-              ...stepOutputReferences,
-            ]),
+            new Set([...baseOptions, ...enumOptions, ...stepOutputReferences]),
           );
           const displayValue = stringifyValueForDisplay(v, normalizedType);
           const handleStringChange = (nextValue: string) => {
