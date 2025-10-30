@@ -46,7 +46,6 @@
     "@mui/material": "^7.3.4",
     "@uiw/react-codemirror": "^4.25.2",
     "@xyflow/react": "^12.8.6",
-    "react-markdown": "^10.1.0",
     "react-use": "^17.2.4",
     "yaml": "^2.8.1"
   },

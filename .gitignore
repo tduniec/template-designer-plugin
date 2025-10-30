@@ -2,3 +2,4 @@ node_modules/
 # .yarn
 *.local.*
 dist-types
+dist
