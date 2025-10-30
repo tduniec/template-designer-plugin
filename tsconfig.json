@@ -5,7 +5,7 @@
   "compilerOptions": {
     "outDir": "dist-types",
     "rootDir": ".",
-    "jsx": "react-jsx",
+    "jsx": "react",
     "skipLibCheck": true
   }
 }
