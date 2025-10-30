@@ -19,7 +19,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          yarn set version 4
           yarn install --immutable
 
       - name: Run code quality checks
