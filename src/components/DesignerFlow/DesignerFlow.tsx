@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
 import {
   ReactFlow,
   applyNodeChanges,
@@ -12,12 +13,12 @@ import {
   useNodesState,
   Panel,
   ReactFlowInstance,
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import { createSequentialEdges } from '../../utils/createSequentialEdges';
-import type { TaskStep } from '@backstage/plugin-scaffolder-common';
-import { ActionNode } from '../../nodes/ActionNode';
-import type { ActionNodeData } from '../../nodes/ActionNode';
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import { createSequentialEdges } from "../../utils/createSequentialEdges";
+import type { TaskStep } from "@backstage/plugin-scaffolder-common";
+import { ActionNode } from "../../nodes/ActionNode";
+import type { ActionNodeData } from "../../nodes/ActionNode";
 import {
   collectStepOutputReferences,
   createHandleAddNode,
@@ -25,10 +26,11 @@ import {
   createHandleReorderAndAlignNodes,
   createHandleUpdateField,
   createHandleUpdateInput,
-} from './handlers';
-import initialStepsYaml from '../../utils/initialNodes1.yaml';
-import actions from '../../utils/actionsDraft.json';
-import { convertYamlToJson } from '../../utils/yamlJsonConversion';
+} from "./handlers";
+import initialStepsYaml from "../../utils/initialNodes1.yaml";
+import { convertYamlToJson } from "../../utils/yamlJsonConversion";
+import { scaffolderApiRef } from "@backstage/plugin-scaffolder-react";
+import { useApi } from "@backstage/core-plugin-api";
 
 const VERTICAL_SPACING = 400;
 const FIXED_X_POSITION = 100;
@@ -43,7 +45,7 @@ const nodeDefaults = {
 };
 
 const initialSteps = JSON.parse(
-  convertYamlToJson(initialStepsYaml),
+  convertYamlToJson(initialStepsYaml)
 ) as TaskStep[];
 
 type ScaffolderAction = {
@@ -58,8 +60,7 @@ type ScaffolderAction = {
   };
 };
 
-const loadLocalScaffolderActions = () => {
-  const list = (actions as ScaffolderAction[]) ?? [];
+const buildScaffolderActionsCache = (list: ScaffolderAction[]) => {
   const { inputsById, outputsById } = list.reduce<{
     inputsById: Record<string, Record<string, unknown>>;
     outputsById: Record<string, Record<string, unknown>>;
@@ -69,14 +70,39 @@ const loadLocalScaffolderActions = () => {
       acc.outputsById[action.id] = action.schema?.output?.properties ?? {};
       return acc;
     },
-    { inputsById: {}, outputsById: {} },
+    { inputsById: {}, outputsById: {} }
   );
 
   return {
-    ids: list.map(action => action.id),
+    ids: list.map((action) => action.id),
     inputsById,
     outputsById,
   };
+};
+
+const useScaffolderActions = () => {
+  const scaffolderApi = useApi(scaffolderApiRef);
+  const [cache, setCache] = useState(() => buildScaffolderActionsCache([]));
+
+  useEffect(() => {
+    let cancelled = false;
+
+    scaffolderApi
+      .listActions()
+      .then((remoteActions) => {
+        if (cancelled) {
+          return;
+        }
+        setCache(buildScaffolderActionsCache(remoteActions));
+      })
+      .catch();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [scaffolderApi]);
+
+  return cache;
 };
 
 type DesignerFlowProps = {
@@ -84,7 +110,7 @@ type DesignerFlowProps = {
 };
 
 export default function App({ onNodesJsonChange }: DesignerFlowProps) {
-  const [scaffolderActionsCache] = useState(loadLocalScaffolderActions);
+  const scaffolderActionsCache = useScaffolderActions();
 
   const {
     ids: scaffolderActionIds,
@@ -99,7 +125,7 @@ export default function App({ onNodesJsonChange }: DesignerFlowProps) {
         const rfId = `rf-${index + 1}`;
         return {
           id: rfId, // ReactFlow id (stable, never tied to step.id)
-          type: 'actionNode',
+          type: "actionNode",
           position: { x: FIXED_X_POSITION, y: index * VERTICAL_SPACING },
           data: {
             rfId,
@@ -115,30 +141,34 @@ export default function App({ onNodesJsonChange }: DesignerFlowProps) {
       scaffolderActionIds,
       scaffolderActionInputsById,
       scaffolderActionOutputsById,
-    ],
+    ]
   );
 
   const [nodes, setNodes] = useNodesState(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(
-    createSequentialEdges(initialNodes),
+    createSequentialEdges(initialNodes)
+  );
+  const stepOutputReferencesByNode = useMemo(
+    () => collectStepOutputReferences(nodes),
+    [nodes]
   );
 
   // ----- ReactFlow change handlers (keep your layout approach) -----
   const onNodesChange = useCallback(
     (changes: NodeChange<Node>[]) =>
-      setNodes(ns => applyNodeChanges(changes, ns)),
-    [setNodes],
+      setNodes((ns) => applyNodeChanges(changes, ns)),
+    [setNodes]
   );
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange<Edge>[]) =>
-      setEdges(es => applyEdgeChanges(changes, es)),
-    [setEdges],
+      setEdges((es) => applyEdgeChanges(changes, es)),
+    [setEdges]
   );
 
   const onConnect = useCallback(
-    (params: any) => setEdges(es => addEdge(params, es)),
-    [setEdges],
+    (params: any) => setEdges((es) => addEdge(params, es)),
+    [setEdges]
   );
 
   const reorderAndAlignNodes = useMemo(
@@ -147,29 +177,29 @@ export default function App({ onNodesJsonChange }: DesignerFlowProps) {
         fixedXPosition: FIXED_X_POSITION,
         verticalSpacing: VERTICAL_SPACING,
       }),
-    [setNodes, setEdges],
+    [setNodes, setEdges]
   );
 
   const onNodeDragStop = useCallback(
-    (_: React.MouseEvent, node: Node) => {
+    (_: ReactMouseEvent, node: Node) => {
       reorderAndAlignNodes(node);
     },
-    [reorderAndAlignNodes],
+    [reorderAndAlignNodes]
   );
 
   const onUpdateField = useMemo(
     () => createHandleUpdateField(setNodes),
-    [setNodes],
+    [setNodes]
   );
 
   const onUpdateInput = useMemo(
     () => createHandleUpdateInput(setNodes),
-    [setNodes],
+    [setNodes]
   );
 
   const onRemoveInputKey = useMemo(
     () => createHandleRemoveInputKey(setNodes),
-    [setNodes],
+    [setNodes]
   );
 
   const handleAddNode = useMemo(
@@ -188,13 +218,13 @@ export default function App({ onNodesJsonChange }: DesignerFlowProps) {
       scaffolderActionOutputsById,
       setNodes,
       setEdges,
-    ],
+    ]
   );
 
   // Attach callbacks to each node’s data
   const nodesWithHandlers = useMemo(
     () =>
-      nodes.map(node => ({
+      nodes.map((node) => ({
         ...node,
         data: {
           ...node.data,
@@ -202,14 +232,22 @@ export default function App({ onNodesJsonChange }: DesignerFlowProps) {
           onUpdateField,
           onUpdateInput,
           onRemoveInputKey,
+          stepOutputReferences: stepOutputReferencesByNode[node.id] ?? [],
         },
       })),
-    [nodes, handleAddNode, onUpdateField, onUpdateInput, onRemoveInputKey],
+    [
+      nodes,
+      handleAddNode,
+      onUpdateField,
+      onUpdateInput,
+      onRemoveInputKey,
+      stepOutputReferencesByNode,
+    ]
   );
 
   const nodesPreview = useMemo(
     () =>
-      nodes.map(node => {
+      nodes.map((node) => {
         const { id, position, data } = node;
         const { step } = (data as ActionNodeData) ?? {};
         return {
@@ -218,12 +256,12 @@ export default function App({ onNodesJsonChange }: DesignerFlowProps) {
           step,
         };
       }),
-    [nodes],
+    [nodes]
   );
 
   const nodesJson = useMemo(
     () => JSON.stringify(nodesPreview, null, 2),
-    [nodesPreview],
+    [nodesPreview]
   );
 
   useEffect(() => {
@@ -251,14 +289,14 @@ export default function App({ onNodesJsonChange }: DesignerFlowProps) {
     if (!reactFlowInstance) {
       return undefined; // 👈 explicitly returning undefined
     }
-    window.addEventListener('resize', fitFlowToView);
+    window.addEventListener("resize", fitFlowToView);
     return () => {
-      window.removeEventListener('resize', fitFlowToView);
+      window.removeEventListener("resize", fitFlowToView);
     };
   }, [fitFlowToView, reactFlowInstance]);
 
   return (
-    <div style={{ width: '100%', height: '100%', minHeight: '70vh' }}>
+    <div style={{ width: "100%", height: "100%", minHeight: "70vh" }}>
       <ReactFlow
         nodes={nodesWithHandlers}
         edges={edges}
@@ -273,21 +311,23 @@ export default function App({ onNodesJsonChange }: DesignerFlowProps) {
         <Panel
           position="bottom-right"
           style={{
-            maxHeight: '60vh',
+            maxHeight: "60vh",
             width: 320,
-            overflow: 'auto',
-            background: '#fff',
+            overflow: "auto",
+            background: "#fff",
             borderRadius: 8,
-            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.12)',
-            padding: '12px 16px',
-            fontFamily: 'monospace',
-            fontSize: '0.75rem',
+            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.12)",
+            padding: "12px 16px",
+            fontFamily: "monospace",
+            fontSize: "0.75rem",
             lineHeight: 1.4,
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
           }}
         >
-          <pre style={{ margin: 0 }}>{collectStepOutputReferences(nodes)}</pre>
+          <pre style={{ margin: 0 }}>
+            {JSON.stringify(stepOutputReferencesByNode, null, 2)}
+          </pre>
         </Panel>
       </ReactFlow>
     </div>

@@ -1,0 +1,35 @@
+name: Build and Test Packages
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: |
+          yarn install --immutable
+
+      - name: Run code quality checks
+        run: |
+          yarn tsc
+          yarn lint
+          yarn prettier:check
+
+      - name: Run tests and build
+        run: |
+          yarn clean
+          yarn tsc
+          yarn build
+          yarn test
