@@ -2,7 +2,26 @@ import { TemplateDesigner } from "./TemplateDesigner";
 import { rest } from "msw";
 import { setupServer } from "msw/node";
 import { screen } from "@testing-library/react";
-import { registerMswTestHooks, renderInTestApp } from "@backstage/test-utils";
+import {
+  TestApiProvider,
+  registerMswTestHooks,
+  renderInTestApp,
+} from "@backstage/test-utils";
+import { scaffolderApiRef } from "@backstage/plugin-scaffolder-react";
+
+const mockScaffolderApi = {
+  listActions: async () => [],
+};
+
+const ResizeObserverMock = class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
+if (typeof (global as any).ResizeObserver === "undefined") {
+  (global as any).ResizeObserver = ResizeObserverMock;
+}
 
 describe("ExampleComponent", () => {
   const server = setupServer();
@@ -17,7 +36,11 @@ describe("ExampleComponent", () => {
   });
 
   it("should render", async () => {
-    await renderInTestApp(<TemplateDesigner />);
+    await renderInTestApp(
+      <TestApiProvider apis={[[scaffolderApiRef, mockScaffolderApi]]}>
+        <TemplateDesigner />
+      </TestApiProvider>
+    );
     expect(screen.getByText("Template Designer")).toBeInTheDocument();
   });
 });
