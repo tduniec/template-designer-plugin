@@ -1,1 +1,1 @@
-export { TemplateDesigner } from "./TemplateDesigner";
+export { TemplateDesigner } from './TemplateDesigner';
