@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { ChangeEvent, FC, KeyboardEvent, SyntheticEvent } from "react";
+import type { ChangeEvent, KeyboardEvent, SyntheticEvent } from "react";
 import { Handle, Position, NodeToolbar } from "@xyflow/react";
 import { styled } from "@mui/material/styles";
 import {
@@ -250,7 +250,7 @@ type ActionInputOption = {
   type: NormalizedSchemaType;
 };
 
-export const ActionNode: FC<{ data: ActionNodeData }> = ({ data }) => {
+export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
   const { rfId, step } = data;
   const [newKey, setNewKey] = useState("");
   const [newVal, setNewVal] = useState("");

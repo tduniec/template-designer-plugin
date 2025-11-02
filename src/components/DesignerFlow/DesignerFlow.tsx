@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import {
   ReactFlow,
@@ -27,8 +27,6 @@ import {
   createHandleUpdateField,
   createHandleUpdateInput,
 } from "./handlers";
-import initialStepsYaml from "../../utils/initialNodes1.yaml";
-import { convertYamlToJson } from "../../utils/yamlJsonConversion";
 import { scaffolderApiRef } from "@backstage/plugin-scaffolder-react";
 import { useApi } from "@backstage/core-plugin-api";
 
@@ -44,9 +42,72 @@ const nodeDefaults = {
   targetPosition: Position.Top,
 };
 
-const initialSteps = JSON.parse(
-  convertYamlToJson(initialStepsYaml)
-) as TaskStep[];
+const sanitizeForRfId = (value: string) =>
+  value.replace(/[^a-zA-Z0-9-_.:]/g, "_");
+
+const buildRfId = (step: TaskStep | undefined, index: number) => {
+  if (step && typeof step.id === "string" && step.id.trim().length > 0) {
+    return `rf-${sanitizeForRfId(step.id)}-${index}`;
+  }
+  return `rf-${index + 1}`;
+};
+
+const cloneStep = (step: TaskStep): TaskStep =>
+  JSON.parse(JSON.stringify(step ?? {})) as TaskStep;
+
+type BuildNodesFromStepsOptions = {
+  scaffolderActionIds: string[];
+  scaffolderActionInputsById: Record<string, Record<string, unknown>>;
+  scaffolderActionOutputsById: Record<string, Record<string, unknown>>;
+};
+
+const buildNodesFromSteps = (
+  steps: TaskStep[],
+  options: BuildNodesFromStepsOptions
+) => {
+  const {
+    scaffolderActionIds,
+    scaffolderActionInputsById,
+    scaffolderActionOutputsById,
+  } = options;
+
+  return steps.map((step, index) => {
+    const rfId = buildRfId(step, index);
+    return {
+      id: rfId,
+      type: "actionNode",
+      position: { x: FIXED_X_POSITION, y: index * VERTICAL_SPACING },
+      data: {
+        rfId,
+        step: cloneStep(step),
+        scaffolderActionIds,
+        scaffolderActionInputsById,
+        scaffolderActionOutputsById,
+      },
+      ...nodeDefaults,
+    } as Node;
+  });
+};
+
+const normalizeValueForStableStringify = (value: unknown): unknown => {
+  if (Array.isArray(value)) {
+    return value.map(normalizeValueForStableStringify);
+  }
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .filter(([key]) => key !== undefined)
+      // eslint-disable-next-line no-nested-ternary
+      .sort(([a], [b]) => (a > b ? 1 : a < b ? -1 : 0));
+    return entries.reduce<Record<string, unknown>>((acc, [key, val]) => {
+      acc[key] = normalizeValueForStableStringify(val);
+      return acc;
+    }, {});
+  }
+  return value;
+};
+
+const stableStringify = (value: unknown): string =>
+  JSON.stringify(normalizeValueForStableStringify(value));
 
 type ScaffolderAction = {
   id: string;
@@ -106,10 +167,11 @@ const useScaffolderActions = () => {
 };
 
 type DesignerFlowProps = {
-  onNodesJsonChange?: (json: string) => void;
+  steps?: TaskStep[];
+  onStepsChange?: (steps: TaskStep[]) => void;
 };
 
-export default function App({ onNodesJsonChange }: DesignerFlowProps) {
+export default function App({ steps = [], onStepsChange }: DesignerFlowProps) {
   const scaffolderActionsCache = useScaffolderActions();
 
   const {
@@ -118,24 +180,33 @@ export default function App({ onNodesJsonChange }: DesignerFlowProps) {
     outputsById: scaffolderActionOutputsById,
   } = scaffolderActionsCache;
 
-  // Build initial nodes ONCE, with a stable RF id separate from step.id
-  const initialNodes: Node[] = useMemo(
+  const initialNodes = useMemo(
     () =>
-      initialSteps.map((step, index) => {
-        const rfId = `rf-${index + 1}`;
-        return {
-          id: rfId, // ReactFlow id (stable, never tied to step.id)
-          type: "actionNode",
-          position: { x: FIXED_X_POSITION, y: index * VERTICAL_SPACING },
-          data: {
-            rfId,
-            step,
-            scaffolderActionIds,
-            scaffolderActionInputsById,
-            scaffolderActionOutputsById,
-          }, // pass rfId + the TaskStep payload
-          ...nodeDefaults,
-        } as Node;
+      buildNodesFromSteps(steps, {
+        scaffolderActionIds,
+        scaffolderActionInputsById,
+        scaffolderActionOutputsById,
+      }),
+    [
+      steps,
+      scaffolderActionIds,
+      scaffolderActionInputsById,
+      scaffolderActionOutputsById,
+    ]
+  );
+
+  const [nodes, setNodes] = useNodesState(initialNodes);
+  const [edges, setEdges] = useState<Edge[]>(() =>
+    createSequentialEdges(initialNodes)
+  );
+
+  const stepsHash = useMemo(() => stableStringify(steps), [steps]);
+  const cacheFingerprint = useMemo(
+    () =>
+      stableStringify({
+        ids: scaffolderActionIds,
+        inputs: scaffolderActionInputsById,
+        outputs: scaffolderActionOutputsById,
       }),
     [
       scaffolderActionIds,
@@ -144,10 +215,50 @@ export default function App({ onNodesJsonChange }: DesignerFlowProps) {
     ]
   );
 
-  const [nodes, setNodes] = useNodesState(initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(
-    createSequentialEdges(initialNodes)
-  );
+  const lastAppliedStepsHashRef = useRef<string | null>(null);
+  const lastEmittedStepsHashRef = useRef<string | null>(null);
+  const skipNextStepsHashRef = useRef<string | null>(null);
+  const lastCacheFingerprintRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const isCacheChanged = cacheFingerprint !== lastCacheFingerprintRef.current;
+    const shouldSkip =
+      stepsHash === skipNextStepsHashRef.current && !isCacheChanged;
+
+    if (shouldSkip) {
+      skipNextStepsHashRef.current = null;
+      lastAppliedStepsHashRef.current = stepsHash;
+      lastCacheFingerprintRef.current = cacheFingerprint;
+      return;
+    }
+
+    if (stepsHash === lastAppliedStepsHashRef.current && !isCacheChanged) {
+      return;
+    }
+
+    const nextNodes = buildNodesFromSteps(steps, {
+      scaffolderActionIds,
+      scaffolderActionInputsById,
+      scaffolderActionOutputsById,
+    });
+
+    lastAppliedStepsHashRef.current = stepsHash;
+    lastCacheFingerprintRef.current = cacheFingerprint;
+    lastEmittedStepsHashRef.current = stepsHash;
+
+    setNodes(nextNodes);
+    setEdges(createSequentialEdges(nextNodes));
+  }, [
+    steps,
+    stepsHash,
+    cacheFingerprint,
+    scaffolderActionIds,
+    scaffolderActionInputsById,
+    scaffolderActionOutputsById,
+    setNodes,
+    setEdges,
+  ]);
+
   const stepOutputReferencesByNode = useMemo(
     () => collectStepOutputReferences(nodes),
     [nodes]
@@ -245,31 +356,31 @@ export default function App({ onNodesJsonChange }: DesignerFlowProps) {
     ]
   );
 
-  const nodesPreview = useMemo(
-    () =>
-      nodes.map((node) => {
-        const { id, position, data } = node;
-        const { step } = (data as ActionNodeData) ?? {};
-        return {
-          id,
-          position,
-          step,
-        };
-      }),
-    [nodes]
-  );
-
-  const nodesJson = useMemo(
-    () => JSON.stringify(nodesPreview, null, 2),
-    [nodesPreview]
-  );
+  const stepsFromNodes = useMemo(() => {
+    const sorted = [...nodes].sort((a, b) => a.position.y - b.position.y);
+    return sorted
+      .map((node) => {
+        const data = node.data as ActionNodeData | undefined;
+        if (!data || !data.step) {
+          return undefined;
+        }
+        return cloneStep(data.step as TaskStep);
+      })
+      .filter((step): step is TaskStep => !!step);
+  }, [nodes]);
 
   useEffect(() => {
-    if (!onNodesJsonChange) {
+    if (!onStepsChange) {
       return;
     }
-    onNodesJsonChange(nodesJson);
-  }, [nodesJson, onNodesJsonChange]);
+    const serialized = stableStringify(stepsFromNodes);
+    if (serialized === lastEmittedStepsHashRef.current) {
+      return;
+    }
+    lastEmittedStepsHashRef.current = serialized;
+    skipNextStepsHashRef.current = serialized;
+    onStepsChange(stepsFromNodes);
+  }, [stepsFromNodes, onStepsChange]);
 
   const fitViewOptions = useMemo(() => ({ padding: 0.2, duration: 300 }), []);
   const [reactFlowInstance] = useState<ReactFlowInstance | null>(null);
@@ -333,10 +444,3 @@ export default function App({ onNodesJsonChange }: DesignerFlowProps) {
     </div>
   );
 }
-
-// fetch("https://backstage.app.trading-point.com/api/scaffolder/v2/actions", {
-//   "headers": {
-//   },
-//   "body": null,
-//   "method": "GET"
-// });

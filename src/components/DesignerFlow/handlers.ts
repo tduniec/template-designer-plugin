@@ -212,7 +212,7 @@ export const collectStepOutputReferences = (
     }
 
     outputKeys.forEach((outputKey) => {
-      const reference = `steps[${stepId}].output.${outputKey}`;
+      const reference = `$\{\{ steps[${stepId}].output.${outputKey} }}`;
       if (!accumulatedSet.has(reference)) {
         accumulatedSet.add(reference);
         accumulatedReferences.push(reference);
