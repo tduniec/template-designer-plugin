@@ -1,11 +1,10 @@
-import React from 'react';
-import { TemplateDesigner } from './TemplateDesigner';
-import { rest } from 'msw';
-import { setupServer } from 'msw/node';
-import { screen } from '@testing-library/react';
-import { registerMswTestHooks, renderInTestApp } from '@backstage/test-utils';
+import { TemplateDesigner } from "./TemplateDesigner";
+import { rest } from "msw";
+import { setupServer } from "msw/node";
+import { screen } from "@testing-library/react";
+import { registerMswTestHooks, renderInTestApp } from "@backstage/test-utils";
 
-describe('ExampleComponent', () => {
+describe("ExampleComponent", () => {
   const server = setupServer();
   // Enable sane handlers for network requests
   registerMswTestHooks(server);
@@ -13,12 +12,12 @@ describe('ExampleComponent', () => {
   // setup mock response
   beforeEach(() => {
     server.use(
-      rest.get('/*', (_, res, ctx) => res(ctx.status(200), ctx.json({}))),
+      rest.get("/*", (_, res, ctx) => res(ctx.status(200), ctx.json({})))
     );
   });
 
-  it('should render', async () => {
+  it("should render", async () => {
     await renderInTestApp(<TemplateDesigner />);
-    expect(screen.getByText('Template Designer')).toBeInTheDocument();
+    expect(screen.getByText("Template Designer")).toBeInTheDocument();
   });
 });

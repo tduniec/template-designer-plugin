@@ -1,9 +1,9 @@
-import { parse, stringify } from 'yaml';
+import { parse, stringify } from "yaml";
 
 export const convertJsonToYaml = (value: unknown): string => {
   let source = value;
 
-  if (typeof source === 'string') {
+  if (typeof source === "string") {
     const trimmed = source.trim();
     if (!trimmed) {
       source = {};
@@ -13,8 +13,8 @@ export const convertJsonToYaml = (value: unknown): string => {
       } catch (error) {
         throw new Error(
           `Invalid JSON input provided for YAML conversion: ${
-            error instanceof Error ? error.message : 'unknown error'
-          }`,
+            error instanceof Error ? error.message : "unknown error"
+          }`
         );
       }
     }
@@ -26,7 +26,7 @@ export const convertJsonToYaml = (value: unknown): string => {
 export const convertYamlToJson = (value: unknown): string => {
   let source = value;
 
-  if (typeof source === 'string') {
+  if (typeof source === "string") {
     const trimmed = source.trim();
     if (!trimmed) {
       source = {};
@@ -36,8 +36,8 @@ export const convertYamlToJson = (value: unknown): string => {
       } catch (error) {
         throw new Error(
           `Invalid YAML input provided for JSON conversion: ${
-            error instanceof Error ? error.message : 'unknown error'
-          }`,
+            error instanceof Error ? error.message : "unknown error"
+          }`
         );
       }
     }
@@ -48,8 +48,8 @@ export const convertYamlToJson = (value: unknown): string => {
   } catch (error) {
     throw new Error(
       `Unable to serialize value to JSON: ${
-        error instanceof Error ? error.message : 'unknown error'
-      }`,
+        error instanceof Error ? error.message : "unknown error"
+      }`
     );
   }
 };

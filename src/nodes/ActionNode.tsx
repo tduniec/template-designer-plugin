@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
-import { Handle, Position, NodeToolbar } from '@xyflow/react';
-import { styled } from '@mui/material/styles';
+import { useMemo, useState } from "react";
+import type { ChangeEvent, FC, KeyboardEvent, SyntheticEvent } from "react";
+import { Handle, Position, NodeToolbar } from "@xyflow/react";
+import { styled } from "@mui/material/styles";
 import {
   Box,
   Typography,
@@ -9,12 +10,12 @@ import {
   Button,
   Divider,
   Chip,
-} from '@material-ui/core';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import AddIcon from '@mui/icons-material/Add';
-import type { TaskStep } from '@backstage/plugin-scaffolder-common';
-import { useTheme } from '@mui/material/styles';
-import Autocomplete from '@material-ui/lab/Autocomplete';
+} from "@material-ui/core";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import AddIcon from "@mui/icons-material/Add";
+import type { TaskStep } from "@backstage/plugin-scaffolder-common";
+import { useTheme } from "@mui/material/styles";
+import Autocomplete from "@material-ui/lab/Autocomplete";
 
 export type ActionNodeData = {
   /** Stable ReactFlow node id */
@@ -47,35 +48,35 @@ const Card = styled(Box)(({ theme }) => ({
 }));
 
 const Header = styled(Box)(({ theme }) => ({
-  display: 'grid',
-  gridTemplateColumns: '1fr',
+  display: "grid",
+  gridTemplateColumns: "1fr",
   gap: theme.spacing(1),
   marginBottom: theme.spacing(1),
 }));
 
 const Grid = styled(Box)(({ theme }) => ({
-  display: 'grid',
-  gridTemplateColumns: '88px 1fr',
+  display: "grid",
+  gridTemplateColumns: "88px 1fr",
   gap: theme.spacing(1),
-  alignItems: 'center',
+  alignItems: "center",
 }));
 
 const KvRow = styled(Box)(({ theme }) => ({
-  display: 'grid',
-  gridTemplateColumns: '200px 140px 1fr auto',
+  display: "grid",
+  gridTemplateColumns: "200px 140px 1fr auto",
   gap: theme.spacing(1),
-  alignItems: 'center',
+  alignItems: "center",
 }));
 
 const ToolbarBtn = styled(Button)(({ theme }) => ({
-  textTransform: 'none',
+  textTransform: "none",
   borderRadius: 8,
   paddingInline: theme.spacing(1),
   paddingBlock: 4,
 }));
 
 const DEFAULT_ACTION_OPTIONS = [
-  'fetch:template', // TODO to be fixed later to not uses default actions
+  "fetch:template", // TODO to be fixed later to not uses default actions
 ];
 
 type JsonSchemaProperty = {
@@ -85,58 +86,58 @@ type JsonSchemaProperty = {
 } & Record<string, unknown>;
 
 type NormalizedSchemaType =
-  | 'string'
-  | 'number'
-  | 'integer'
-  | 'boolean'
-  | 'array'
-  | 'object'
-  | 'unknown';
+  | "string"
+  | "number"
+  | "integer"
+  | "boolean"
+  | "array"
+  | "object"
+  | "unknown";
 
 const capitalize = (value: string) =>
   value.length > 0 ? value[0].toUpperCase() + value.slice(1) : value;
 
 const getFirstType = (
-  type: string | string[] | undefined,
+  type: string | string[] | undefined
 ): NormalizedSchemaType => {
   if (!type) {
-    return 'string';
+    return "string";
   }
   const value = Array.isArray(type) ? type[0] : type;
   if (
-    value === 'string' ||
-    value === 'number' ||
-    value === 'integer' ||
-    value === 'boolean' ||
-    value === 'array' ||
-    value === 'object'
+    value === "string" ||
+    value === "number" ||
+    value === "integer" ||
+    value === "boolean" ||
+    value === "array" ||
+    value === "object"
   ) {
     return value;
   }
-  return 'string';
+  return "string";
 };
 
 const normalizeSchemaType = (
-  schema: JsonSchemaProperty | undefined,
+  schema: JsonSchemaProperty | undefined
 ): NormalizedSchemaType => {
-  if (!schema || typeof schema !== 'object') {
-    return 'string';
+  if (!schema || typeof schema !== "object") {
+    return "string";
   }
   return getFirstType(schema.type);
 };
 
 const getArrayItemTypeLabel = (schema: JsonSchemaProperty | undefined) => {
   if (!schema) {
-    return '';
+    return "";
   }
   const items = schema.items;
   if (!items) {
-    return '';
+    return "";
   }
   if (Array.isArray(items)) {
     const [first] = items;
     if (!first) {
-      return '';
+      return "";
     }
     return capitalize(normalizeSchemaType(first));
   }
@@ -145,29 +146,29 @@ const getArrayItemTypeLabel = (schema: JsonSchemaProperty | undefined) => {
 
 const buildTypeLabel = (schema: JsonSchemaProperty | undefined) => {
   const normalized = normalizeSchemaType(schema);
-  if (normalized === 'array') {
+  if (normalized === "array") {
     const itemsLabel = getArrayItemTypeLabel(schema);
-    return itemsLabel ? `Array<${itemsLabel}>` : 'Array';
+    return itemsLabel ? `Array<${itemsLabel}>` : "Array";
   }
-  if (normalized === 'integer') {
-    return 'Integer';
+  if (normalized === "integer") {
+    return "Integer";
   }
-  if (normalized === 'unknown') {
-    return 'Unknown';
+  if (normalized === "unknown") {
+    return "Unknown";
   }
   return capitalize(normalized);
 };
 
 const stringifyValueForDisplay = (
   value: unknown,
-  type: NormalizedSchemaType,
+  type: NormalizedSchemaType
 ) => {
   if (value === undefined || value === null) {
-    return '';
+    return "";
   }
 
-  if (type === 'array' || type === 'object') {
-    if (typeof value === 'string') {
+  if (type === "array" || type === "object") {
+    if (typeof value === "string") {
       return value;
     }
     try {
@@ -177,8 +178,8 @@ const stringifyValueForDisplay = (
     }
   }
 
-  if (typeof value === 'boolean') {
-    return value ? 'true' : 'false';
+  if (typeof value === "boolean") {
+    return value ? "true" : "false";
   }
 
   return String(value);
@@ -186,23 +187,23 @@ const stringifyValueForDisplay = (
 
 const coerceValueForType = (
   raw: string,
-  type: NormalizedSchemaType,
+  type: NormalizedSchemaType
 ): unknown => {
-  if (raw === '') {
-    return '';
+  if (raw === "") {
+    return "";
   }
 
-  if (type === 'boolean') {
-    if (raw === 'true') {
+  if (type === "boolean") {
+    if (raw === "true") {
       return true;
     }
-    if (raw === 'false') {
+    if (raw === "false") {
       return false;
     }
     return raw;
   }
 
-  if (type === 'number' || type === 'integer') {
+  if (type === "number" || type === "integer") {
     const num = Number(raw);
     if (!Number.isNaN(num)) {
       return num;
@@ -210,7 +211,7 @@ const coerceValueForType = (
     return raw;
   }
 
-  if (type === 'array' || type === 'object') {
+  if (type === "array" || type === "object") {
     try {
       return JSON.parse(raw);
     } catch {
@@ -226,11 +227,11 @@ const extractEnumOptions = (schema: JsonSchemaProperty | undefined) => {
     return [] as string[];
   }
   return schema.enum
-    .map(option => {
+    .map((option) => {
       if (option === undefined || option === null) {
-        return '';
+        return "";
       }
-      if (typeof option === 'object') {
+      if (typeof option === "object") {
         try {
           return JSON.stringify(option);
         } catch {
@@ -239,7 +240,7 @@ const extractEnumOptions = (schema: JsonSchemaProperty | undefined) => {
       }
       return String(option);
     })
-    .filter(option => option !== '');
+    .filter((option) => option !== "");
 };
 
 type ActionInputOption = {
@@ -249,10 +250,10 @@ type ActionInputOption = {
   type: NormalizedSchemaType;
 };
 
-export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
+export const ActionNode: FC<{ data: ActionNodeData }> = ({ data }) => {
   const { rfId, step } = data;
-  const [newKey, setNewKey] = useState('');
-  const [newVal, setNewVal] = useState('');
+  const [newKey, setNewKey] = useState("");
+  const [newVal, setNewVal] = useState("");
   const stepOutputReferences = data.stepOutputReferences ?? [];
 
   const theme = useTheme();
@@ -263,10 +264,10 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
 
   // Always update by rfId (never by step.id)
   const handleTop =
-    (field: keyof TaskStep) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    (field: keyof TaskStep) => (e: ChangeEvent<HTMLInputElement>) =>
       data.onUpdateField?.(rfId, field, e.target.value);
 
-  const actionId = typeof step?.action === 'string' ? step.action : '';
+  const actionId = typeof step?.action === "string" ? step.action : "";
   const actionInputSchema = useMemo(() => {
     if (!actionId) {
       return {} as Record<string, JsonSchemaProperty>;
@@ -290,22 +291,22 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
   }, [actionInputSchema]);
   const inputEntries = useMemo(
     () => Object.entries(step.input ?? {}),
-    [step.input],
+    [step.input]
   );
   const usedInputKeys = useMemo(
     () => new Set(inputEntries.map(([key]) => key)),
-    [inputEntries],
+    [inputEntries]
   );
   const availableInputOptions = useMemo(
-    () => actionInputOptions.filter(option => !usedInputKeys.has(option.key)),
-    [actionInputOptions, usedInputKeys],
+    () => actionInputOptions.filter((option) => !usedInputKeys.has(option.key)),
+    [actionInputOptions, usedInputKeys]
   );
   const trimmedNewKey = newKey.trim();
   const selectedNewKeyOption = useMemo(
     () =>
-      availableInputOptions.find(option => option.key === trimmedNewKey) ??
+      availableInputOptions.find((option) => option.key === trimmedNewKey) ??
       null,
-    [availableInputOptions, trimmedNewKey],
+    [availableInputOptions, trimmedNewKey]
   );
   const isAddDisabled = !trimmedNewKey || usedInputKeys.has(trimmedNewKey);
 
@@ -313,14 +314,14 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
     selectedNewKeyOption?.schema ??
     (trimmedNewKey ? actionInputSchema?.[trimmedNewKey] : undefined);
   const newKeyNormalizedType = normalizeSchemaType(newKeySchema);
-  const newKeyTypeLabel = buildTypeLabel(newKeySchema) || 'String';
+  const newKeyTypeLabel = buildTypeLabel(newKeySchema) || "String";
   const newKeyEnumOptions = extractEnumOptions(newKeySchema);
   const newValueOptions = Array.from(
     new Set([
-      ...(newKeyNormalizedType === 'boolean' ? ['true', 'false'] : []),
+      ...(newKeyNormalizedType === "boolean" ? ["true", "false"] : []),
       ...newKeyEnumOptions,
       ...stepOutputReferences,
-    ]),
+    ])
   );
 
   const addPair = () => {
@@ -334,23 +335,23 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
     const parsedValue = coerceValueForType(newVal, normalizedType);
 
     data.onUpdateInput?.(rfId, k, parsedValue);
-    setNewKey('');
-    setNewVal('');
+    setNewKey("");
+    setNewVal("");
   };
 
   // Make inputs editable inside ReactFlow
   const stopAll = {
-    onPointerDown: (e: React.SyntheticEvent) => e.stopPropagation(),
-    onKeyDown: (e: React.KeyboardEvent) => e.stopPropagation(),
-    className: 'nodrag nowheel',
-    inputProps: { 'data-nodrag': true },
+    onPointerDown: (e: SyntheticEvent) => e.stopPropagation(),
+    onKeyDown: (e: KeyboardEvent) => e.stopPropagation(),
+    className: "nodrag nowheel",
+    inputProps: { "data-nodrag": true },
   } as const;
 
   return (
     <Card>
-      <Header title={step?.name || 'Unnamed Step'}>
+      <Header title={step?.name || "Unnamed Step"}>
         <Typography variant="subtitle2" noWrap>
-          {step?.name || 'Unnamed Step'}
+          {step?.name || "Unnamed Step"}
         </Typography>
 
         <Typography variant="caption" color="textSecondary">
@@ -360,19 +361,19 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
           size="small"
           options={actionOptions}
           freeSolo
-          value={typeof step?.action === 'string' ? step.action : ''}
-          inputValue={typeof step?.action === 'string' ? step.action : ''}
+          value={typeof step?.action === "string" ? step.action : ""}
+          inputValue={typeof step?.action === "string" ? step.action : ""}
           onChange={(_, newValue) =>
-            data.onUpdateField?.(rfId, 'action', newValue ?? '')
+            data.onUpdateField?.(rfId, "action", newValue ?? "")
           }
           onInputChange={(_, newInputValue) =>
-            data.onUpdateField?.(rfId, 'action', newInputValue ?? '')
+            data.onUpdateField?.(rfId, "action", newInputValue ?? "")
           }
           onPointerDown={stopAll.onPointerDown}
           onKeyDown={stopAll.onKeyDown}
           className={stopAll.className}
           fullWidth
-          renderInput={params => (
+          renderInput={(params) => (
             <TextField
               {...params}
               size="small"
@@ -392,7 +393,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
           variant="outlined"
           startIcon={<AddIcon fontSize="small" />}
           onClick={() => data.onAddNode?.(rfId)}
-          onPointerDown={e => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
           className="nodrag nowheel"
         >
           Add Node
@@ -410,8 +411,8 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
           <TextField
             size="small"
             placeholder="string id"
-            value={String(step?.id ?? '')}
-            onChange={handleTop('id')}
+            value={String(step?.id ?? "")}
+            onChange={handleTop("id")}
             fullWidth
             {...stopAll}
           />
@@ -422,8 +423,8 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
           <TextField
             size="small"
             placeholder="Step name"
-            value={String(step?.name ?? '')}
-            onChange={handleTop('name')}
+            value={String(step?.name ?? "")}
+            onChange={handleTop("name")}
             fullWidth
             {...stopAll}
           />
@@ -435,7 +436,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
         Inputs
       </Typography>
 
-      <Box sx={{ display: 'grid', mt: 0.5 }}>
+      <Box sx={{ display: "grid", mt: 0.5 }}>
         {inputEntries.length === 0 && (
           <Box
             sx={{
@@ -444,7 +445,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
               border: `1px dashed ${theme.palette.divider}`,
               borderRadius: 1,
               p: 1,
-              textAlign: 'center',
+              textAlign: "center",
             }}
           >
             No inputs yet
@@ -472,12 +473,12 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
         {inputEntries.map(([k, v]) => {
           const schema = actionInputSchema?.[k];
           const normalizedType = normalizeSchemaType(schema);
-          const typeLabel = buildTypeLabel(schema) || 'String';
+          const typeLabel = buildTypeLabel(schema) || "String";
           const enumOptions = extractEnumOptions(schema);
           const baseOptions =
-            normalizedType === 'boolean' ? ['true', 'false'] : [];
+            normalizedType === "boolean" ? ["true", "false"] : [];
           const options = Array.from(
-            new Set([...baseOptions, ...enumOptions, ...stepOutputReferences]),
+            new Set([...baseOptions, ...enumOptions, ...stepOutputReferences])
           );
           const displayValue = stringifyValueForDisplay(v, normalizedType);
           const handleStringChange = (nextValue: string) => {
@@ -498,11 +499,11 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
               <Box display="flex">
                 <Chip size="small" variant="outlined" label={typeLabel} />
               </Box>
-              {(normalizedType === 'array' || normalizedType === 'object') && (
+              {(normalizedType === "array" || normalizedType === "object") && (
                 <TextField
                   size="small"
                   value={displayValue}
-                  onChange={event => handleStringChange(event.target.value)}
+                  onChange={(event) => handleStringChange(event.target.value)}
                   placeholder="JSON value"
                   fullWidth
                   multiline
@@ -515,27 +516,27 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
                   className={stopAll.className}
                 />
               )}
-              {(normalizedType === 'number' ||
-                normalizedType === 'integer') && (
+              {(normalizedType === "number" ||
+                normalizedType === "integer") && (
                 <TextField
                   size="small"
                   value={displayValue}
-                  onChange={event => handleStringChange(event.target.value)}
+                  onChange={(event) => handleStringChange(event.target.value)}
                   placeholder="Number"
                   fullWidth
                   inputProps={{
                     ...stopAll.inputProps,
-                    inputMode: 'decimal',
+                    inputMode: "decimal",
                   }}
                   onPointerDown={stopAll.onPointerDown}
                   onKeyDown={stopAll.onKeyDown}
                   className={stopAll.className}
                 />
               )}
-              {normalizedType !== 'array' &&
-                normalizedType !== 'object' &&
-                normalizedType !== 'number' &&
-                normalizedType !== 'integer' && (
+              {normalizedType !== "array" &&
+                normalizedType !== "object" &&
+                normalizedType !== "number" &&
+                normalizedType !== "integer" && (
                   <Autocomplete
                     size="small"
                     freeSolo
@@ -543,17 +544,17 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
                     value={displayValue}
                     inputValue={displayValue}
                     fullWidth
-                    onChange={(_, value) => handleStringChange(value ?? '')}
+                    onChange={(_, value) => handleStringChange(value ?? "")}
                     onInputChange={(_, value, reason) => {
-                      if (reason === 'reset') {
+                      if (reason === "reset") {
                         return;
                       }
-                      handleStringChange(value ?? '');
+                      handleStringChange(value ?? "");
                     }}
                     onPointerDown={stopAll.onPointerDown}
                     onKeyDown={stopAll.onKeyDown}
                     className={stopAll.className}
-                    renderInput={params => (
+                    renderInput={(params) => (
                       <TextField
                         {...params}
                         size="small"
@@ -569,7 +570,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
               <IconButton
                 size="small"
                 onClick={() => data.onRemoveInputKey?.(rfId, k)}
-                onPointerDown={e => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
                 aria-label={`Remove ${k}`}
                 className="nodrag nowheel"
               >
@@ -589,29 +590,29 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
             inputValue={newKey}
             onChange={(_, value) => {
               if (!value) {
-                setNewKey('');
+                setNewKey("");
                 return;
               }
-              if (typeof value === 'string') {
+              if (typeof value === "string") {
                 setNewKey(value);
                 return;
               }
               setNewKey(value.key);
             }}
             onInputChange={(_, value, reason) => {
-              if (reason === 'reset') {
+              if (reason === "reset") {
                 return;
               }
-              setNewKey(value ?? '');
+              setNewKey(value ?? "");
             }}
             onPointerDown={stopAll.onPointerDown}
             onKeyDown={stopAll.onKeyDown}
             className={stopAll.className}
             getOptionSelected={(option, value) => option.key === value?.key}
-            getOptionLabel={option =>
-              typeof option === 'string' ? option : option.label
+            getOptionLabel={(option) =>
+              typeof option === "string" ? option : option.label
             }
-            renderInput={params => (
+            renderInput={(params) => (
               <TextField
                 {...params}
                 size="small"
@@ -626,12 +627,12 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
           <Box display="flex">
             <Chip size="small" variant="outlined" label={newKeyTypeLabel} />
           </Box>
-          {(newKeyNormalizedType === 'array' ||
-            newKeyNormalizedType === 'object') && (
+          {(newKeyNormalizedType === "array" ||
+            newKeyNormalizedType === "object") && (
             <TextField
               size="small"
               value={newVal}
-              onChange={event => setNewVal(event.target.value)}
+              onChange={(event) => setNewVal(event.target.value)}
               placeholder="JSON value"
               fullWidth
               multiline
@@ -644,27 +645,27 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
               className={stopAll.className}
             />
           )}
-          {(newKeyNormalizedType === 'number' ||
-            newKeyNormalizedType === 'integer') && (
+          {(newKeyNormalizedType === "number" ||
+            newKeyNormalizedType === "integer") && (
             <TextField
               size="small"
               value={newVal}
-              onChange={event => setNewVal(event.target.value)}
+              onChange={(event) => setNewVal(event.target.value)}
               placeholder="Number"
               fullWidth
               inputProps={{
                 ...stopAll.inputProps,
-                inputMode: 'decimal',
+                inputMode: "decimal",
               }}
               onPointerDown={stopAll.onPointerDown}
               onKeyDown={stopAll.onKeyDown}
               className={stopAll.className}
             />
           )}
-          {newKeyNormalizedType !== 'array' &&
-            newKeyNormalizedType !== 'object' &&
-            newKeyNormalizedType !== 'number' &&
-            newKeyNormalizedType !== 'integer' && (
+          {newKeyNormalizedType !== "array" &&
+            newKeyNormalizedType !== "object" &&
+            newKeyNormalizedType !== "number" &&
+            newKeyNormalizedType !== "integer" && (
               <Autocomplete
                 size="small"
                 freeSolo
@@ -672,17 +673,17 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
                 value={newVal}
                 inputValue={newVal}
                 fullWidth
-                onChange={(_, value) => setNewVal(value ?? '')}
+                onChange={(_, value) => setNewVal(value ?? "")}
                 onInputChange={(_, value, reason) => {
-                  if (reason === 'reset') {
+                  if (reason === "reset") {
                     return;
                   }
-                  setNewVal(value ?? '');
+                  setNewVal(value ?? "");
                 }}
                 onPointerDown={stopAll.onPointerDown}
                 onKeyDown={stopAll.onKeyDown}
                 className={stopAll.className}
-                renderInput={params => (
+                renderInput={(params) => (
                   <TextField
                     {...params}
                     size="small"
@@ -699,7 +700,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
             size="small"
             variant="contained"
             onClick={addPair}
-            onPointerDown={e => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
             disabled={isAddDisabled}
             className="nodrag nowheel"
           >

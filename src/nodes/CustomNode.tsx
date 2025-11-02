@@ -1,6 +1,5 @@
-import React from 'react';
-import { Handle, NodeToolbar, Position } from '@xyflow/react';
-import './CustomNode.css'; // styles below
+import { Handle, NodeToolbar, Position } from "@xyflow/react";
+import "./CustomNode.css"; // styles below
 
 export function CustomNode({ data }: any) {
   return (
@@ -10,7 +9,7 @@ export function CustomNode({ data }: any) {
       </NodeToolbar>
 
       <div className="custom-node-content">
-        <strong>{data?.label ?? 'Custom Node'}</strong>
+        <strong>{data?.label ?? "Custom Node"}</strong>
       </div>
 
       <Handle type="target" position={Position.Top} />
