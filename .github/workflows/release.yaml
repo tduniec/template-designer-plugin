@@ -3,6 +3,9 @@ name: Release (Dry Run on PR)
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
+
 
 permissions:
   contents: read
@@ -32,7 +35,14 @@ jobs:
             @semantic-release/git \
             @semantic-release/github
 
-      - name: Semantic Release (dry run)
+      - name: Semantic Release (Dry Run)
+        if: github.event_name == 'pull_request'
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release --dry-run
+
+      - name: Semantic Release
+        if: github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
