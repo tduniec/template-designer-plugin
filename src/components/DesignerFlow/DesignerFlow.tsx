@@ -12,12 +12,12 @@ import {
   useNodesState,
   Panel,
   ReactFlowInstance,
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import { createSequentialEdges } from '../../utils/createSequentialEdges';
-import type { TaskStep } from '@backstage/plugin-scaffolder-common';
-import { ActionNode } from '../../nodes/ActionNode';
-import type { ActionNodeData } from '../../nodes/ActionNode';
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import { createSequentialEdges } from "../../utils/createSequentialEdges";
+import type { TaskStep } from "@backstage/plugin-scaffolder-common";
+import { ActionNode } from "../../nodes/ActionNode";
+import type { ActionNodeData } from "../../nodes/ActionNode";
 import {
   collectStepOutputReferences,
   createHandleAddNode,
@@ -130,11 +130,11 @@ const buildScaffolderActionsCache = (list: ScaffolderAction[]) => {
       acc.outputsById[action.id] = action.schema?.output?.properties ?? {};
       return acc;
     },
-    { inputsById: {}, outputsById: {} },
+    { inputsById: {}, outputsById: {} }
   );
 
   return {
-    ids: list.map(action => action.id),
+    ids: list.map((action) => action.id),
     inputsById,
     outputsById,
   };
@@ -211,7 +211,7 @@ export default function App({ steps = [], onStepsChange }: DesignerFlowProps) {
       scaffolderActionIds,
       scaffolderActionInputsById,
       scaffolderActionOutputsById,
-    ],
+    ]
   );
 
   const lastAppliedStepsHashRef = useRef<string | null>(null);
@@ -266,19 +266,19 @@ export default function App({ steps = [], onStepsChange }: DesignerFlowProps) {
   // ----- ReactFlow change handlers (keep your layout approach) -----
   const onNodesChange = useCallback(
     (changes: NodeChange<Node>[]) =>
-      setNodes(ns => applyNodeChanges(changes, ns)),
-    [setNodes],
+      setNodes((ns) => applyNodeChanges(changes, ns)),
+    [setNodes]
   );
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange<Edge>[]) =>
-      setEdges(es => applyEdgeChanges(changes, es)),
-    [setEdges],
+      setEdges((es) => applyEdgeChanges(changes, es)),
+    [setEdges]
   );
 
   const onConnect = useCallback(
-    (params: any) => setEdges(es => addEdge(params, es)),
-    [setEdges],
+    (params: any) => setEdges((es) => addEdge(params, es)),
+    [setEdges]
   );
 
   const reorderAndAlignNodes = useMemo(
@@ -287,29 +287,29 @@ export default function App({ steps = [], onStepsChange }: DesignerFlowProps) {
         fixedXPosition: FIXED_X_POSITION,
         verticalSpacing: VERTICAL_SPACING,
       }),
-    [setNodes, setEdges],
+    [setNodes, setEdges]
   );
 
   const onNodeDragStop = useCallback(
-    (_: React.MouseEvent, node: Node) => {
+    (_: ReactMouseEvent, node: Node) => {
       reorderAndAlignNodes(node);
     },
-    [reorderAndAlignNodes],
+    [reorderAndAlignNodes]
   );
 
   const onUpdateField = useMemo(
     () => createHandleUpdateField(setNodes),
-    [setNodes],
+    [setNodes]
   );
 
   const onUpdateInput = useMemo(
     () => createHandleUpdateInput(setNodes),
-    [setNodes],
+    [setNodes]
   );
 
   const onRemoveInputKey = useMemo(
     () => createHandleRemoveInputKey(setNodes),
-    [setNodes],
+    [setNodes]
   );
 
   const handleAddNode = useMemo(
@@ -328,13 +328,13 @@ export default function App({ steps = [], onStepsChange }: DesignerFlowProps) {
       scaffolderActionOutputsById,
       setNodes,
       setEdges,
-    ],
+    ]
   );
 
   // Attach callbacks to each node’s data
   const nodesWithHandlers = useMemo(
     () =>
-      nodes.map(node => ({
+      nodes.map((node) => ({
         ...node,
         data: {
           ...node.data,
@@ -399,14 +399,14 @@ export default function App({ steps = [], onStepsChange }: DesignerFlowProps) {
     if (!reactFlowInstance) {
       return undefined; // 👈 explicitly returning undefined
     }
-    window.addEventListener('resize', fitFlowToView);
+    window.addEventListener("resize", fitFlowToView);
     return () => {
-      window.removeEventListener('resize', fitFlowToView);
+      window.removeEventListener("resize", fitFlowToView);
     };
   }, [fitFlowToView, reactFlowInstance]);
 
   return (
-    <div style={{ width: '100%', height: '100%', minHeight: '70vh' }}>
+    <div style={{ width: "100%", height: "100%", minHeight: "70vh" }}>
       <ReactFlow
         nodes={nodesWithHandlers}
         edges={edges}
@@ -421,18 +421,18 @@ export default function App({ steps = [], onStepsChange }: DesignerFlowProps) {
         <Panel
           position="bottom-right"
           style={{
-            maxHeight: '60vh',
+            maxHeight: "60vh",
             width: 320,
-            overflow: 'auto',
-            background: '#fff',
+            overflow: "auto",
+            background: "#fff",
             borderRadius: 8,
-            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.12)',
-            padding: '12px 16px',
-            fontFamily: 'monospace',
-            fontSize: '0.75rem',
+            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.12)",
+            padding: "12px 16px",
+            fontFamily: "monospace",
+            fontSize: "0.75rem",
             lineHeight: 1.4,
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
           }}
         >
           <pre style={{ margin: 0 }}>

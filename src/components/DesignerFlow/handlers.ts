@@ -1,8 +1,8 @@
-import type { Dispatch, SetStateAction } from 'react';
-import type { Edge, Node } from '@xyflow/react';
-import type { TaskStep } from '@backstage/plugin-scaffolder-common';
-import type { ActionNodeData } from '../../nodes/ActionNode';
-import { createSequentialEdges } from '../../utils/createSequentialEdges';
+import type { Dispatch, SetStateAction } from "react";
+import type { Edge, Node } from "@xyflow/react";
+import type { TaskStep } from "@backstage/plugin-scaffolder-common";
+import type { ActionNodeData } from "../../nodes/ActionNode";
+import { createSequentialEdges } from "../../utils/createSequentialEdges";
 
 type SetNodes = Dispatch<SetStateAction<Node[]>>;
 type SetEdges = Dispatch<SetStateAction<Edge[]>>;
@@ -19,7 +19,7 @@ interface CreateHandleAddNodeOptions {
 export const createHandleAddNode = (
   setNodes: SetNodes,
   setEdges: SetEdges,
-  options: CreateHandleAddNodeOptions,
+  options: CreateHandleAddNodeOptions
 ) => {
   const {
     fixedXPosition,
@@ -31,8 +31,8 @@ export const createHandleAddNode = (
   } = options;
 
   return (afterRfId: string) => {
-    setNodes(nds => {
-      const parentIndex = nds.findIndex(n => n.id === afterRfId);
+    setNodes((nds) => {
+      const parentIndex = nds.findIndex((n) => n.id === afterRfId);
       if (parentIndex === -1) {
         return nds;
       }
@@ -40,14 +40,14 @@ export const createHandleAddNode = (
       const rfId = `rf-${Date.now()}`;
       const newStep: TaskStep = {
         id: `step-${rfId}`,
-        name: 'New Step',
-        action: '',
+        name: "New Step",
+        action: "",
         input: {},
       };
 
       const newNode: Node = {
         id: rfId,
-        type: 'actionNode',
+        type: "actionNode",
         position: {
           x: fixedXPosition,
           y: (parentIndex + 1) * verticalSpacing,
@@ -82,8 +82,8 @@ export const createHandleAddNode = (
 
 export const createHandleRemoveInputKey = (setNodes: SetNodes) => {
   return (rfId: string, key: string) => {
-    setNodes(nds =>
-      nds.map(n => {
+    setNodes((nds) =>
+      nds.map((n) => {
         if (n.id !== rfId) {
           return n;
         }
@@ -94,7 +94,7 @@ export const createHandleRemoveInputKey = (setNodes: SetNodes) => {
         const step = { ...data.step, input: nextInput };
 
         return { ...n, data: { ...data, step } };
-      }),
+      })
     );
   };
 };
@@ -102,18 +102,18 @@ export const createHandleRemoveInputKey = (setNodes: SetNodes) => {
 export const createHandleReorderAndAlignNodes = (
   setNodes: SetNodes,
   setEdges: SetEdges,
-  options: { fixedXPosition: number; verticalSpacing: number },
+  options: { fixedXPosition: number; verticalSpacing: number }
 ) => {
   const { fixedXPosition, verticalSpacing } = options;
 
   return (updatedNode: Node) => {
-    setNodes(prevNodes => {
-      const updatedNodes = prevNodes.map(node =>
-        node.id === updatedNode.id ? updatedNode : node,
+    setNodes((prevNodes) => {
+      const updatedNodes = prevNodes.map((node) =>
+        node.id === updatedNode.id ? updatedNode : node
       );
 
       const reordered = [...updatedNodes].sort(
-        (a, b) => a.position.y - b.position.y,
+        (a, b) => a.position.y - b.position.y
       );
 
       const aligned = reordered.map((node, index) => ({
@@ -129,8 +129,8 @@ export const createHandleReorderAndAlignNodes = (
 
 export const createHandleUpdateField = (setNodes: SetNodes) => {
   return (rfId: string, field: keyof TaskStep, value: string) => {
-    setNodes(nds =>
-      nds.map(n => {
+    setNodes((nds) =>
+      nds.map((n) => {
         if (n.id !== rfId) {
           return n;
         }
@@ -139,7 +139,7 @@ export const createHandleUpdateField = (setNodes: SetNodes) => {
         const step = { ...data.step, [field]: value };
 
         return { ...n, data: { ...data, step } };
-      }),
+      })
     );
   };
 };
@@ -157,7 +157,7 @@ export const createHandleUpdateInput = (setNodes: SetNodes) => {
         const step = { ...data.step, input: nextInput };
 
         return { ...n, data: { ...data, step } };
-      }),
+      })
     );
   };
 };
@@ -180,11 +180,11 @@ export const collectStepOutputReferences = (
 
     const { step, scaffolderActionOutputsById } = data;
     const stepId =
-      step && typeof step.id === 'string' && step.id.trim().length > 0
+      step && typeof step.id === "string" && step.id.trim().length > 0
         ? step.id
         : null;
     const actionId =
-      step && typeof step.action === 'string' && step.action.trim().length > 0
+      step && typeof step.action === "string" && step.action.trim().length > 0
         ? step.action
         : null;
 
@@ -194,8 +194,8 @@ export const collectStepOutputReferences = (
 
     const outputKeys = new Set<string>();
     const schemaOutputs = scaffolderActionOutputsById?.[actionId];
-    if (schemaOutputs && typeof schemaOutputs === 'object') {
-      Object.keys(schemaOutputs).forEach(key => {
+    if (schemaOutputs && typeof schemaOutputs === "object") {
+      Object.keys(schemaOutputs).forEach((key) => {
         if (key) {
           outputKeys.add(key);
         }
@@ -203,8 +203,8 @@ export const collectStepOutputReferences = (
     }
 
     const stepOutput = (step as { output?: Record<string, unknown> }).output;
-    if (stepOutput && typeof stepOutput === 'object') {
-      Object.keys(stepOutput).forEach(key => {
+    if (stepOutput && typeof stepOutput === "object") {
+      Object.keys(stepOutput).forEach((key) => {
         if (key) {
           outputKeys.add(key);
         }

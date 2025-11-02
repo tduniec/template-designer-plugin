@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from "react";
 import {
   Page,
   Content,
@@ -45,8 +45,8 @@ export const TemplateDesigner = () => {
 
   const yamlExtensions = useMemo(() => [yaml()], []);
   const codeMirrorTheme = useMemo(
-    () => (theme.palette.type === 'dark' ? 'dark' : 'light'),
-    [theme.palette.type],
+    () => (theme.palette.type === "dark" ? "dark" : "light"),
+    [theme.palette.type]
   );
   const templateSkeleton = useMemo(() => {
     try {
@@ -85,7 +85,7 @@ export const TemplateDesigner = () => {
   );
   const [yamlError, setYamlError] = useState<string | undefined>();
 
-  const handleToggleYaml = useCallback(() => setShowYaml(prev => !prev), []);
+  const handleToggleYaml = useCallback(() => setShowYaml((prev) => !prev), []);
 
   const templateSteps = useMemo(() => {
     const specCandidate = templateObject?.spec;
@@ -156,16 +156,16 @@ export const TemplateDesigner = () => {
           <Grid style={{ height: 800 }} item>
             <div
               style={{
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
                 gap: 16,
               }}
             >
               <div
                 style={{
-                  display: 'flex',
-                  justifyContent: 'flex-end',
+                  display: "flex",
+                  justifyContent: "flex-end",
                   gap: 12,
                 }}
               >
@@ -174,13 +174,13 @@ export const TemplateDesigner = () => {
                   size="small"
                   onClick={handleToggleYaml}
                 >
-                  {showYaml ? 'Hide YAML' : 'Show YAML'}
+                  {showYaml ? "Hide YAML" : "Show YAML"}
                 </Button>
               </div>
               <div
                 style={{
                   flex: 1,
-                  display: 'flex',
+                  display: "flex",
                   gap: 16,
                   minHeight: 0,
                 }}
@@ -198,18 +198,18 @@ export const TemplateDesigner = () => {
                     elevation={2}
                     style={{
                       flex: 1,
-                      display: 'flex',
-                      flexDirection: 'column',
+                      display: "flex",
+                      flexDirection: "column",
                       minWidth: 0,
-                      overflow: 'hidden',
+                      overflow: "hidden",
                     }}
                   >
                     <div
                       style={{
-                        padding: '12px 16px',
-                        borderBottom: '1px solid rgba(0,0,0,0.12)',
+                        padding: "12px 16px",
+                        borderBottom: "1px solid rgba(0,0,0,0.12)",
                         fontWeight: 600,
-                        fontSize: '0.875rem',
+                        fontSize: "0.875rem",
                       }}
                     >
                       YAML Preview

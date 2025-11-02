@@ -1,4 +1,4 @@
-import { Edge, Node } from '@xyflow/react';
+import { Edge, Node } from "@xyflow/react";
 
 export function createSequentialEdges(nodes: Node[]): Edge[] {
   if (nodes.length < 2) return [];
@@ -9,7 +9,7 @@ export function createSequentialEdges(nodes: Node[]): Edge[] {
       id: `e-${node.id}-${nextNode.id}`,
       source: node.id,
       target: nextNode.id,
-      type: 'smoothstep',
+      type: "smoothstep",
     } as Edge;
   });
 }

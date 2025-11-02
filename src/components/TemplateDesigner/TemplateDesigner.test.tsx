@@ -23,7 +23,21 @@ if (typeof (global as any).ResizeObserver === 'undefined') {
   (global as any).ResizeObserver = ResizeObserverMock;
 }
 
-describe('ExampleComponent', () => {
+const mockScaffolderApi = {
+  listActions: async () => [],
+};
+
+const ResizeObserverMock = class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
+if (typeof (global as any).ResizeObserver === "undefined") {
+  (global as any).ResizeObserver = ResizeObserverMock;
+}
+
+describe("ExampleComponent", () => {
   const server = setupServer();
   // Enable sane handlers for network requests
   registerMswTestHooks(server);
@@ -31,7 +45,7 @@ describe('ExampleComponent', () => {
   // setup mock response
   beforeEach(() => {
     server.use(
-      rest.get('/*', (_, res, ctx) => res(ctx.status(200), ctx.json({}))),
+      rest.get("/*", (_, res, ctx) => res(ctx.status(200), ctx.json({})))
     );
   });
 

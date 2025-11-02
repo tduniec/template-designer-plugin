@@ -48,28 +48,28 @@ const Card = styled(Box)(({ theme }) => ({
 }));
 
 const Header = styled(Box)(({ theme }) => ({
-  display: 'grid',
-  gridTemplateColumns: '1fr',
+  display: "grid",
+  gridTemplateColumns: "1fr",
   gap: theme.spacing(1),
   marginBottom: theme.spacing(1),
 }));
 
 const Grid = styled(Box)(({ theme }) => ({
-  display: 'grid',
-  gridTemplateColumns: '88px 1fr',
+  display: "grid",
+  gridTemplateColumns: "88px 1fr",
   gap: theme.spacing(1),
-  alignItems: 'center',
+  alignItems: "center",
 }));
 
 const KvRow = styled(Box)(({ theme }) => ({
   display: 'grid',
   gridTemplateColumns: '200px 140px 1fr auto',
   gap: theme.spacing(1),
-  alignItems: 'center',
+  alignItems: "center",
 }));
 
 const ToolbarBtn = styled(Button)(({ theme }) => ({
-  textTransform: 'none',
+  textTransform: "none",
   borderRadius: 8,
   paddingInline: theme.spacing(1),
   paddingBlock: 4,
@@ -291,22 +291,22 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
   }, [actionInputSchema]);
   const inputEntries = useMemo(
     () => Object.entries(step.input ?? {}),
-    [step.input],
+    [step.input]
   );
   const usedInputKeys = useMemo(
     () => new Set(inputEntries.map(([key]) => key)),
-    [inputEntries],
+    [inputEntries]
   );
   const availableInputOptions = useMemo(
-    () => actionInputOptions.filter(option => !usedInputKeys.has(option.key)),
-    [actionInputOptions, usedInputKeys],
+    () => actionInputOptions.filter((option) => !usedInputKeys.has(option.key)),
+    [actionInputOptions, usedInputKeys]
   );
   const trimmedNewKey = newKey.trim();
   const selectedNewKeyOption = useMemo(
     () =>
-      availableInputOptions.find(option => option.key === trimmedNewKey) ??
+      availableInputOptions.find((option) => option.key === trimmedNewKey) ??
       null,
-    [availableInputOptions, trimmedNewKey],
+    [availableInputOptions, trimmedNewKey]
   );
   const isAddDisabled = !trimmedNewKey || usedInputKeys.has(trimmedNewKey);
 
@@ -349,9 +349,9 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
 
   return (
     <Card>
-      <Header title={step?.name || 'Unnamed Step'}>
+      <Header title={step?.name || "Unnamed Step"}>
         <Typography variant="subtitle2" noWrap>
-          {step?.name || 'Unnamed Step'}
+          {step?.name || "Unnamed Step"}
         </Typography>
 
         <Typography variant="caption" color="textSecondary">
@@ -361,19 +361,19 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
           size="small"
           options={actionOptions}
           freeSolo
-          value={typeof step?.action === 'string' ? step.action : ''}
-          inputValue={typeof step?.action === 'string' ? step.action : ''}
+          value={typeof step?.action === "string" ? step.action : ""}
+          inputValue={typeof step?.action === "string" ? step.action : ""}
           onChange={(_, newValue) =>
-            data.onUpdateField?.(rfId, 'action', newValue ?? '')
+            data.onUpdateField?.(rfId, "action", newValue ?? "")
           }
           onInputChange={(_, newInputValue) =>
-            data.onUpdateField?.(rfId, 'action', newInputValue ?? '')
+            data.onUpdateField?.(rfId, "action", newInputValue ?? "")
           }
           onPointerDown={stopAll.onPointerDown}
           onKeyDown={stopAll.onKeyDown}
           className={stopAll.className}
           fullWidth
-          renderInput={params => (
+          renderInput={(params) => (
             <TextField
               {...params}
               size="small"
@@ -393,7 +393,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
           variant="outlined"
           startIcon={<AddIcon fontSize="small" />}
           onClick={() => data.onAddNode?.(rfId)}
-          onPointerDown={e => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
           className="nodrag nowheel"
         >
           Add Node
@@ -411,8 +411,8 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
           <TextField
             size="small"
             placeholder="string id"
-            value={String(step?.id ?? '')}
-            onChange={handleTop('id')}
+            value={String(step?.id ?? "")}
+            onChange={handleTop("id")}
             fullWidth
             {...stopAll}
           />
@@ -423,8 +423,8 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
           <TextField
             size="small"
             placeholder="Step name"
-            value={String(step?.name ?? '')}
-            onChange={handleTop('name')}
+            value={String(step?.name ?? "")}
+            onChange={handleTop("name")}
             fullWidth
             {...stopAll}
           />
@@ -436,7 +436,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
         Inputs
       </Typography>
 
-      <Box sx={{ display: 'grid', mt: 0.5 }}>
+      <Box sx={{ display: "grid", mt: 0.5 }}>
         {inputEntries.length === 0 && (
           <Box
             sx={{
@@ -445,7 +445,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
               border: `1px dashed ${theme.palette.divider}`,
               borderRadius: 1,
               p: 1,
-              textAlign: 'center',
+              textAlign: "center",
             }}
           >
             No inputs yet
@@ -590,29 +590,29 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
             inputValue={newKey}
             onChange={(_, value) => {
               if (!value) {
-                setNewKey('');
+                setNewKey("");
                 return;
               }
-              if (typeof value === 'string') {
+              if (typeof value === "string") {
                 setNewKey(value);
                 return;
               }
               setNewKey(value.key);
             }}
             onInputChange={(_, value, reason) => {
-              if (reason === 'reset') {
+              if (reason === "reset") {
                 return;
               }
-              setNewKey(value ?? '');
+              setNewKey(value ?? "");
             }}
             onPointerDown={stopAll.onPointerDown}
             onKeyDown={stopAll.onKeyDown}
             className={stopAll.className}
             getOptionSelected={(option, value) => option.key === value?.key}
-            getOptionLabel={option =>
-              typeof option === 'string' ? option : option.label
+            getOptionLabel={(option) =>
+              typeof option === "string" ? option : option.label
             }
-            renderInput={params => (
+            renderInput={(params) => (
               <TextField
                 {...params}
                 size="small"
@@ -700,7 +700,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
             size="small"
             variant="contained"
             onClick={addPair}
-            onPointerDown={e => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
             disabled={isAddDisabled}
             className="nodrag nowheel"
           >
