@@ -146,8 +146,8 @@ export const createHandleUpdateField = (setNodes: SetNodes) => {
 
 export const createHandleUpdateInput = (setNodes: SetNodes) => {
   return (rfId: string, key: string, value: unknown) => {
-    setNodes(nds =>
-      nds.map(n => {
+    setNodes((nds) =>
+      nds.map((n) => {
         if (n.id !== rfId) {
           return n;
         }
@@ -163,14 +163,14 @@ export const createHandleUpdateInput = (setNodes: SetNodes) => {
 };
 
 export const collectStepOutputReferences = (
-  nodes: Node[],
+  nodes: Node[]
 ): Record<string, string[]> => {
   const referencesByNode: Record<string, string[]> = {};
   const sortedNodes = [...nodes].sort((a, b) => a.position.y - b.position.y);
   const accumulatedReferences: string[] = [];
   const accumulatedSet = new Set<string>();
 
-  sortedNodes.forEach(node => {
+  sortedNodes.forEach((node) => {
     referencesByNode[node.id] = [...accumulatedReferences];
 
     const data = node.data as ActionNodeData | undefined;
@@ -211,7 +211,7 @@ export const collectStepOutputReferences = (
       });
     }
 
-    outputKeys.forEach(outputKey => {
+    outputKeys.forEach((outputKey) => {
       const reference = `$\{\{ steps[${stepId}].output.${outputKey} }}`;
       if (!accumulatedSet.has(reference)) {
         accumulatedSet.add(reference);

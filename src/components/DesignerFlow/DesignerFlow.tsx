@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
 import {
   ReactFlow,
   applyNodeChanges,
@@ -25,9 +26,9 @@ import {
   createHandleReorderAndAlignNodes,
   createHandleUpdateField,
   createHandleUpdateInput,
-} from './handlers';
-import { scaffolderApiRef } from '@backstage/plugin-scaffolder-react';
-import { useApi } from '@backstage/core-plugin-api';
+} from "./handlers";
+import { scaffolderApiRef } from "@backstage/plugin-scaffolder-react";
+import { useApi } from "@backstage/core-plugin-api";
 
 const VERTICAL_SPACING = 400;
 const FIXED_X_POSITION = 100;
@@ -42,10 +43,10 @@ const nodeDefaults = {
 };
 
 const sanitizeForRfId = (value: string) =>
-  value.replace(/[^a-zA-Z0-9-_.:]/g, '_');
+  value.replace(/[^a-zA-Z0-9-_.:]/g, "_");
 
 const buildRfId = (step: TaskStep | undefined, index: number) => {
-  if (step && typeof step.id === 'string' && step.id.trim().length > 0) {
+  if (step && typeof step.id === "string" && step.id.trim().length > 0) {
     return `rf-${sanitizeForRfId(step.id)}-${index}`;
   }
   return `rf-${index + 1}`;
@@ -62,7 +63,7 @@ type BuildNodesFromStepsOptions = {
 
 const buildNodesFromSteps = (
   steps: TaskStep[],
-  options: BuildNodesFromStepsOptions,
+  options: BuildNodesFromStepsOptions
 ) => {
   const {
     scaffolderActionIds,
@@ -74,7 +75,7 @@ const buildNodesFromSteps = (
     const rfId = buildRfId(step, index);
     return {
       id: rfId,
-      type: 'actionNode',
+      type: "actionNode",
       position: { x: FIXED_X_POSITION, y: index * VERTICAL_SPACING },
       data: {
         rfId,
@@ -92,7 +93,7 @@ const normalizeValueForStableStringify = (value: unknown): unknown => {
   if (Array.isArray(value)) {
     return value.map(normalizeValueForStableStringify);
   }
-  if (value && typeof value === 'object') {
+  if (value && typeof value === "object") {
     const entries = Object.entries(value as Record<string, unknown>)
       .filter(([key]) => key !== undefined)
       // eslint-disable-next-line no-nested-ternary
@@ -149,7 +150,7 @@ const useScaffolderActions = () => {
 
     scaffolderApi
       .listActions()
-      .then(remoteActions => {
+      .then((remoteActions) => {
         if (cancelled) {
           return;
         }
@@ -191,12 +192,12 @@ export default function App({ steps = [], onStepsChange }: DesignerFlowProps) {
       scaffolderActionIds,
       scaffolderActionInputsById,
       scaffolderActionOutputsById,
-    ],
+    ]
   );
 
   const [nodes, setNodes] = useNodesState(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(() =>
-    createSequentialEdges(initialNodes),
+    createSequentialEdges(initialNodes)
   );
 
   const stepsHash = useMemo(() => stableStringify(steps), [steps]);
@@ -260,7 +261,7 @@ export default function App({ steps = [], onStepsChange }: DesignerFlowProps) {
 
   const stepOutputReferencesByNode = useMemo(
     () => collectStepOutputReferences(nodes),
-    [nodes],
+    [nodes]
   );
 
   // ----- ReactFlow change handlers (keep your layout approach) -----
@@ -352,13 +353,13 @@ export default function App({ steps = [], onStepsChange }: DesignerFlowProps) {
       onUpdateInput,
       onRemoveInputKey,
       stepOutputReferencesByNode,
-    ],
+    ]
   );
 
   const stepsFromNodes = useMemo(() => {
     const sorted = [...nodes].sort((a, b) => a.position.y - b.position.y);
     return sorted
-      .map(node => {
+      .map((node) => {
         const data = node.data as ActionNodeData | undefined;
         if (!data || !data.step) {
           return undefined;
