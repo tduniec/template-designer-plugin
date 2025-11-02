@@ -1,7 +1,7 @@
-import { templateDesignerPlugin } from './plugin';
+import { templateDesignerPlugin } from "./plugin";
 
-describe('template-designer', () => {
-  it('should export plugin', () => {
+describe("template-designer", () => {
+  it("should export plugin", () => {
     expect(templateDesignerPlugin).toBeDefined();
   });
 });
