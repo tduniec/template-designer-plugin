@@ -1,3 +1,4 @@
+import React from 'react';
 import { createDevApp } from '@backstage/dev-utils';
 import { templateDesignerPlugin, TemplateDesignerPage } from '../src/plugin';
 

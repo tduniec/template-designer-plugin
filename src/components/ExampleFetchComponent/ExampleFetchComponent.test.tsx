@@ -1,3 +1,4 @@
+import React from 'react';
 import { renderInTestApp } from '@backstage/test-utils';
 import { ExampleFetchComponent } from './ExampleFetchComponent';
 

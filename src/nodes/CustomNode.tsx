@@ -1,3 +1,4 @@
+import React from 'react';
 import { Handle, NodeToolbar, Position } from '@xyflow/react';
 import './CustomNode.css'; // styles below
 
