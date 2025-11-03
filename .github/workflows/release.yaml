@@ -1,4 +1,4 @@
-name: Release (Dry Run on PR)
+name: Release
 
 on:
   pull_request:
