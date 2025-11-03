@@ -9,7 +9,7 @@ plugins:
   - - "@semantic-release/changelog"
     - changelogFile: CHANGELOG.md
   - - "@semantic-release/npm"
-    -  npmPublish: false
+    - npmPublish: false
   - - "@semantic-release/git"
     - assets:
         - package.json
