@@ -33,7 +33,12 @@
     "postpack": "backstage-cli package postpack",
     "validate": "tsc && backstage-cli package lint && prettier --check .",
     "validate:fix": "tsc && backstage-cli package lint --fix && prettier -w .",
-    "validate:full": "tsc --skipLibCheck false --incremental false && backstage-cli repo lint && prettier --check ."
+    "validate:full": "tsc --skipLibCheck false --incremental false && backstage-cli repo lint && prettier --check .",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,ts,jsx,tsx}": "backstage-cli package lint",
+    "*.{json,md}": "prettier --write"
   },
   "dependencies": {
     "@backstage/core-components": "^0.18.2",
@@ -63,6 +68,8 @@
     "@backstage/core-app-api": "^1.19.1",
     "@backstage/dev-utils": "^1.1.15",
     "@backstage/test-utils": "^1.7.12",
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/git": "^10.0.1",
@@ -75,6 +82,8 @@
     "@testing-library/user-event": "^14.0.0",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6",
     "msw": "^1.0.0",
     "prettier": "^2.3.2",
     "react": "^18.3.1",

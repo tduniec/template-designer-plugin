@@ -40,7 +40,7 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release --dry-run
+        run: npx semantic-release --no-ci --dry-run
 
       - name: Semantic Release
         if: github.event_name == 'push'
