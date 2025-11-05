@@ -12,10 +12,20 @@ permissions:
   issues: write
 
 jobs:
-  release-dry-run:
+  release:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout (full history for analysis)
+      # Checkout PR head for PRs, main for push
+      - name: Checkout PR head
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+
+      - name: Checkout main
+        if: github.event_name == 'push'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -36,12 +46,21 @@ jobs:
             @semantic-release/git \
             @semantic-release/github
 
+      # DRY RUN on PRs
       - name: Semantic Release (Dry Run)
         if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release --no-ci --dry-run
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          # Pretend we're not in CI so semantic-release doesn't see refs/pull/.../merge
+          unset GITHUB_ACTIONS
+          unset CI
 
+          # Treat the PR branch as the release branch for this dry-run
+          npx semantic-release --no-ci --dry-run --branches "$HEAD_REF"
+
+      # REAL RELEASE on push to main
       - name: Semantic Release
         if: github.event_name == 'push'
         env:
