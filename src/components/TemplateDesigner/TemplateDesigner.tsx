@@ -174,6 +174,7 @@ export const TemplateDesigner = () => {
       return true;
     }
 
+    // eslint-disable-next-line no-alert
     return window.confirm(
       "This will discard the changes you have made. Continue?"
     );
@@ -473,6 +474,17 @@ export const TemplateDesigner = () => {
 
   const activeTemplateLabel = templateSource?.label;
 
+  let reloadButtonLabel = "Reset sample";
+  if (templateSource?.type === "file") {
+    reloadButtonLabel = isReloading ? "Reloading..." : "Reload file";
+  }
+
+  let saveButtonLabel =
+    templateSource?.type === "file" ? "Save" : "Save as file";
+  if (isSaving) {
+    saveButtonLabel = "Saving...";
+  }
+
   return (
     <Page themeId="tool">
       <Content>
@@ -613,11 +625,7 @@ export const TemplateDesigner = () => {
                       onClick={handleReloadFromFile}
                       disabled={isReloading}
                     >
-                      {templateSource?.type === "file"
-                        ? isReloading
-                          ? "Reloading..."
-                          : "Reload file"
-                        : "Reset sample"}
+                      {reloadButtonLabel}
                     </Button>
                     <Button
                       color="primary"
@@ -626,11 +634,7 @@ export const TemplateDesigner = () => {
                       onClick={handleSaveTemplate}
                       disabled={isSaving}
                     >
-                      {isSaving
-                        ? "Saving..."
-                        : templateSource?.type === "file"
-                        ? "Save"
-                        : "Save as file"}
+                      {saveButtonLabel}
                     </Button>
                     <Button
                       color="primary"
