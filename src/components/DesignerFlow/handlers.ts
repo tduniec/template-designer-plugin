@@ -140,21 +140,22 @@ export const createHandleAddNode = (
           ...nodeDefaults,
         };
 
-        return composeAndAlign(
-          parameterNodes,
-          actionNodes,
-          [...outputNodes, outputNode]
-        );
+        return composeAndAlign(parameterNodes, actionNodes, [
+          ...outputNodes,
+          outputNode,
+        ]);
       }
 
       const parametersNodeId = parameterNodes[0]?.id ?? null;
       const parentIndex = actionNodes.findIndex((n) => n.id === afterRfId);
-      const insertIndex =
-        parentIndex >= 0
-          ? parentIndex + 1
-          : afterRfId === parametersNodeId
-          ? 0
-          : actionNodes.length;
+      let insertIndex: number;
+      if (parentIndex >= 0) {
+        insertIndex = parentIndex + 1;
+      } else if (afterRfId === parametersNodeId) {
+        insertIndex = 0;
+      } else {
+        insertIndex = actionNodes.length;
+      }
 
       const rfId = `rf-${Date.now()}`;
       const stepDefaults: TaskStep = {
@@ -340,8 +341,7 @@ export const collectStepOutputReferences = (
     }
 
     outputKeys.forEach((outputKey) => {
-      const reference =
-        "${{ steps['" + stepId + "'].output." + outputKey + " }}";
+      const reference = `\${{ steps['${stepId}'].output.${outputKey} }}`;
       if (!accumulatedSet.has(reference)) {
         accumulatedSet.add(reference);
         accumulatedReferences.push(reference);
@@ -379,9 +379,7 @@ export const createHandleUpdateOutput = (setNodes: SetNodes) => {
 export const createHandleUpdateParameters = (setNodes: SetNodes) => {
   return (
     rfId: string,
-    updater: (
-      prev: TemplateParametersValue
-    ) => TemplateParametersValue
+    updater: (prev: TemplateParametersValue) => TemplateParametersValue
   ) => {
     setNodes((nodes) =>
       nodes.map((node) => {

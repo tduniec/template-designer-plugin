@@ -173,7 +173,7 @@ const collectParameterReferences = (
       Object.keys(record.properties as Record<string, unknown>).forEach(
         (key) => {
           if (key) {
-            refs.add("${{ parameters." + key + " }}");
+            refs.add(`\${{ parameters.${key} }}`);
           }
         }
       );

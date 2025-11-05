@@ -5,10 +5,7 @@ import type {
   TemplateParameterSchema,
 } from "@backstage/plugin-scaffolder-common";
 
-export type DesignerNodeType =
-  | "parametersNode"
-  | "actionNode"
-  | "outputNode";
+export type DesignerNodeType = "parametersNode" | "actionNode" | "outputNode";
 
 export type TemplateParametersValue =
   | TemplateParametersV1beta3
@@ -59,9 +56,7 @@ export type ParametersNodeData = BaseNodeData & {
   parameters: TemplateParametersValue;
   onUpdateParameters?: (
     rfId: string,
-    updater: (
-      prev: TemplateParametersValue
-    ) => TemplateParametersValue
+    updater: (prev: TemplateParametersValue) => TemplateParametersValue
   ) => void;
 };
 

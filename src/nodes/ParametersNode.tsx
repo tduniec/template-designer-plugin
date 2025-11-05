@@ -106,8 +106,7 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
       data.onUpdateParameters?.(rfId, () => nextValue);
       setError(undefined);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Invalid JSON input";
+      const message = err instanceof Error ? err.message : "Invalid JSON input";
       setError(message);
     }
   };
@@ -123,8 +122,7 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
       setText(stringifyParameters(parsed));
       setError(undefined);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Invalid JSON input";
+      const message = err instanceof Error ? err.message : "Invalid JSON input";
       setError(message);
     }
   };
@@ -132,7 +130,7 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
   return (
     <Card>
       <Header>
-        <Box display="flex" alignItems="center" gap={1}>
+        <Box display="flex" alignItems="center">
           <SettingsIcon
             fontSize="small"
             htmlColor={theme.palette.warning.dark}
@@ -175,7 +173,7 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
         helperText={error ?? "Edits apply on blur. Use JSON format."}
       />
 
-      <Box mt={1.5} display="flex" gap={1}>
+      <Box mt={1.5} display="flex">
         <Button
           size="small"
           variant="contained"

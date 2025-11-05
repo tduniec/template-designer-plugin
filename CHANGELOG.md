@@ -1,9 +1,8 @@
 ## [0.1.3](https://github.com/tduniec/template-designer-plugin/compare/v0.1.2...v0.1.3) (2025-11-05)
 
-
 ### Bug Fixes
 
-* adding output modules in react flow ([df6f515](https://github.com/tduniec/template-designer-plugin/commit/df6f515b3e17294206923fd9646f46ea187ee3ef))
+- adding output modules in react flow ([df6f515](https://github.com/tduniec/template-designer-plugin/commit/df6f515b3e17294206923fd9646f46ea187ee3ef))
 
 ## [0.1.2](https://github.com/tduniec/template-designer-plugin/compare/v0.1.1...v0.1.2) (2025-11-05)
 
