@@ -16,26 +16,7 @@ import AddIcon from "@mui/icons-material/Add";
 import type { TaskStep } from "@backstage/plugin-scaffolder-common";
 import { useTheme } from "@mui/material/styles";
 import Autocomplete from "@material-ui/lab/Autocomplete";
-
-export type ActionNodeData = {
-  /** Stable ReactFlow node id */
-  rfId: string;
-  /** User payload; id is editable string (reserved by your template) */
-  step: TaskStep & { input?: Record<string, unknown> };
-  /** Cached scaffolder action ids for dropdown options */
-  scaffolderActionIds?: string[];
-  /** Cached action input schemas keyed by action id */
-  scaffolderActionInputsById?: Record<string, Record<string, unknown>>;
-  /** Cached action output schemas keyed by action id */
-  scaffolderActionOutputsById?: Record<string, Record<string, unknown>>;
-  /** Suggestions for referencing previous step outputs */
-  stepOutputReferences?: string[];
-
-  onAddNode?: (afterRfId: string) => void;
-  onUpdateField?: (rfId: string, field: keyof TaskStep, value: string) => void;
-  onUpdateInput?: (rfId: string, key: string, value: unknown) => void;
-  onRemoveInputKey?: (rfId: string, key: string) => void;
-};
+import type { ActionNodeData } from "./types";
 
 const Card = styled(Box)(({ theme }) => ({
   background: theme.palette.background.paper,
@@ -392,11 +373,30 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
         <ToolbarBtn
           variant="outlined"
           startIcon={<AddIcon fontSize="small" />}
-          onClick={() => data.onAddNode?.(rfId)}
+          onClick={() =>
+            data.onAddNode?.({
+              afterRfId: rfId,
+              type: "actionNode",
+            })
+          }
           onPointerDown={(e) => e.stopPropagation()}
           className="nodrag nowheel"
         >
-          Add Node
+          Add Action
+        </ToolbarBtn>
+        <ToolbarBtn
+          variant="outlined"
+          startIcon={<AddIcon fontSize="small" />}
+          onClick={() =>
+            data.onAddNode?.({
+              afterRfId: rfId,
+              type: "outputNode",
+            })
+          }
+          onPointerDown={(e) => e.stopPropagation()}
+          className="nodrag nowheel"
+        >
+          Add Output
         </ToolbarBtn>
       </NodeToolbar>
 

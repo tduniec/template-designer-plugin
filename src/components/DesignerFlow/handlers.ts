@@ -1,7 +1,12 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { Edge, Node } from "@xyflow/react";
 import type { TaskStep } from "@backstage/plugin-scaffolder-common";
-import type { ActionNodeData } from "../../nodes/ActionNode";
+import type {
+  ActionNodeData,
+  AddNodeConfig,
+  DesignerNodeType,
+  OutputNodeData,
+} from "../../nodes/types";
 import { createSequentialEdges } from "../../utils/createSequentialEdges";
 
 type SetNodes = Dispatch<SetStateAction<Node[]>>;
@@ -30,28 +35,83 @@ export const createHandleAddNode = (
     scaffolderActionOutputsById,
   } = options;
 
-  return (afterRfId: string) => {
-    setNodes((nds) => {
-      const parentIndex = nds.findIndex((n) => n.id === afterRfId);
-      if (parentIndex === -1) {
-        return nds;
+  return (config: AddNodeConfig) => {
+    const {
+      afterRfId,
+      type = "actionNode",
+      stepTemplate,
+      outputTemplate,
+    } = config;
+    const nodeType: DesignerNodeType = type;
+
+    const alignNodes = (nodes: Node[]) =>
+      nodes.map((node, index) => ({
+        ...node,
+        position: {
+          x: fixedXPosition,
+          y: index * verticalSpacing,
+        },
+      }));
+
+    setNodes((nodes) => {
+      const actionNodes = nodes.filter((n) => n.type !== "outputNode");
+      const outputNodes = nodes.filter((n) => n.type === "outputNode");
+
+      if (nodeType === "outputNode") {
+        if (outputNodes.length > 0) {
+          return alignNodes([...actionNodes, ...outputNodes]);
+        }
+
+        const initialOutput =
+          outputTemplate != null
+            ? (JSON.parse(JSON.stringify(outputTemplate)) as Record<
+                string,
+                unknown
+              >)
+            : {};
+        const rfOutputId = "rf-output";
+
+        const outputNode: Node = {
+          id: rfOutputId,
+          type: "outputNode",
+          position: { x: fixedXPosition, y: 0 },
+          data: {
+            rfId: rfOutputId,
+            output: initialOutput,
+            scaffolderActionIds,
+            scaffolderActionInputsById,
+            scaffolderActionOutputsById,
+          },
+          ...nodeDefaults,
+        };
+
+        const next = [...actionNodes, outputNode, ...outputNodes];
+        const aligned = alignNodes(next);
+        setEdges(createSequentialEdges(aligned));
+        return aligned;
       }
 
+      const parentIndex = actionNodes.findIndex((n) => n.id === afterRfId);
+      const insertIndex =
+        parentIndex >= 0 ? parentIndex + 1 : actionNodes.length;
+
       const rfId = `rf-${Date.now()}`;
-      const newStep: TaskStep = {
+      const stepDefaults: TaskStep = {
         id: `step-${rfId}`,
         name: "New Step",
         action: "",
         input: {},
       };
 
+      const newStep: TaskStep = {
+        ...stepDefaults,
+        ...(stepTemplate ?? {}),
+      };
+
       const newNode: Node = {
         id: rfId,
         type: "actionNode",
-        position: {
-          x: fixedXPosition,
-          y: (parentIndex + 1) * verticalSpacing,
-        },
+        position: { x: fixedXPosition, y: 0 },
         data: {
           rfId,
           step: newStep,
@@ -62,20 +122,16 @@ export const createHandleAddNode = (
         ...nodeDefaults,
       };
 
-      const realigned = [
-        ...nds.slice(0, parentIndex + 1),
+      const nextActionNodes = [
+        ...actionNodes.slice(0, insertIndex),
         newNode,
-        ...nds.slice(parentIndex + 1),
-      ].map((node, index) => ({
-        ...node,
-        position: {
-          x: fixedXPosition,
-          y: index * verticalSpacing,
-        },
-      }));
+        ...actionNodes.slice(insertIndex),
+      ];
 
-      setEdges(createSequentialEdges(realigned));
-      return realigned;
+      const next = [...nextActionNodes, ...outputNodes];
+      const aligned = alignNodes(next);
+      setEdges(createSequentialEdges(aligned));
+      return aligned;
     });
   };
 };
@@ -88,7 +144,10 @@ export const createHandleRemoveInputKey = (setNodes: SetNodes) => {
           return n;
         }
 
-        const data = n.data as ActionNodeData;
+        const data = n.data as Partial<ActionNodeData>;
+        if (!data.step) {
+          return n;
+        }
         const nextInput = { ...(data.step.input ?? {}) };
         delete nextInput[key];
         const step = { ...data.step, input: nextInput };
@@ -112,9 +171,14 @@ export const createHandleReorderAndAlignNodes = (
         node.id === updatedNode.id ? updatedNode : node
       );
 
-      const reordered = [...updatedNodes].sort(
-        (a, b) => a.position.y - b.position.y
-      );
+      const actionNodes = updatedNodes
+        .filter((node) => node.type !== "outputNode")
+        .sort((a, b) => a.position.y - b.position.y);
+      const outputNodes = updatedNodes
+        .filter((node) => node.type === "outputNode")
+        .sort((a, b) => a.position.y - b.position.y);
+
+      const reordered = [...actionNodes, ...outputNodes];
 
       const aligned = reordered.map((node, index) => ({
         ...node,
@@ -135,7 +199,10 @@ export const createHandleUpdateField = (setNodes: SetNodes) => {
           return n;
         }
 
-        const data = n.data as ActionNodeData;
+        const data = n.data as Partial<ActionNodeData>;
+        if (!data.step) {
+          return n;
+        }
         const step = { ...data.step, [field]: value };
 
         return { ...n, data: { ...data, step } };
@@ -152,7 +219,10 @@ export const createHandleUpdateInput = (setNodes: SetNodes) => {
           return n;
         }
 
-        const data = n.data as ActionNodeData;
+        const data = n.data as Partial<ActionNodeData>;
+        if (!data.step) {
+          return n;
+        }
         const nextInput = { ...(data.step.input ?? {}), [key]: value };
         const step = { ...data.step, input: nextInput };
 
@@ -173,8 +243,8 @@ export const collectStepOutputReferences = (
   sortedNodes.forEach((node) => {
     referencesByNode[node.id] = [...accumulatedReferences];
 
-    const data = node.data as ActionNodeData | undefined;
-    if (!data) {
+    const data = node.data as Partial<ActionNodeData> | undefined;
+    if (!data || !data.step) {
       return;
     }
 
@@ -221,4 +291,28 @@ export const collectStepOutputReferences = (
   });
 
   return referencesByNode;
+};
+
+export const createHandleUpdateOutput = (setNodes: SetNodes) => {
+  return (
+    rfId: string,
+    updater: (prev: OutputNodeData["output"]) => OutputNodeData["output"]
+  ) => {
+    setNodes((nodes) =>
+      nodes.map((node) => {
+        if (node.id !== rfId || node.type !== "outputNode") {
+          return node;
+        }
+        const data = node.data as OutputNodeData;
+        const nextOutput = updater(data.output ?? {});
+        return {
+          ...node,
+          data: {
+            ...data,
+            output: nextOutput,
+          },
+        };
+      })
+    );
+  };
 };
