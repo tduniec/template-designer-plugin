@@ -39,7 +39,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          yarn install --immutable 
+          yarn install --immutable
 
       # DRY RUN on PRs
       - name: Semantic Release (Dry Run)
