@@ -18,6 +18,7 @@ import type {
   ScaffolderTaskOutput,
   TaskStep,
 } from "@backstage/plugin-scaffolder-common";
+import type { TemplateParametersValue } from "../../nodes/types";
 import { SAMPLE_TEMPLATE_BLUEPRINT } from "../../utils/sampleTemplate";
 
 const FILE_PICKER_ACCEPT = {
@@ -307,6 +308,33 @@ export const TemplateDesigner = () => {
     return cloneSteps(validSteps);
   }, [templateObject]);
 
+  const templateParameters = useMemo((): TemplateParametersValue => {
+    if (!templateObject) {
+      return undefined;
+    }
+
+    const template = asRecord(templateObject);
+    if (!template) {
+      return undefined;
+    }
+
+    const spec = asRecord(template.spec);
+    if (!spec) {
+      return undefined;
+    }
+
+    if (!Object.prototype.hasOwnProperty.call(spec, "parameters")) {
+      return undefined;
+    }
+
+    const rawParameters = (spec as Record<string, unknown>).parameters;
+    if (rawParameters === undefined) {
+      return undefined;
+    }
+
+    return cloneDeep(rawParameters as TemplateParametersValue);
+  }, [templateObject]);
+
   const templateOutput = useMemo(() => {
     if (!templateObject) {
       return undefined;
@@ -389,6 +417,38 @@ export const TemplateDesigner = () => {
           nextSpec.output = cloneDeep(nextOutput);
         } else {
           delete nextSpec.output;
+        }
+
+        const nextTemplate: Record<string, unknown> = {
+          ...base,
+          spec: nextSpec,
+        };
+
+        const nextYaml = convertJsonToYaml(nextTemplate);
+        setTemplateYaml(nextYaml);
+        setYamlError(undefined);
+        return nextTemplate;
+      });
+    },
+    []
+  );
+
+  const handleParametersChange = useCallback(
+    (nextParameters: TemplateParametersValue) => {
+      setIsDirty(true);
+      setTemplateObject((prevTemplate) => {
+        const base =
+          prevTemplate && typeof prevTemplate === "object"
+            ? (cloneDeep(prevTemplate) as Record<string, unknown>)
+            : ({} as Record<string, unknown>);
+
+        const spec = asRecord(base.spec) ?? {};
+        const nextSpec = { ...spec };
+
+        if (nextParameters !== undefined) {
+          nextSpec.parameters = cloneDeep(nextParameters);
+        } else {
+          delete nextSpec.parameters;
         }
 
         const nextTemplate: Record<string, unknown> = {
@@ -731,8 +791,10 @@ export const TemplateDesigner = () => {
                     <div style={{ height: "100%" }}>
                       <App
                         steps={templateSteps}
+                        parameters={templateParameters}
                         output={templateOutput}
                         onStepsChange={handleStepsChange}
+                        onParametersChange={handleParametersChange}
                         onOutputChange={handleOutputChange}
                       />
                     </div>

@@ -1,15 +1,28 @@
 import type {
   ScaffolderTaskOutput,
   TaskStep,
+  TemplateParametersV1beta3,
+  TemplateParameterSchema,
 } from "@backstage/plugin-scaffolder-common";
 
-export type DesignerNodeType = "actionNode" | "outputNode";
+export type DesignerNodeType =
+  | "parametersNode"
+  | "actionNode"
+  | "outputNode";
+
+export type TemplateParametersValue =
+  | TemplateParametersV1beta3
+  | TemplateParametersV1beta3[]
+  | TemplateParameterSchema
+  | TemplateParameterSchema[]
+  | undefined;
 
 export type AddNodeConfig = {
   afterRfId: string;
   type?: DesignerNodeType;
   stepTemplate?: Partial<TaskStep>;
   outputTemplate?: ScaffolderTaskOutput;
+  parametersTemplate?: TemplateParametersValue;
 };
 
 type BaseNodeData = {
@@ -40,4 +53,20 @@ export type OutputNodeData = BaseNodeData & {
     rfId: string,
     updater: (prev: ScaffolderTaskOutput) => ScaffolderTaskOutput
   ) => void;
+};
+
+export type ParametersNodeData = BaseNodeData & {
+  parameters: TemplateParametersValue;
+  onUpdateParameters?: (
+    rfId: string,
+    updater: (
+      prev: TemplateParametersValue
+    ) => TemplateParametersValue
+  ) => void;
+};
+
+export const NODE_VERTICAL_SPACING: Record<DesignerNodeType, number> = {
+  parametersNode: 520,
+  actionNode: 420,
+  outputNode: 480,
 };
