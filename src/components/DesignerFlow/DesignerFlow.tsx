@@ -34,6 +34,7 @@ import {
 } from "./handlers";
 import { scaffolderApiRef } from "@backstage/plugin-scaffolder-react";
 import { useApi } from "@backstage/core-plugin-api";
+
 const VERTICAL_SPACING = 400;
 const FIXED_X_POSITION = 100;
 
@@ -99,7 +100,7 @@ const buildNodesFromModel = (
     } as Node;
   });
 
-  if (output == null) {
+  if (output === null || output === undefined) {
     return mappedSteps;
   }
 

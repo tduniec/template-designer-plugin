@@ -1,5 +1,10 @@
 import { useMemo, useState } from "react";
-import type { ChangeEvent, KeyboardEvent, SyntheticEvent } from "react";
+import type {
+  ChangeEvent,
+  InputHTMLAttributes,
+  KeyboardEvent,
+  SyntheticEvent,
+} from "react";
 import { Handle, NodeToolbar, Position } from "@xyflow/react";
 import { alpha, styled, useTheme } from "@mui/material/styles";
 import {
@@ -108,18 +113,28 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
   const { rfId, output } = data;
   const [newCustomKey, setNewCustomKey] = useState("");
   const [newCustomValue, setNewCustomValue] = useState("");
-  const stepOutputReferences = data.stepOutputReferences ?? [];
+  const stepOutputReferences = useMemo(
+    () => data.stepOutputReferences ?? [],
+    [data.stepOutputReferences]
+  );
   const referenceOptions = useMemo(
     () => Array.from(new Set(stepOutputReferences.filter(Boolean))),
     [stepOutputReferences]
   );
 
-  const stopAll = {
+  const stopAll: {
+    onPointerDown: (event: SyntheticEvent) => void;
+    onKeyDown: (event: KeyboardEvent) => void;
+    className: string;
+    inputProps: InputHTMLAttributes<HTMLInputElement> & {
+      [key: string]: unknown;
+    };
+  } = {
     onPointerDown: (event: SyntheticEvent) => event.stopPropagation(),
     onKeyDown: (event: KeyboardEvent) => event.stopPropagation(),
     className: "nodrag nowheel",
     inputProps: { "data-nodrag": true },
-  } as const;
+  };
 
   const links = useMemo(
     () => (Array.isArray(output?.links) ? [...output.links] : []),
@@ -202,11 +217,11 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
     updateOutput((prev) => {
       const currentLinks = Array.isArray(prev?.links) ? [...prev.links] : [];
       currentLinks.splice(index, 1);
-      const next = { ...(prev ?? {}), links: currentLinks };
       if (currentLinks.length === 0) {
-        delete next.links;
+        const { links: _removed, ...rest } = prev ?? {};
+        return rest;
       }
-      return next;
+      return { ...(prev ?? {}), links: currentLinks };
     });
   };
 
@@ -253,11 +268,11 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
     updateOutput((prev) => {
       const currentText = Array.isArray(prev?.text) ? [...prev.text] : [];
       currentText.splice(index, 1);
-      const next = { ...(prev ?? {}), text: currentText };
       if (currentText.length === 0) {
-        delete next.text;
+        const { text: _removed, ...rest } = prev ?? {};
+        return rest;
       }
-      return next;
+      return { ...(prev ?? {}), text: currentText };
     });
   };
 
@@ -272,11 +287,8 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
   return (
     <Card>
       <Header>
-        <Box display="flex" alignItems="center" gap={1}>
-          <OutboxIcon
-            fontSize="small"
-            htmlColor={theme.palette.info.main}
-          />
+        <Box display="flex" alignItems="center">
+          <OutboxIcon fontSize="small" htmlColor={theme.palette.info.main} />
           <Typography variant="subtitle2" noWrap>
             Template Output
           </Typography>
@@ -477,7 +489,7 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
               )}
             />
           </TextRow>
-          <Box display="flex" alignItems="center" gap={1}>
+          <Box display="flex" alignItems="center">
             <FormControlLabel
               control={
                 <Checkbox
@@ -521,9 +533,7 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
             {...stopAll}
             size="small"
             placeholder="Value"
-            value={
-              value === undefined || value === null ? "" : String(value)
-            }
+            value={value === undefined || value === null ? "" : String(value)}
             onChange={handleCustomValueChange(key)}
             select={false}
           />
@@ -537,7 +547,9 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
         </CustomRow>
       ))}
 
-      <Box sx={{ mt: 1, display: "grid", gridTemplateColumns: "160px 1fr auto", gap: 1 }}>
+      <Box
+        sx={{ mt: 1, display: "grid", gridTemplateColumns: "160px 1fr auto" }}
+      >
         <TextField
           {...stopAll}
           size="small"
@@ -574,7 +586,6 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
             sx={{
               display: "flex",
               flexWrap: "wrap",
-              gap: 0.5,
               mt: 0.5,
             }}
           >

@@ -63,7 +63,7 @@ export const createHandleAddNode = (
         }
 
         const initialOutput =
-          outputTemplate != null
+          outputTemplate !== null && outputTemplate !== undefined
             ? (JSON.parse(JSON.stringify(outputTemplate)) as Record<
                 string,
                 unknown

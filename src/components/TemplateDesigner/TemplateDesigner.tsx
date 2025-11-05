@@ -402,7 +402,7 @@ export const TemplateDesigner = () => {
         return nextTemplate;
       });
     },
-    [convertJsonToYaml]
+    []
   );
 
   const handleReloadFromFile = useCallback(async () => {
