@@ -14,7 +14,10 @@ import {
   convertYamlToJson,
 } from "../../utils/yamlJsonConversion";
 import { useTheme } from "@material-ui/core/styles";
-import type { TaskStep } from "@backstage/plugin-scaffolder-common";
+import type {
+  ScaffolderTaskOutput,
+  TaskStep,
+} from "@backstage/plugin-scaffolder-common";
 import { SAMPLE_TEMPLATE_BLUEPRINT } from "../../utils/sampleTemplate";
 
 const FILE_PICKER_ACCEPT = {
@@ -304,6 +307,29 @@ export const TemplateDesigner = () => {
     return cloneSteps(validSteps);
   }, [templateObject]);
 
+  const templateOutput = useMemo(() => {
+    if (!templateObject) {
+      return undefined;
+    }
+
+    const template = asRecord(templateObject);
+    if (!template) {
+      return undefined;
+    }
+
+    const spec = asRecord(template.spec);
+    if (!spec) {
+      return undefined;
+    }
+
+    const rawOutput = spec.output;
+    if (!rawOutput || typeof rawOutput !== "object") {
+      return undefined;
+    }
+
+    return cloneDeep(rawOutput as ScaffolderTaskOutput);
+  }, [templateObject]);
+
   const handleYamlChange = useCallback(
     (value: string) => {
       setTemplateYaml(value);
@@ -346,6 +372,38 @@ export const TemplateDesigner = () => {
       return nextTemplate;
     });
   }, []);
+
+  const handleOutputChange = useCallback(
+    (nextOutput: ScaffolderTaskOutput | undefined) => {
+      setIsDirty(true);
+      setTemplateObject((prevTemplate) => {
+        const base =
+          prevTemplate && typeof prevTemplate === "object"
+            ? (cloneDeep(prevTemplate) as Record<string, unknown>)
+            : ({} as Record<string, unknown>);
+
+        const spec = asRecord(base.spec) ?? {};
+        const nextSpec = { ...spec };
+
+        if (nextOutput !== undefined) {
+          nextSpec.output = cloneDeep(nextOutput);
+        } else {
+          delete nextSpec.output;
+        }
+
+        const nextTemplate: Record<string, unknown> = {
+          ...base,
+          spec: nextSpec,
+        };
+
+        const nextYaml = convertJsonToYaml(nextTemplate);
+        setTemplateYaml(nextYaml);
+        setYamlError(undefined);
+        return nextTemplate;
+      });
+    },
+    []
+  );
 
   const handleReloadFromFile = useCallback(async () => {
     if (!templateSource) {
@@ -673,7 +731,9 @@ export const TemplateDesigner = () => {
                     <div style={{ height: "100%" }}>
                       <App
                         steps={templateSteps}
+                        output={templateOutput}
                         onStepsChange={handleStepsChange}
+                        onOutputChange={handleOutputChange}
                       />
                     </div>
                   </div>
