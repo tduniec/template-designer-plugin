@@ -1,13 +1,108 @@
-# template-designer
+# Backstage Template Designer Plugin
 
-Welcome to the template-designer plugin!
+**From YAML to Canvas — bringing the Democratization of Templates to Backstage.**  
 
-_This plugin was created through the Backstage CLI_
+Empowering the **Democratization of Templates** in Backstage 🚀  
+Visually **design, connect, and manage** your Backstage scaffolder templates through an **intuitive drag-and-drop interface** — all inside your Backstage instance.  
+No YAML complexity. No coding required. Just creativity.
 
-## Getting started
+---
 
-Your plugin has been added to the example app in this repository, meaning you'll be able to access it by running `yarn start` in the root directory, and then navigating to [/template-designer](http://localhost:3000/template-designer).
+## 🌟 Why “Democratization of Templates”?
 
-You can also serve the plugin in isolation by running `yarn start` in the plugin directory.
-This method of serving the plugin provides quicker iteration speed and a faster startup and hot reloads.
-It is only meant for local development, and the setup for it can be found inside the [/dev](./dev) directory.
+Backstage templates shouldn’t be just for developers.  
+The Template Designer makes **template creation accessible to everyone** — from DevOps engineers to product teams — enabling true **collaboration and transparency** in how your software templates are built and evolve.
+
+---
+
+## 🚀 Features
+
+- ⚡ **Drag & Drop Editing** — visually compose your Backstage scaffolder workflows.  
+- 🧩 **Three Node Types**  
+  - **Action Node** – represents a single scaffolder action.  
+  - **Template Node** – groups multiple actions into a reusable unit.  
+  - **Output Node** – defines exported values or pipeline results.  
+- 💾 **Work with Files** — open existing template definitions or save your flow as a JSON file directly from the UI.  
+- 🔄 **Live Flow Connections** — connect nodes with arrows to define execution order.  
+- 💡 **Frontend-Only Plugin** — zero backend setup required.  
+
+---
+
+## 🖼️ Preview
+
+TODO screen
+
+## ⚙️ Installation
+
+From your Backstage root directory
+```bash
+yarn add --cwd packages/app @your-org/plugin-template-designer
+```
+
+In packages/app/src/App.tsx:
+```tsx
+import { TemplateDesignerPage } from '@your-org/plugin-template-designer';
+
+const routes = (
+  <FlatRoutes>
+    {/* other routes */}
+    <Route path="/template-designer" element={<TemplateDesignerPage />} />
+  </FlatRoutes>
+);
+```
+In `packages/app/src/components/Root/Root.tsx`:
+```tsx 
+import DesignServicesIcon from '@mui/icons-material/DesignServices';
+import { SidebarItem } from '@backstage/core-components';
+
+<SidebarItem icon={DesignServicesIcon} to="template-designer" text="Template Designer" />;
+```
+
+## ⚙️ Usage
+
+Visit your local Backstage instance:
+
+http://localhost:7007/template-designer
+
+
+Create and connect nodes, adjust properties, and export your flow as a JSON file.
+You can also open an existing template file, modify it visually, and save your changes.
+
+## 💾 File Management
+
+Template Designer allows you to easily work with your Backstage scaffolder definitions:
+Open a template file (.json) – load an existing flow directly into the canvas.
+Edit visually – move nodes, adjust connections, rename actions.
+Save – export your template back to a .json file ready for scaffolder integration.
+
+*Template Designer can read your registered actions!*
+
+## 🧠 Tech Stack
+
+- React + TypeScript
+- React Flow
+- Backstage Core Components
+
+## 🛠️ Development
+
+To run locally during development:
+```bash
+yarn start
+```
+
+This runs a local Backstage app with hot reload support for your plugin.
+
+## ❤️ Contributing
+
+Help us push forward the Democratization of Templates in Backstage!
+Ideas, feedback, and PRs are all welcome.
+
+## 📄 License
+
+MIT © 2025 — Created by [Your Name or Org]
+
+## 🌐 Roadmap
+
+TODO
+
+
