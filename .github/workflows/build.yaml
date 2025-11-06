@@ -20,6 +20,19 @@ jobs:
         with:
           node-version: 22
 
+      - name: Cache Yarn 4 artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            .yarn/cache
+            .yarn/install-state.gz
+            node_modules
+          key: >
+            yarn4-node-modules-${{ runner.os }}-node22-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            yarn4-node-modules-${{ runner.os }}-node22-
+            yarn4-node-modules-${{ runner.os }}-
+
       - name: Install dependencies
         run: |
           yarn install --immutable
