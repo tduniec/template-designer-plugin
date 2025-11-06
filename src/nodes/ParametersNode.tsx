@@ -111,22 +111,6 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
     }
   };
 
-  const prettyDisabled = useMemo(
-    () => text.trim().length === 0 && !parameters,
-    [text, parameters]
-  );
-
-  const handlePrettyPrint = () => {
-    try {
-      const parsed = parseParameters(text);
-      setText(stringifyParameters(parsed));
-      setError(undefined);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Invalid JSON input";
-      setError(message);
-    }
-  };
-
   return (
     <Card>
       <Header>
@@ -153,25 +137,14 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
         />
       </Header>
 
-      <Typography variant="body2" color="textSecondary" gutterBottom>
-        Define the template parameters exposed to users. Provide JSON matching
-        Backstage&apos;s template parameters format.
-      </Typography>
 
-      <TextField
-        {...stopAll}
-        value={text}
-        onChange={handleChange}
-        onBlur={handleApply}
-        placeholder='e.g. { "title": "Info", "properties": { "name": { "type": "string" } } }'
-        multiline
-        minRows={10}
-        maxRows={18}
-        variant="outlined"
-        fullWidth
-        error={Boolean(error)}
-        helperText={error ?? "Edits apply on blur. Use JSON format."}
-      />
+       <div
+      style={{
+        width: '650px',
+        height: '500px',
+        border: '2px solid black', // outline the rectangle
+      }}
+    />
 
       <Box mt={1.5} display="flex">
         <Button
@@ -185,17 +158,6 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
           onKeyDown={stopAll.onKeyDown}
         >
           Apply
-        </Button>
-        <Button
-          size="small"
-          variant="text"
-          disabled={prettyDisabled}
-          onClick={handlePrettyPrint}
-          className="nodrag nowheel"
-          onPointerDown={stopAll.onPointerDown}
-          onKeyDown={stopAll.onKeyDown}
-        >
-          Pretty Print
         </Button>
       </Box>
 
