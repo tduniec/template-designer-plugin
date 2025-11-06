@@ -146,20 +146,7 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
       }}
     />
 
-      <Box mt={1.5} display="flex">
-        <Button
-          size="small"
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon fontSize="small" />}
-          onClick={handleApply}
-          className="nodrag nowheel"
-          onPointerDown={stopAll.onPointerDown}
-          onKeyDown={stopAll.onKeyDown}
-        >
-          Apply
-        </Button>
-      </Box>
+
 
       <NodeToolbar position={Position.Bottom}>
         <Button
@@ -180,7 +167,7 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
         </Button>
       </NodeToolbar>
 
-      <Divider style={{ margin: "12px 0", opacity: 0.4 }} />
+
 
       <Handle type="source" position={Position.Bottom} />
     </Card>
