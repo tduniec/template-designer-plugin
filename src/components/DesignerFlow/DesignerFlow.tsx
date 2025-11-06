@@ -30,6 +30,7 @@ import type {
   TemplateParametersValue,
 } from "../../nodes/types";
 import {
+  alignNodes,
   collectStepOutputReferences,
   createHandleAddNode,
   createHandleRemoveInputKey,
@@ -80,6 +81,20 @@ const cloneParameters = (
   parameters === undefined
     ? undefined
     : (JSON.parse(JSON.stringify(parameters)) as TemplateParametersValue);
+
+const resolveNodeHeightForTracking = (node: Node): number | undefined => {
+  const measuredHeight = node.measured?.height;
+  if (typeof measuredHeight === "number" && measuredHeight > 0) {
+    return measuredHeight;
+  }
+
+  const explicitHeight = node.height;
+  if (typeof explicitHeight === "number" && explicitHeight > 0) {
+    return explicitHeight;
+  }
+
+  return undefined;
+};
 
 type BuildNodesFromModelOptions = {
   scaffolderActionIds: string[];
@@ -152,10 +167,7 @@ const buildNodesFromModel = (
     });
   }
 
-  return nodes.map((node, index) => ({
-    ...node,
-    position: { x: FIXED_X_POSITION, y: index * VERTICAL_SPACING },
-  }));
+  return alignNodes(nodes, FIXED_X_POSITION, VERTICAL_SPACING);
 };
 
 const collectParameterReferences = (
@@ -358,6 +370,7 @@ export default function App({
   const lastEmittedModelHashRef = useRef<string | null>(null);
   const skipNextModelHashRef = useRef<string | null>(null);
   const lastCacheFingerprintRef = useRef<string | null>(null);
+  const nodeHeightsRef = useRef<Record<string, number>>({});
 
   useEffect(() => {
     const isCacheChanged = cacheFingerprint !== lastCacheFingerprintRef.current;
@@ -404,6 +417,62 @@ export default function App({
     setNodes,
     setEdges,
   ]);
+
+  useEffect(() => {
+    if (!nodes.length) {
+      return;
+    }
+
+    if (nodes.some((node) => node.dragging)) {
+      return;
+    }
+
+    const activeNodeIds = new Set<string>();
+    let hasMeasuredChange = false;
+
+    nodes.forEach((node) => {
+      activeNodeIds.add(node.id);
+      const measuredHeight = resolveNodeHeightForTracking(node);
+      if (typeof measuredHeight !== "number") {
+        return;
+      }
+      const previousHeight = nodeHeightsRef.current[node.id];
+      if (previousHeight !== measuredHeight) {
+        nodeHeightsRef.current[node.id] = measuredHeight;
+        hasMeasuredChange = true;
+      }
+    });
+
+    Object.keys(nodeHeightsRef.current).forEach((id) => {
+      if (!activeNodeIds.has(id)) {
+        delete nodeHeightsRef.current[id];
+      }
+    });
+
+    if (!hasMeasuredChange) {
+      return;
+    }
+
+    setNodes((currentNodes) => {
+      const alignedNodes = alignNodes(
+        currentNodes,
+        FIXED_X_POSITION,
+        VERTICAL_SPACING
+      );
+      const positionsChanged = alignedNodes.some((node, index) => {
+        const previousNode = currentNodes[index];
+        if (!previousNode) {
+          return true;
+        }
+        return (
+          node.position.x !== previousNode.position.x ||
+          node.position.y !== previousNode.position.y
+        );
+      });
+
+      return positionsChanged ? alignedNodes : currentNodes;
+    });
+  }, [nodes, setNodes]);
 
   const parameterReferences = useMemo(
     () => collectParameterReferences(normalizedParametersProp),
