@@ -149,9 +149,10 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
     ) => {
       handleSectionUpdate(sectionId, (section) => ({
         ...section,
-        fields: section.fields?.map((field) =>
-          field.id === fieldId ? updater(field) : field
-        ) ?? [],
+        fields:
+          section.fields?.map((field) =>
+            field.id === fieldId ? updater(field) : field
+          ) ?? [],
       }));
     },
     [handleSectionUpdate]
@@ -179,7 +180,9 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
     (sectionId: string, direction: "up" | "down") => {
       applySectionsUpdate((prev) => {
         const list = [...(prev ?? [])];
-        const currentIndex = list.findIndex((section) => section.id === sectionId);
+        const currentIndex = list.findIndex(
+          (section) => section.id === sectionId
+        );
         if (currentIndex < 0) {
           return list;
         }
@@ -231,7 +234,9 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
             return section;
           }
           const fields = [...(section.fields ?? [])];
-          const currentIndex = fields.findIndex((field) => field.id === fieldId);
+          const currentIndex = fields.findIndex(
+            (field) => field.id === fieldId
+          );
           if (currentIndex < 0) {
             return section;
           }

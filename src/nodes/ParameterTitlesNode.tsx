@@ -13,10 +13,7 @@ import ViewListIcon from "@mui/icons-material/ViewList";
 import AddIcon from "@mui/icons-material/Add";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import type {
-  ParameterFieldDisplay,
-  ParameterSectionDisplay,
-} from "./types";
+import type { ParameterFieldDisplay, ParameterSectionDisplay } from "./types";
 import { ParameterInputNode } from "./ParameterInputNode";
 
 const Card = styled(Box)(({ theme }) => ({
@@ -107,24 +104,19 @@ export const ParameterTitlesNode: React.FC<ParameterTitlesProps> = ({
   const theme = useTheme();
   const safeSections = sections ?? [];
 
-  const handleSectionTitleChange = (
-    sectionId: string,
-    value: string
-  ) => {
+  const handleSectionTitleChange = (sectionId: string, value: string) => {
     onSectionUpdate?.(sectionId, (section) => ({
       ...section,
       title: value,
-      fields: section.fields?.map((field) => ({
-        ...field,
-        sectionTitle: value,
-      })) ?? [],
+      fields:
+        section.fields?.map((field) => ({
+          ...field,
+          sectionTitle: value,
+        })) ?? [],
     }));
   };
 
-  const handleSectionDescriptionChange = (
-    sectionId: string,
-    value: string
-  ) => {
+  const handleSectionDescriptionChange = (sectionId: string, value: string) => {
     onSectionUpdate?.(sectionId, (section) => ({
       ...section,
       description: value,
@@ -152,10 +144,7 @@ export const ParameterTitlesNode: React.FC<ParameterTitlesProps> = ({
           alignItems="center"
           style={{ gap: theme.spacing(1) }}
         >
-          <ViewListIcon
-            fontSize="small"
-            htmlColor={theme.palette.info.dark}
-          />
+          <ViewListIcon fontSize="small" htmlColor={theme.palette.info.dark} />
           <Typography variant="subtitle2" noWrap>
             Parameter Titles
           </Typography>
@@ -263,7 +252,9 @@ export const ParameterTitlesNode: React.FC<ParameterTitlesProps> = ({
               <SectionMeta>
                 <Chip
                   size="small"
-                  label={`${fieldCount} propert${fieldCount === 1 ? "y" : "ies"}`}
+                  label={`${fieldCount} propert${
+                    fieldCount === 1 ? "y" : "ies"
+                  }`}
                 />
                 <Chip
                   size="small"

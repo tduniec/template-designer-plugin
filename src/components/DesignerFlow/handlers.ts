@@ -84,7 +84,10 @@ export const alignNodes = (
     };
 
     const nodeHeight = getNodeHeight(node);
-    const distanceToNext = Math.max(nodeHeight + MIN_VERTICAL_GAP, verticalSpacing);
+    const distanceToNext = Math.max(
+      nodeHeight + MIN_VERTICAL_GAP,
+      verticalSpacing
+    );
     currentY += distanceToNext;
 
     return alignedNode;
@@ -432,9 +435,7 @@ export const createHandleUpdateOutput = (setNodes: SetNodes) => {
 export const createHandleUpdateSections = (setNodes: SetNodes) => {
   return (
     rfId: string,
-    updater: (
-      prev: ParameterSectionDisplay[]
-    ) => ParameterSectionDisplay[]
+    updater: (prev: ParameterSectionDisplay[]) => ParameterSectionDisplay[]
   ) => {
     setNodes((nodes) =>
       nodes.map((node) => {

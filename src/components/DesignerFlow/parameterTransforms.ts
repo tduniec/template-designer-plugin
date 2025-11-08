@@ -37,9 +37,9 @@ const cloneSchema = (
 };
 
 const buildDefaultSchema = (fieldName: string): ParameterPropertySchema => ({
-    title: fieldName || "Field",
-    type: "string",
-  });
+  title: fieldName || "Field",
+  type: "string",
+});
 
 const buildFieldsForSection = (
   sectionId: string,
@@ -89,17 +89,16 @@ const rebuildSectionMeta = (
     sanitizeField(field, fallbackId, fieldIndex)
   );
 
-  const properties = sanitizedFields.reduce<Record<string, ParameterPropertySchema>>(
-    (acc, field) => {
-      if (!field.fieldName) {
-        return acc;
-      }
-      acc[field.fieldName] =
-        cloneSchema(field.schema) ?? buildDefaultSchema(field.fieldName);
+  const properties = sanitizedFields.reduce<
+    Record<string, ParameterPropertySchema>
+  >((acc, field) => {
+    if (!field.fieldName) {
       return acc;
-    },
-    {}
-  );
+    }
+    acc[field.fieldName] =
+      cloneSchema(field.schema) ?? buildDefaultSchema(field.fieldName);
+    return acc;
+  }, {});
 
   const required = sanitizedFields
     .filter((field) => field.required && field.fieldName)
@@ -141,7 +140,10 @@ export const sectionsToParametersValue = (
       const template: TemplateParametersV1beta3 = {
         title: section.title,
         description: section.description,
-        required: section.required && section.required.length ? [...section.required] : undefined,
+        required:
+          section.required && section.required.length
+            ? [...section.required]
+            : undefined,
         properties: JSON.parse(JSON.stringify(properties)),
       };
       return template;

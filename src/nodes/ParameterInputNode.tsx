@@ -78,10 +78,15 @@ export const ParameterInputNode: React.FC<ParameterInputProps> = ({
 }) => {
   const theme = useTheme();
   const { fieldName, schema, required, sectionTitle } = field;
-  const schemaRecord = (schema ?? {}) as Record<string, unknown>;
+  const schemaRecord = useMemo(
+    () => (schema ?? {}) as Record<string, unknown>,
+    [schema]
+  );
   const defaultValue = schemaRecord.default;
   const schemaTitle =
-    typeof schemaRecord.title === "string" ? (schemaRecord.title as string) : "";
+    typeof schemaRecord.title === "string"
+      ? (schemaRecord.title as string)
+      : "";
   const schemaDescription =
     typeof schemaRecord.description === "string"
       ? (schemaRecord.description as string)

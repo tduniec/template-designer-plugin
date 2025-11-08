@@ -5,10 +5,7 @@ import type {
   TemplateParameterSchema,
 } from "@backstage/plugin-scaffolder-common";
 
-export type DesignerNodeType =
-  | "parametersNode"
-  | "actionNode"
-  | "outputNode";
+export type DesignerNodeType = "parametersNode" | "actionNode" | "outputNode";
 
 export type TemplateParametersValue =
   | TemplateParametersV1beta3
