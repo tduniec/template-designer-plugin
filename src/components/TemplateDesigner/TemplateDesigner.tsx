@@ -1,4 +1,11 @@
-import { ChangeEvent, useCallback, useMemo, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Page,
   Content,
@@ -6,7 +13,18 @@ import {
   SupportButton,
 } from "@backstage/core-components";
 import App from "../DesignerFlow/DesignerFlow";
-import { Box, Button, Grid, Paper, Typography } from "@material-ui/core";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  Paper,
+  TextField,
+  Typography,
+} from "@material-ui/core";
 import CodeMirror from "@uiw/react-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import {
@@ -121,8 +139,14 @@ export const TemplateDesigner = () => {
   >();
   const [isReloading, setIsReloading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [editorValue, setEditorValue] = useState("");
+  const [editorState, setEditorState] = useState<{
+    target: HTMLInputElement | HTMLTextAreaElement;
+    label: string;
+  } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const interactionRootRef = useRef<HTMLDivElement | null>(null);
   const theme = useTheme();
 
   const yamlExtensions = useMemo(() => [yaml()], []);
@@ -168,6 +192,46 @@ export const TemplateDesigner = () => {
     },
     []
   );
+
+  const closeEditor = useCallback(() => {
+    setEditorValue("");
+    setEditorState(null);
+  }, []);
+
+  const applyEditorValue = useCallback(() => {
+    if (!editorState) {
+      return;
+    }
+    const { target } = editorState;
+
+    const setNativeValue = (
+      element: HTMLInputElement | HTMLTextAreaElement,
+      value: string
+    ) => {
+      const valueSetter = Object.getOwnPropertyDescriptor(
+        element,
+        "value"
+      )?.set;
+      const prototype = Object.getPrototypeOf(element);
+      const prototypeValueSetter = Object.getOwnPropertyDescriptor(
+        prototype,
+        "value"
+      )?.set;
+
+      if (valueSetter && valueSetter !== prototypeValueSetter) {
+        prototypeValueSetter?.call(element, value);
+      } else if (valueSetter) {
+        valueSetter.call(element, value);
+      } else {
+        // eslint-disable-next-line no-param-reassign
+        element.value = value;
+      }
+    };
+
+    setNativeValue(target, editorValue);
+    target.dispatchEvent(new Event("input", { bubbles: true }));
+    closeEditor();
+  }, [closeEditor, editorState, editorValue]);
 
   const confirmDiscardChanges = useCallback(() => {
     if (!templateObject || !isDirty) {
@@ -224,6 +288,74 @@ export const TemplateDesigner = () => {
     },
     [applyTemplate, confirmDiscardChanges, parseTemplateYaml]
   );
+
+  useEffect(() => {
+    const root = interactionRootRef.current;
+    if (!root) {
+      return undefined;
+    }
+
+    const handleDoubleClick = (event: MouseEvent) => {
+      const target = event.target as EventTarget | null;
+      if (!target) {
+        return;
+      }
+      if (
+        target instanceof HTMLInputElement &&
+        !target.readOnly &&
+        !target.disabled
+      ) {
+        const type = target.type?.toLowerCase();
+        const isTextual =
+          !type ||
+          [
+            "text",
+            "search",
+            "url",
+            "tel",
+            "email",
+            "number",
+            "password",
+          ].includes(type);
+        if (!isTextual || !target.value) {
+          return;
+        }
+        event.stopPropagation();
+        setEditorState({
+          target,
+          label:
+            target.getAttribute("aria-label") ??
+            target.name ??
+            target.placeholder ??
+            "Field editor",
+        });
+        setEditorValue(target.value);
+        return;
+      }
+      if (
+        target instanceof HTMLTextAreaElement &&
+        !target.readOnly &&
+        !target.disabled &&
+        target.value
+      ) {
+        event.stopPropagation();
+        setEditorState({
+          target,
+          label:
+            target.getAttribute("aria-label") ??
+            target.name ??
+            target.placeholder ??
+            "Field editor",
+        });
+        setEditorValue(target.value);
+      }
+    };
+
+    root.addEventListener("dblclick", handleDoubleClick, true);
+    return () => {
+      root.removeEventListener("dblclick", handleDoubleClick, true);
+    };
+  }, []);
 
   const handleToggleYaml = useCallback(() => setShowYaml((prev) => !prev), []);
 
@@ -604,8 +736,9 @@ export const TemplateDesigner = () => {
   }
 
   return (
-    <Page themeId="tool">
-      <Content>
+    <div ref={interactionRootRef} style={{ height: "100%" }}>
+      <Page themeId="tool">
+        <Content>
         <ContentHeader title="Template Designer">
           <SupportButton>A description of your plugin goes here.</SupportButton>
         </ContentHeader>
@@ -854,5 +987,33 @@ export const TemplateDesigner = () => {
         )}
       </Content>
     </Page>
+    <Dialog
+      open={Boolean(editorState)}
+      onClose={closeEditor}
+      fullWidth
+      maxWidth="md"
+    >
+      <DialogTitle>
+        {editorState ? `Edit ${editorState.label}` : "Edit field"}
+      </DialogTitle>
+      <DialogContent>
+        <TextField
+          multiline
+          minRows={8}
+          variant="outlined"
+          value={editorValue}
+          onChange={(event) => setEditorValue(event.target.value)}
+          fullWidth
+          autoFocus
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={closeEditor}>Cancel</Button>
+        <Button color="primary" variant="contained" onClick={applyEditorValue}>
+          Apply
+        </Button>
+      </DialogActions>
+    </Dialog>
+  </div>
   );
 };
