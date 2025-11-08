@@ -21,9 +21,16 @@ import type {
   TaskStep,
 } from "@backstage/plugin-scaffolder-common";
 import { ActionNode } from "../../nodes/ActionNode";
+import { ParametersNode } from "../../nodes/ParametersNode";
 import { OutputNode } from "../../nodes/OutputNode";
-import type { ActionNodeData, OutputNodeData } from "../../nodes/types";
+import type {
+  ActionNodeData,
+  OutputNodeData,
+  ParametersNodeData,
+  TemplateParametersValue,
+} from "../../nodes/types";
 import {
+  alignNodes,
   collectStepOutputReferences,
   createHandleAddNode,
   createHandleRemoveInputKey,
@@ -31,7 +38,9 @@ import {
   createHandleUpdateField,
   createHandleUpdateInput,
   createHandleUpdateOutput,
+  createHandleUpdateSections,
 } from "./handlers";
+import { normalizeParametersToSections } from "./parameterTransforms";
 import { scaffolderApiRef } from "@backstage/plugin-scaffolder-react";
 import { useApi } from "@backstage/core-plugin-api";
 
@@ -39,6 +48,7 @@ const VERTICAL_SPACING = 400;
 const FIXED_X_POSITION = 100;
 
 const nodeTypes = {
+  parametersNode: ParametersNode,
   actionNode: ActionNode,
   outputNode: OutputNode,
 };
@@ -66,6 +76,27 @@ const cloneOutput = (
 ): ScaffolderTaskOutput =>
   JSON.parse(JSON.stringify(output ?? {})) as ScaffolderTaskOutput;
 
+const cloneParameters = (
+  parameters: TemplateParametersValue
+): TemplateParametersValue =>
+  parameters === undefined
+    ? undefined
+    : (JSON.parse(JSON.stringify(parameters)) as TemplateParametersValue);
+
+const resolveNodeHeightForTracking = (node: Node): number | undefined => {
+  const measuredHeight = node.measured?.height;
+  if (typeof measuredHeight === "number" && measuredHeight > 0) {
+    return measuredHeight;
+  }
+
+  const explicitHeight = node.height;
+  if (typeof explicitHeight === "number" && explicitHeight > 0) {
+    return explicitHeight;
+  }
+
+  return undefined;
+};
+
 type BuildNodesFromModelOptions = {
   scaffolderActionIds: string[];
   scaffolderActionInputsById: Record<string, Record<string, unknown>>;
@@ -74,6 +105,7 @@ type BuildNodesFromModelOptions = {
 
 const buildNodesFromModel = (
   steps: TaskStep[],
+  parameters: TemplateParametersValue,
   output: ScaffolderTaskOutput | undefined | null,
   options: BuildNodesFromModelOptions
 ) => {
@@ -83,12 +115,31 @@ const buildNodesFromModel = (
     scaffolderActionOutputsById,
   } = options;
 
-  const mappedSteps = steps.map((step, index) => {
+  const parameterSections = normalizeParametersToSections(parameters);
+  const nodes: Node[] = [];
+
+  const rfParametersId = "rf-parameters";
+  nodes.push({
+    id: rfParametersId,
+    type: "parametersNode",
+    position: { x: FIXED_X_POSITION, y: 0 },
+    data: {
+      rfId: rfParametersId,
+      parameters: cloneParameters(parameters),
+      sections: parameterSections,
+      scaffolderActionIds,
+      scaffolderActionInputsById,
+      scaffolderActionOutputsById,
+    },
+    ...nodeDefaults,
+  });
+
+  const actionNodes = steps.map((step, index) => {
     const rfId = buildRfId(step, index);
     return {
       id: rfId,
       type: "actionNode",
-      position: { x: FIXED_X_POSITION, y: index * VERTICAL_SPACING },
+      position: { x: FIXED_X_POSITION, y: 0 },
       data: {
         rfId,
         step: cloneStep(step),
@@ -100,29 +151,66 @@ const buildNodesFromModel = (
     } as Node;
   });
 
-  if (output === null || output === undefined) {
-    return mappedSteps;
+  nodes.push(...actionNodes);
+
+  if (output !== undefined && output !== null) {
+    const rfOutputId = "rf-output";
+    nodes.push({
+      id: rfOutputId,
+      type: "outputNode",
+      position: { x: FIXED_X_POSITION, y: 0 },
+      data: {
+        rfId: rfOutputId,
+        output: cloneOutput(output),
+        scaffolderActionIds,
+        scaffolderActionInputsById,
+        scaffolderActionOutputsById,
+      },
+      ...nodeDefaults,
+    });
   }
 
-  const rfId = "rf-output";
-  const outputNode: Node = {
-    id: rfId,
-    type: "outputNode",
-    position: {
-      x: FIXED_X_POSITION,
-      y: mappedSteps.length * VERTICAL_SPACING,
-    },
-    data: {
-      rfId,
-      output: cloneOutput(output),
-      scaffolderActionIds,
-      scaffolderActionInputsById,
-      scaffolderActionOutputsById,
-    },
-    ...nodeDefaults,
+  return alignNodes(nodes, FIXED_X_POSITION, VERTICAL_SPACING);
+};
+
+const collectParameterReferences = (
+  parameters: TemplateParametersValue
+): string[] => {
+  const refs = new Set<string>();
+
+  const extractProperties = (schema: unknown) => {
+    if (!schema || typeof schema !== "object") {
+      return;
+    }
+
+    const record = schema as Record<string, unknown>;
+    if (record.properties && typeof record.properties === "object") {
+      Object.keys(record.properties as Record<string, unknown>).forEach(
+        (key) => {
+          if (key) {
+            refs.add(`\${{ parameters.${key} }}`);
+          }
+        }
+      );
+    }
+
+    if (Array.isArray(record.steps)) {
+      record.steps.forEach((stepSchema) => {
+        if (!stepSchema || typeof stepSchema !== "object") {
+          return;
+        }
+        extractProperties((stepSchema as Record<string, unknown>).schema);
+      });
+    }
   };
 
-  return [...mappedSteps, outputNode];
+  if (Array.isArray(parameters)) {
+    parameters.forEach((item) => extractProperties(item));
+  } else {
+    extractProperties(parameters);
+  }
+
+  return Array.from(refs).sort();
 };
 
 const normalizeValueForStableStringify = (value: unknown): unknown => {
@@ -192,7 +280,7 @@ const useScaffolderActions = () => {
         }
         setCache(buildScaffolderActionsCache(remoteActions));
       })
-      .catch();
+      .catch(() => {});
 
     return () => {
       cancelled = true;
@@ -204,15 +292,19 @@ const useScaffolderActions = () => {
 
 type DesignerFlowProps = {
   steps?: TaskStep[];
+  parameters?: TemplateParametersValue;
   output?: ScaffolderTaskOutput | null;
   onStepsChange?: (steps: TaskStep[]) => void;
+  onParametersChange?: (parameters: TemplateParametersValue) => void;
   onOutputChange?: (output: ScaffolderTaskOutput | undefined) => void;
 };
 
 export default function App({
   steps = [],
+  parameters,
   output,
   onStepsChange,
+  onParametersChange,
   onOutputChange,
 }: DesignerFlowProps) {
   const scaffolderActionsCache = useScaffolderActions();
@@ -223,17 +315,24 @@ export default function App({
     outputsById: scaffolderActionOutputsById,
   } = scaffolderActionsCache;
 
+  const normalizedParametersProp = parameters ?? undefined;
   const normalizedOutputProp = output ?? null;
 
   const initialNodes = useMemo(
     () =>
-      buildNodesFromModel(steps, normalizedOutputProp, {
-        scaffolderActionIds,
-        scaffolderActionInputsById,
-        scaffolderActionOutputsById,
-      }),
+      buildNodesFromModel(
+        steps,
+        normalizedParametersProp,
+        normalizedOutputProp,
+        {
+          scaffolderActionIds,
+          scaffolderActionInputsById,
+          scaffolderActionOutputsById,
+        }
+      ),
     [
       steps,
+      normalizedParametersProp,
       normalizedOutputProp,
       scaffolderActionIds,
       scaffolderActionInputsById,
@@ -250,10 +349,12 @@ export default function App({
     () =>
       stableStringify({
         steps,
+        parameters: normalizedParametersProp,
         output: normalizedOutputProp,
       }),
-    [steps, normalizedOutputProp]
+    [steps, normalizedParametersProp, normalizedOutputProp]
   );
+
   const cacheFingerprint = useMemo(
     () =>
       stableStringify({
@@ -272,6 +373,7 @@ export default function App({
   const lastEmittedModelHashRef = useRef<string | null>(null);
   const skipNextModelHashRef = useRef<string | null>(null);
   const lastCacheFingerprintRef = useRef<string | null>(null);
+  const nodeHeightsRef = useRef<Record<string, number>>({});
 
   useEffect(() => {
     const isCacheChanged = cacheFingerprint !== lastCacheFingerprintRef.current;
@@ -289,11 +391,16 @@ export default function App({
       return;
     }
 
-    const nextNodes = buildNodesFromModel(steps, normalizedOutputProp, {
-      scaffolderActionIds,
-      scaffolderActionInputsById,
-      scaffolderActionOutputsById,
-    });
+    const nextNodes = buildNodesFromModel(
+      steps,
+      normalizedParametersProp,
+      normalizedOutputProp,
+      {
+        scaffolderActionIds,
+        scaffolderActionInputsById,
+        scaffolderActionOutputsById,
+      }
+    );
 
     lastAppliedModelHashRef.current = modelHash;
     lastCacheFingerprintRef.current = cacheFingerprint;
@@ -303,6 +410,7 @@ export default function App({
     setEdges(createSequentialEdges(nextNodes));
   }, [
     steps,
+    normalizedParametersProp,
     normalizedOutputProp,
     modelHash,
     cacheFingerprint,
@@ -313,12 +421,72 @@ export default function App({
     setEdges,
   ]);
 
-  const stepOutputReferencesByNode = useMemo(
-    () => collectStepOutputReferences(nodes),
-    [nodes]
+  useEffect(() => {
+    if (!nodes.length) {
+      return;
+    }
+
+    if (nodes.some((node) => node.dragging)) {
+      return;
+    }
+
+    const activeNodeIds = new Set<string>();
+    let hasMeasuredChange = false;
+
+    nodes.forEach((node) => {
+      activeNodeIds.add(node.id);
+      const measuredHeight = resolveNodeHeightForTracking(node);
+      if (typeof measuredHeight !== "number") {
+        return;
+      }
+      const previousHeight = nodeHeightsRef.current[node.id];
+      if (previousHeight !== measuredHeight) {
+        nodeHeightsRef.current[node.id] = measuredHeight;
+        hasMeasuredChange = true;
+      }
+    });
+
+    Object.keys(nodeHeightsRef.current).forEach((id) => {
+      if (!activeNodeIds.has(id)) {
+        delete nodeHeightsRef.current[id];
+      }
+    });
+
+    if (!hasMeasuredChange) {
+      return;
+    }
+
+    setNodes((currentNodes) => {
+      const alignedNodes = alignNodes(
+        currentNodes,
+        FIXED_X_POSITION,
+        VERTICAL_SPACING
+      );
+      const positionsChanged = alignedNodes.some((node, index) => {
+        const previousNode = currentNodes[index];
+        if (!previousNode) {
+          return true;
+        }
+        return (
+          node.position.x !== previousNode.position.x ||
+          node.position.y !== previousNode.position.y
+        );
+      });
+
+      return positionsChanged ? alignedNodes : currentNodes;
+    });
+  }, [nodes, setNodes]);
+
+  const parameterReferences = useMemo(
+    () => collectParameterReferences(normalizedParametersProp),
+    [normalizedParametersProp]
   );
 
-  // ----- ReactFlow change handlers (keep your layout approach) -----
+  const stepOutputReferencesByNode = useMemo(
+    () => collectStepOutputReferences(nodes, parameterReferences),
+    [nodes, parameterReferences]
+  );
+
   const onNodesChange = useCallback(
     (changes: NodeChange<Node>[]) =>
       setNodes((ns) => applyNodeChanges(changes, ns)),
@@ -372,6 +540,11 @@ export default function App({
     [setNodes]
   );
 
+  const onUpdateSections = useMemo(
+    () => createHandleUpdateSections(setNodes),
+    [setNodes]
+  );
+
   const handleAddNode = useMemo(
     () =>
       createHandleAddNode(setNodes, setEdges, {
@@ -391,11 +564,22 @@ export default function App({
     ]
   );
 
-  // Attach callbacks to each node’s data
   const nodesWithHandlers = useMemo(
     () =>
       nodes.map((node) => {
         const stepOutputReferences = stepOutputReferencesByNode[node.id] ?? [];
+        if (node.type === "parametersNode") {
+          const data = node.data as ParametersNodeData;
+          return {
+            ...node,
+            data: {
+              ...data,
+              onAddNode: handleAddNode,
+              onUpdateSections,
+              stepOutputReferences,
+            },
+          };
+        }
         if (node.type === "outputNode") {
           const data = node.data as OutputNodeData;
           return {
@@ -429,6 +613,7 @@ export default function App({
       onUpdateInput,
       onRemoveInputKey,
       onUpdateOutput,
+      onUpdateSections,
       stepOutputReferencesByNode,
     ]
   );
@@ -444,6 +629,20 @@ export default function App({
         return cloneStep(data.step as TaskStep);
       })
       .filter((step): step is TaskStep => !!step);
+  }, [nodes]);
+
+  const parametersFromNodes = useMemo(() => {
+    const parametersNode = [...nodes]
+      .sort((a, b) => a.position.y - b.position.y)
+      .find((node) => node.type === "parametersNode");
+    if (!parametersNode) {
+      return undefined;
+    }
+    const data = parametersNode.data as ParametersNodeData | undefined;
+    if (!data) {
+      return undefined;
+    }
+    return cloneParameters(data.parameters);
   }, [nodes]);
 
   const outputFromNodes = useMemo(() => {
@@ -463,11 +662,12 @@ export default function App({
   const normalizedOutputFromNodes = outputFromNodes ?? null;
 
   useEffect(() => {
-    if (!onStepsChange && !onOutputChange) {
+    if (!onStepsChange && !onParametersChange && !onOutputChange) {
       return;
     }
     const serialized = stableStringify({
       steps: stepsFromNodes,
+      parameters: parametersFromNodes ?? null,
       output: normalizedOutputFromNodes,
     });
     if (serialized === lastEmittedModelHashRef.current) {
@@ -478,14 +678,19 @@ export default function App({
     if (onStepsChange) {
       onStepsChange(stepsFromNodes);
     }
+    if (onParametersChange) {
+      onParametersChange(parametersFromNodes ?? undefined);
+    }
     if (onOutputChange) {
       onOutputChange(outputFromNodes);
     }
   }, [
     stepsFromNodes,
+    parametersFromNodes,
     normalizedOutputFromNodes,
     outputFromNodes,
     onStepsChange,
+    onParametersChange,
     onOutputChange,
   ]);
 
@@ -505,7 +710,7 @@ export default function App({
 
   useEffect(() => {
     if (!reactFlowInstance) {
-      return undefined; // 👈 explicitly returning undefined
+      return undefined;
     }
     window.addEventListener("resize", fitFlowToView);
     return () => {

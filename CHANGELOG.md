@@ -1,3 +1,10 @@
+## [0.1.4](https://github.com/tduniec/template-designer-plugin/compare/v0.1.3...v0.1.4) (2025-11-08)
+
+
+### Bug Fixes
+
+* initializing parameters as subflows ([#14](https://github.com/tduniec/template-designer-plugin/issues/14)) ([59db1bb](https://github.com/tduniec/template-designer-plugin/commit/59db1bb7cc3e313c9a53f9c03f9905eb37aa8247))
+
 ## [0.1.3](https://github.com/tduniec/template-designer-plugin/compare/v0.1.2...v0.1.3) (2025-11-05)
 
 ### Bug Fixes
