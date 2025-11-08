@@ -1,3 +1,10 @@
+## [0.1.5](https://github.com/tduniec/template-designer-plugin/compare/v0.1.4...v0.1.5) (2025-11-08)
+
+
+### Bug Fixes
+
+* adding text field editor ([#15](https://github.com/tduniec/template-designer-plugin/issues/15)) ([1e8d2c1](https://github.com/tduniec/template-designer-plugin/commit/1e8d2c1b7be8129c500bb849d21a2bd0064c251d))
+
 ## [0.1.4](https://github.com/tduniec/template-designer-plugin/compare/v0.1.3...v0.1.4) (2025-11-08)
 
 
