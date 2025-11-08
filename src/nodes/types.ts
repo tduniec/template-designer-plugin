@@ -5,7 +5,12 @@ import type {
   TemplateParameterSchema,
 } from "@backstage/plugin-scaffolder-common";
 
-export type DesignerNodeType = "parametersNode" | "actionNode" | "outputNode";
+export type DesignerNodeType =
+  | "parametersNode"
+  | "parameterTitlesNode"
+  | "parameterInputNode"
+  | "actionNode"
+  | "outputNode";
 
 export type TemplateParametersValue =
   | TemplateParametersV1beta3
@@ -60,8 +65,35 @@ export type ParametersNodeData = BaseNodeData & {
   ) => void;
 };
 
+export type ParameterSectionDisplay = {
+  id: string;
+  title?: string;
+  description?: string;
+  required?: string[];
+  properties?: Record<string, TemplateParameterSchema>;
+};
+
+export type ParameterTitlesNodeData = BaseNodeData & {
+  sections: ParameterSectionDisplay[];
+};
+
+export type ParameterInputNodeData = BaseNodeData & {
+  fieldName: string;
+  sectionTitle?: string;
+  required: boolean;
+  schema?: TemplateParameterSchema;
+};
+
 export const NODE_VERTICAL_SPACING: Record<DesignerNodeType, number> = {
   parametersNode: 520,
+  parameterTitlesNode: 380,
+  parameterInputNode: 320,
   actionNode: 420,
   outputNode: 480,
 };
+
+export const PARAMETER_NODE_TYPES: DesignerNodeType[] = [
+  "parametersNode",
+  "parameterTitlesNode",
+  "parameterInputNode",
+];

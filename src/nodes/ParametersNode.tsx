@@ -1,18 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import type { ChangeEvent, KeyboardEvent, SyntheticEvent } from "react";
+import type { KeyboardEvent, SyntheticEvent } from "react";
 import { Handle, NodeToolbar, Position } from "@xyflow/react";
 import { alpha, styled, useTheme } from "@mui/material/styles";
-import {
-  Box,
-  Button,
-  Chip,
-  Divider,
-  TextField,
-  Typography,
-} from "@material-ui/core";
+import { Box, Button, Chip, Typography } from "@material-ui/core";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AddIcon from "@mui/icons-material/Add";
-import type { ParametersNodeData, TemplateParametersValue } from "./types";
+import type { ParametersNodeData } from "./types";
 
 const Card = styled(Box)(({ theme }) => ({
   position: "relative",
@@ -58,35 +50,31 @@ const Header = styled(Box)(({ theme }) => ({
   border: `1px solid ${alpha(theme.palette.warning.main, 0.4)}`,
 }));
 
-const stringifyParameters = (value: TemplateParametersValue) => {
-  if (value === undefined || value === null) {
-    return "";
-  }
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return String(value);
-  }
-};
+const Placeholder = styled(Box)(({ theme }) => ({
+  minHeight: 200,
+  border: `2px dashed ${alpha(theme.palette.warning.main, 0.6)}`,
+  borderRadius: 16,
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  padding: theme.spacing(3),
+  gap: theme.spacing(1.25),
+  backgroundColor: alpha(
+    theme.palette.warning.light,
+    theme.palette.mode === "dark" ? 0.08 : 0.04
+  ),
+}));
 
-const parseParameters = (raw: string): TemplateParametersValue => {
-  if (!raw.trim()) {
-    return undefined;
-  }
-  return JSON.parse(raw) as TemplateParametersValue;
-};
+const PlaceholderHint = styled(Typography)(({ theme }) => ({
+  fontSize: "0.9rem",
+  color: alpha(theme.palette.text.primary, 0.8),
+}));
 
 export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
   data,
 }) => {
   const theme = useTheme();
-  const { rfId, parameters } = data;
-  const [text, setText] = useState(() => stringifyParameters(parameters));
-  const [error, setError] = useState<string | undefined>();
-
-  useEffect(() => {
-    setText(stringifyParameters(parameters));
-  }, [parameters]);
+  const { rfId } = data;
 
   const stopAll = {
     onPointerDown: (event: SyntheticEvent) => event.stopPropagation(),
@@ -95,58 +83,50 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
     inputProps: { "data-nodrag": true },
   } as const;
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setText(event.target.value);
-    setError(undefined);
-  };
-
-  const handleApply = () => {
-    try {
-      const nextValue = parseParameters(text);
-      data.onUpdateParameters?.(rfId, () => nextValue);
-      setError(undefined);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Invalid JSON input";
-      setError(message);
-    }
-  };
-
   return (
     <Card>
       <Header>
-        <Box display="flex" alignItems="center">
+        <Box
+          display="flex"
+          alignItems="center"
+          style={{ gap: theme.spacing(1) }}
+        >
           <SettingsIcon
             fontSize="small"
             htmlColor={theme.palette.warning.dark}
           />
           <Typography variant="subtitle2" noWrap>
-            Template Parameters
+            Parameters Placeholder
           </Typography>
         </Box>
         <Chip
           size="small"
           variant="outlined"
-          label="Inputs"
+          label="parameters"
           style={{
             borderColor: theme.palette.warning.dark,
             color:
               theme.palette.mode === "dark"
                 ? theme.palette.warning.light
                 : theme.palette.warning.dark,
+            textTransform: "uppercase",
           }}
         />
       </Header>
 
-
-       <div
-      style={{
-        width: '650px',
-        height: '500px',
-        border: '2px solid black', // outline the rectangle
-      }}
-    />
-
-
+      <Placeholder>
+        <Typography variant="h6" gutterBottom>
+          Ready for parameter structure
+        </Typography>
+        <PlaceholderHint>
+          This node pins the start of your template inputs. Attach the title and
+          field nodes below to describe each parameter group and property.
+        </PlaceholderHint>
+        <PlaceholderHint>
+          Customize styling later — for now it simply reserves space for the
+          advanced parameter flow.
+        </PlaceholderHint>
+      </Placeholder>
 
       <NodeToolbar position={Position.Bottom}>
         <Button
@@ -166,8 +146,6 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
           Add First Action
         </Button>
       </NodeToolbar>
-
-
 
       <Handle type="source" position={Position.Bottom} />
     </Card>

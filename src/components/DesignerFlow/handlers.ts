@@ -7,8 +7,10 @@ import type {
   DesignerNodeType,
   OutputNodeData,
   ParametersNodeData,
+  ParameterTitlesNodeData,
   TemplateParametersValue,
 } from "../../nodes/types";
+import { PARAMETER_NODE_TYPES } from "../../nodes/types";
 import { createSequentialEdges } from "../../utils/createSequentialEdges";
 
 type SetNodes = Dispatch<SetStateAction<Node[]>>;
@@ -28,6 +30,9 @@ const orderNodes = (
   actionNodes: Node[],
   outputNodes: Node[]
 ) => [...parameterNodes, ...actionNodes, ...outputNodes];
+
+const isParameterNode = (node: Node): boolean =>
+  PARAMETER_NODE_TYPES.includes(node.type as DesignerNodeType);
 
 const DEFAULT_NODE_HEIGHT = 320;
 const MIN_VERTICAL_GAP = 48;
@@ -110,7 +115,7 @@ export const createHandleAddNode = (
     const nodeType: DesignerNodeType = type;
 
     setNodes((nodes) => {
-      const parameterNodes = nodes.filter((n) => n.type === "parametersNode");
+      const parameterNodes = nodes.filter(isParameterNode);
       const actionNodes = nodes.filter((n) => n.type === "actionNode");
       const outputNodes = nodes.filter((n) => n.type === "outputNode");
 
@@ -152,7 +157,25 @@ export const createHandleAddNode = (
           ...nodeDefaults,
         };
 
-        return composeAndAlign([parameterNode], actionNodes, outputNodes);
+        const parameterTitlesNode: Node = {
+          id: "rf-parameter-titles",
+          type: "parameterTitlesNode",
+          position: { x: fixedXPosition, y: 0 },
+          data: {
+            rfId: "rf-parameter-titles",
+            sections: [],
+            scaffolderActionIds,
+            scaffolderActionInputsById,
+            scaffolderActionOutputsById,
+          } satisfies ParameterTitlesNodeData,
+          ...nodeDefaults,
+        };
+
+        return composeAndAlign(
+          [parameterNode, parameterTitlesNode],
+          actionNodes,
+          outputNodes
+        );
       }
 
       if (nodeType === "outputNode") {
@@ -189,7 +212,10 @@ export const createHandleAddNode = (
         ]);
       }
 
-      const parametersNodeId = parameterNodes[0]?.id ?? null;
+      const parametersPlaceholder = nodes.find(
+        (n) => n.type === "parametersNode"
+      );
+      const parametersNodeId = parametersPlaceholder?.id ?? null;
       const parentIndex = actionNodes.findIndex((n) => n.id === afterRfId);
       let insertIndex: number;
       if (parentIndex >= 0) {
@@ -274,7 +300,7 @@ export const createHandleReorderAndAlignNodes = (
       );
 
       const parameterNodes = updatedNodes
-        .filter((node) => node.type === "parametersNode")
+        .filter(isParameterNode)
         .sort((a, b) => a.position.y - b.position.y);
       const actionNodes = updatedNodes
         .filter((node) => node.type === "actionNode")

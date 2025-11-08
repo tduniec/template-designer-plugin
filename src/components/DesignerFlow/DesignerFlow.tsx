@@ -19,14 +19,21 @@ import { createSequentialEdges } from "../../utils/createSequentialEdges";
 import type {
   ScaffolderTaskOutput,
   TaskStep,
+  TemplateParameterSchema,
+  TemplateParametersV1beta3,
 } from "@backstage/plugin-scaffolder-common";
 import { ActionNode } from "../../nodes/ActionNode";
 import { ParametersNode } from "../../nodes/ParametersNode";
+import { ParameterTitlesNode } from "../../nodes/ParameterTitlesNode";
+import { ParameterInputNode } from "../../nodes/ParameterInputNode";
 import { OutputNode } from "../../nodes/OutputNode";
 import type {
   ActionNodeData,
   OutputNodeData,
   ParametersNodeData,
+  ParameterInputNodeData,
+  ParameterSectionDisplay,
+  ParameterTitlesNodeData,
   TemplateParametersValue,
 } from "../../nodes/types";
 import {
@@ -48,6 +55,8 @@ const FIXED_X_POSITION = 100;
 
 const nodeTypes = {
   parametersNode: ParametersNode,
+  parameterTitlesNode: ParameterTitlesNode,
+  parameterInputNode: ParameterInputNode,
   actionNode: ActionNode,
   outputNode: OutputNode,
 };
@@ -82,6 +91,138 @@ const cloneParameters = (
     ? undefined
     : (JSON.parse(JSON.stringify(parameters)) as TemplateParametersValue);
 
+type ParameterSection = ParameterSectionDisplay;
+
+type ParameterFieldSummary = {
+  id: string;
+  fieldName: string;
+  sectionTitle?: string;
+  required: boolean;
+  schema?: TemplateParameterSchema;
+};
+
+const asString = (value: unknown): string | undefined =>
+  typeof value === "string" ? value : undefined;
+
+const asStringArray = (value: unknown): string[] | undefined =>
+  Array.isArray(value) && value.every((item) => typeof item === "string")
+    ? (value as string[])
+    : undefined;
+
+const asSchemaRecord = (
+  value: unknown
+): Record<string, TemplateParameterSchema> | undefined => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+  return value as Record<string, TemplateParameterSchema>;
+};
+
+const normalizeParametersToSections = (
+  parameters: TemplateParametersValue
+): ParameterSection[] => {
+  if (parameters === undefined || parameters === null) {
+    return [];
+  }
+
+  const entries = Array.isArray(parameters) ? parameters : [parameters];
+  const sections: ParameterSection[] = [];
+
+  entries.forEach((entry, index) => {
+    if (!entry || typeof entry !== "object") {
+      return;
+    }
+
+    const record = entry as Record<string, any>;
+    const steps = Array.isArray(record.steps) ? record.steps : [];
+    if (steps.length > 0) {
+      steps.forEach((step, stepIndex) => {
+        if (!step || typeof step !== "object") {
+          return;
+        }
+        const schema = (step as Record<string, any>).schema;
+        if (!schema || typeof schema !== "object") {
+          return;
+        }
+        const sectionSchema = schema as TemplateParametersV1beta3;
+        const stepRecord = step as Record<string, any>;
+        const sectionTitle =
+          asString(stepRecord.title) ??
+          asString(sectionSchema.title) ??
+          `Step ${stepIndex + 1}`;
+        const sectionDescription =
+          asString(stepRecord.description) ??
+          asString(sectionSchema.description);
+        const properties = asSchemaRecord(sectionSchema.properties) ?? {};
+        const required = asStringArray(sectionSchema.required) ?? [];
+        sections.push({
+          id: `section-${index}-step-${stepIndex}`,
+          title: sectionTitle,
+          description: sectionDescription,
+          properties,
+          required,
+        });
+      });
+      return;
+    }
+
+    const schema = record as TemplateParametersV1beta3;
+    const schemaTitle = asString(schema.title);
+    const schemaDescription = asString(schema.description);
+    const properties = asSchemaRecord(schema.properties);
+
+    if (properties && Object.keys(properties).length > 0) {
+      sections.push({
+        id: `section-${index}`,
+        title: schemaTitle ?? `Section ${index + 1}`,
+        description: schemaDescription,
+        properties,
+        required: asStringArray(schema.required) ?? [],
+      });
+      return;
+    }
+
+    const parameterSchema = entry as TemplateParameterSchema;
+    const fallbackKey = schemaTitle ?? `field-${index + 1}`;
+
+    sections.push({
+      id: `section-${index}`,
+      title: schemaTitle ?? `Section ${index + 1}`,
+      description: schemaDescription,
+      properties: {
+        [fallbackKey]: parameterSchema,
+      },
+      required: [],
+    });
+  });
+
+  return sections;
+};
+
+const buildParameterFields = (
+  sections: ParameterSection[]
+): ParameterFieldSummary[] => {
+  const fields: ParameterFieldSummary[] = [];
+
+  sections.forEach((section, sectionIndex) => {
+    const properties = section.properties ?? {};
+    Object.entries(properties).forEach(([fieldName, schema], fieldIndex) => {
+      const required =
+        Array.isArray(section.required) &&
+        section.required.includes(fieldName);
+      fields.push({
+        id: `section-${sectionIndex}-field-${fieldIndex}`,
+        fieldName,
+        sectionTitle: section.title,
+        required: Boolean(required),
+        schema,
+      });
+    });
+  });
+
+  return fields;
+};
+
 const resolveNodeHeightForTracking = (node: Node): number | undefined => {
   const measuredHeight = node.measured?.height;
   if (typeof measuredHeight === "number" && measuredHeight > 0) {
@@ -114,6 +255,8 @@ const buildNodesFromModel = (
     scaffolderActionOutputsById,
   } = options;
 
+  const parameterSections = normalizeParametersToSections(parameters);
+  const parameterFieldSummaries = buildParameterFields(parameterSections);
   const nodes: Node[] = [];
 
   const rfParametersId = "rf-parameters";
@@ -129,6 +272,41 @@ const buildNodesFromModel = (
       scaffolderActionOutputsById,
     },
     ...nodeDefaults,
+  });
+
+  const rfParameterTitlesId = "rf-parameter-titles";
+  nodes.push({
+    id: rfParameterTitlesId,
+    type: "parameterTitlesNode",
+    position: { x: FIXED_X_POSITION, y: 0 },
+    data: {
+      rfId: rfParameterTitlesId,
+      sections: parameterSections,
+      scaffolderActionIds,
+      scaffolderActionInputsById,
+      scaffolderActionOutputsById,
+    } satisfies ParameterTitlesNodeData,
+    ...nodeDefaults,
+  });
+
+  parameterFieldSummaries.forEach((field, index) => {
+    const rfParameterFieldId = `rf-parameter-field-${index}`;
+    nodes.push({
+      id: rfParameterFieldId,
+      type: "parameterInputNode",
+      position: { x: FIXED_X_POSITION, y: 0 },
+      data: {
+        rfId: rfParameterFieldId,
+        fieldName: field.fieldName,
+        sectionTitle: field.sectionTitle,
+        required: field.required,
+        schema: field.schema,
+        scaffolderActionIds,
+        scaffolderActionInputsById,
+        scaffolderActionOutputsById,
+      } satisfies ParameterInputNodeData,
+      ...nodeDefaults,
+    });
   });
 
   const actionNodes = steps.map((step, index) => {
@@ -573,6 +751,28 @@ export default function App({
               ...data,
               onAddNode: handleAddNode,
               onUpdateParameters,
+              stepOutputReferences,
+            },
+          };
+        }
+        if (node.type === "parameterTitlesNode") {
+          const data = node.data as ParameterTitlesNodeData;
+          return {
+            ...node,
+            data: {
+              ...data,
+              onAddNode: handleAddNode,
+              stepOutputReferences,
+            },
+          };
+        }
+        if (node.type === "parameterInputNode") {
+          const data = node.data as ParameterInputNodeData;
+          return {
+            ...node,
+            data: {
+              ...data,
+              onAddNode: handleAddNode,
               stepOutputReferences,
             },
           };
