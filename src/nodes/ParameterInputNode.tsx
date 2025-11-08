@@ -3,11 +3,16 @@ import { alpha, styled, useTheme } from "@mui/material/styles";
 import {
   Box,
   FormControlLabel,
+  IconButton,
   Switch,
   TextField,
+  Tooltip,
   Typography,
 } from "@material-ui/core";
 import TuneIcon from "@mui/icons-material/Tune";
+import AddIcon from "@mui/icons-material/Add";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import type { ParameterFieldDisplay } from "./types";
 
 const Card = styled(Box)(({ theme }) => ({
@@ -40,9 +45,13 @@ const Header = styled(Box)(({ theme }) => ({
 
 type ParameterInputProps = {
   field: ParameterFieldDisplay;
+  index: number;
+  totalCount: number;
   onFieldUpdate?: (
     updater: (field: ParameterFieldDisplay) => ParameterFieldDisplay
   ) => void;
+  onAddField?: () => void;
+  onMoveField?: (direction: "up" | "down") => void;
 };
 
 const shouldParseDefault = (value: string): boolean => {
@@ -61,7 +70,11 @@ const shouldParseDefault = (value: string): boolean => {
 
 export const ParameterInputNode: React.FC<ParameterInputProps> = ({
   field,
+  index,
+  totalCount,
   onFieldUpdate,
+  onAddField,
+  onMoveField,
 }) => {
   const theme = useTheme();
   const { fieldName, schema, required, sectionTitle } = field;
@@ -141,6 +154,11 @@ export const ParameterInputNode: React.FC<ParameterInputProps> = ({
     updateSchema({ default: value });
   };
 
+  const preventDrag = (event: React.SyntheticEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
+  };
+
   return (
     <Card>
       <Header>
@@ -151,7 +169,11 @@ export const ParameterInputNode: React.FC<ParameterInputProps> = ({
             justifyContent="space-between"
             style={{ gap: theme.spacing(1) }}
           >
-            <Box display="flex" alignItems="center" style={{ gap: theme.spacing(1) }}>
+            <Box
+              display="flex"
+              alignItems="center"
+              style={{ gap: theme.spacing(1) }}
+            >
               <TuneIcon
                 fontSize="small"
                 htmlColor={theme.palette.success.dark}
@@ -163,6 +185,57 @@ export const ParameterInputNode: React.FC<ParameterInputProps> = ({
             <Typography variant="caption" color="textSecondary">
               {schemaSummary}
             </Typography>
+          </Box>
+          <Box
+            display="flex"
+            justifyContent="flex-end"
+            style={{
+              gap: 4,
+              marginTop: theme.spacing(0.5),
+            }}
+          >
+            <Tooltip title="Add parameter input">
+              <IconButton
+                size="small"
+                onPointerDown={preventDrag}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onAddField?.();
+                }}
+              >
+                <AddIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Move up">
+              <span>
+                <IconButton
+                  size="small"
+                  disabled={index === 0}
+                  onPointerDown={preventDrag}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onMoveField?.("up");
+                  }}
+                >
+                  <ArrowUpwardIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+            <Tooltip title="Move down">
+              <span>
+                <IconButton
+                  size="small"
+                  disabled={index === totalCount - 1}
+                  onPointerDown={preventDrag}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onMoveField?.("down");
+                  }}
+                >
+                  <ArrowDownwardIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
           </Box>
           {sectionTitle ? (
             <Typography variant="caption" color="textSecondary">

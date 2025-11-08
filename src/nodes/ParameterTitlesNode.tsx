@@ -1,12 +1,18 @@
 import { alpha, styled, useTheme } from "@mui/material/styles";
 import {
   Box,
+  Button,
   Chip,
   Divider,
+  IconButton,
   TextField,
+  Tooltip,
   Typography,
 } from "@material-ui/core";
 import ViewListIcon from "@mui/icons-material/ViewList";
+import AddIcon from "@mui/icons-material/Add";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import type {
   ParameterFieldDisplay,
   ParameterSectionDisplay,
@@ -79,12 +85,24 @@ type ParameterTitlesProps = {
     fieldId: string,
     updater: (field: ParameterFieldDisplay) => ParameterFieldDisplay
   ) => void;
+  onAddSection?: (afterSectionId?: string) => void;
+  onMoveSection?: (sectionId: string, direction: "up" | "down") => void;
+  onAddField?: (sectionId: string, afterFieldId?: string) => void;
+  onMoveField?: (
+    sectionId: string,
+    fieldId: string,
+    direction: "up" | "down"
+  ) => void;
 };
 
 export const ParameterTitlesNode: React.FC<ParameterTitlesProps> = ({
   sections,
   onSectionUpdate,
   onFieldUpdate,
+  onAddSection,
+  onMoveSection,
+  onAddField,
+  onMoveField,
 }) => {
   const theme = useTheme();
   const safeSections = sections ?? [];
@@ -119,6 +137,11 @@ export const ParameterTitlesNode: React.FC<ParameterTitlesProps> = ({
     updater: (field: ParameterFieldDisplay) => ParameterFieldDisplay
   ) => {
     onFieldUpdate?.(sectionId, fieldId, updater);
+  };
+
+  const preventDrag = (event: React.SyntheticEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
   };
 
   return (
@@ -167,6 +190,54 @@ export const ParameterTitlesNode: React.FC<ParameterTitlesProps> = ({
         return (
           <Box key={section.id ?? index}>
             <SectionRow>
+              <Box
+                display="flex"
+                justifyContent="flex-end"
+                style={{ gap: theme.spacing(0.5) }}
+              >
+                <Tooltip title="Add section">
+                  <IconButton
+                    size="small"
+                    onPointerDown={preventDrag}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onAddSection?.(section.id);
+                    }}
+                  >
+                    <AddIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Move section up">
+                  <span>
+                    <IconButton
+                      size="small"
+                      disabled={index === 0}
+                      onPointerDown={preventDrag}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onMoveSection?.(section.id, "up");
+                      }}
+                    >
+                      <ArrowUpwardIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+                <Tooltip title="Move section down">
+                  <span>
+                    <IconButton
+                      size="small"
+                      disabled={index === safeSections.length - 1}
+                      onPointerDown={preventDrag}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onMoveSection?.(section.id, "down");
+                      }}
+                    >
+                      <ArrowDownwardIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              </Box>
               <TextField
                 label="Section title"
                 size="small"
@@ -209,19 +280,35 @@ export const ParameterTitlesNode: React.FC<ParameterTitlesProps> = ({
 
             {section.fields?.length ? (
               <FieldsGrid>
-                {section.fields.map((field) => (
+                {section.fields.map((field, fieldIndex) => (
                   <ParameterInputNode
                     key={field.id}
                     field={field}
+                    index={fieldIndex}
+                    totalCount={section.fields?.length ?? 0}
                     onFieldUpdate={(updater) =>
                       handleFieldUpdate(section.id, field.id, updater)
+                    }
+                    onAddField={() => onAddField?.(section.id, field.id)}
+                    onMoveField={(direction) =>
+                      onMoveField?.(section.id, field.id, direction)
                     }
                   />
                 ))}
               </FieldsGrid>
-            ) : null}
+            ) : (
+              <Box mt={1}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => onAddField?.(section.id)}
+                >
+                  Add parameter input
+                </Button>
+              </Box>
+            )}
 
-            {index < sections.length - 1 ? <Divider /> : null}
+            {index < safeSections.length - 1 ? <Divider /> : null}
           </Box>
         );
       })}
