@@ -1,9 +1,14 @@
-import { useMemo } from "react";
-import { Handle, Position } from "@xyflow/react";
+import { useCallback, useMemo } from "react";
 import { alpha, styled, useTheme } from "@mui/material/styles";
-import { Box, Chip, Divider, Typography } from "@material-ui/core";
+import {
+  Box,
+  FormControlLabel,
+  Switch,
+  TextField,
+  Typography,
+} from "@material-ui/core";
 import TuneIcon from "@mui/icons-material/Tune";
-import type { ParameterInputNodeData } from "./types";
+import type { ParameterFieldDisplay } from "./types";
 
 const Card = styled(Box)(({ theme }) => ({
   position: "relative",
@@ -13,7 +18,7 @@ const Card = styled(Box)(({ theme }) => ({
   ),
   border: `1px solid ${alpha(theme.palette.success.main, 0.45)}`,
   borderRadius: 12,
-  width: 500,
+  width: 520,
   padding: theme.spacing(1.5),
   boxShadow: theme.shadows[2],
   color: theme.palette.text.primary,
@@ -33,68 +38,130 @@ const Header = styled(Box)(({ theme }) => ({
   border: `1px solid ${alpha(theme.palette.success.main, 0.45)}`,
 }));
 
-const SchemaPreview = styled("pre")(({ theme }) => ({
-  margin: 0,
-  backgroundColor: alpha(theme.palette.common.black, 0.08),
-  borderRadius: 8,
-  padding: theme.spacing(1),
-  fontSize: "0.8rem",
-  maxHeight: 180,
-  overflow: "auto",
-}));
+type ParameterInputProps = {
+  field: ParameterFieldDisplay;
+  onFieldUpdate?: (
+    updater: (field: ParameterFieldDisplay) => ParameterFieldDisplay
+  ) => void;
+};
 
-export const ParameterInputNode: React.FC<{ data: ParameterInputNodeData }> = ({
-  data,
+const shouldParseDefault = (value: string): boolean => {
+  const trimmed = value.trim();
+  if (!trimmed.length) {
+    return false;
+  }
+  if (trimmed === "true" || trimmed === "false" || trimmed === "null") {
+    return true;
+  }
+  if (!Number.isNaN(Number(trimmed))) {
+    return true;
+  }
+  return trimmed.startsWith("{") || trimmed.startsWith("[");
+};
+
+export const ParameterInputNode: React.FC<ParameterInputProps> = ({
+  field,
+  onFieldUpdate,
 }) => {
   const theme = useTheme();
-  const { fieldName, schema, required, sectionTitle } = data;
+  const { fieldName, schema, required, sectionTitle } = field;
   const schemaRecord = (schema ?? {}) as Record<string, unknown>;
-  const enumValues = Array.isArray(schemaRecord["enum"])
-    ? (schemaRecord["enum"] as unknown[])
-    : undefined;
-  const defaultValue = schemaRecord["default"];
+  const defaultValue = schemaRecord.default;
+  const schemaTitle =
+    typeof schemaRecord.title === "string" ? (schemaRecord.title as string) : "";
+  const schemaDescription =
+    typeof schemaRecord.description === "string"
+      ? (schemaRecord.description as string)
+      : "";
 
   const schemaSummary = useMemo(() => {
     if (!schema) {
-      return "Not defined";
+      return "any";
     }
-    const record = schema as Record<string, unknown>;
-    const typeValue = record["type"];
+    const typeValue = schemaRecord.type;
     if (Array.isArray(typeValue)) {
-      return typeValue.map((value) => String(value)).join(" | ");
+      return typeValue.map(String).join(" | ");
     }
     if (typeof typeValue === "string") {
       return typeValue;
     }
     return "any";
-  }, [schema]);
+  }, [schema, schemaRecord]);
 
-  const schemaPreview = useMemo(() => {
-    if (!schema) {
-      return "{ }";
+  const defaultString = useMemo(() => {
+    if (defaultValue === undefined || defaultValue === null) {
+      return "";
+    }
+    if (typeof defaultValue === "string") {
+      return defaultValue;
     }
     try {
-      return JSON.stringify(schema, null, 2);
+      return JSON.stringify(defaultValue);
     } catch {
-      return "{ }";
+      return String(defaultValue);
     }
-  }, [schema]);
+  }, [defaultValue]);
+
+  const updateField = useCallback(
+    (updater: (current: ParameterFieldDisplay) => ParameterFieldDisplay) => {
+      onFieldUpdate?.(updater);
+    },
+    [onFieldUpdate]
+  );
+
+  const updateSchema = useCallback(
+    (patch: Record<string, unknown>) => {
+      updateField((current) => ({
+        ...current,
+        schema: {
+          ...(current.schema ?? {}),
+          ...patch,
+        },
+      }));
+    },
+    [updateField]
+  );
+
+  const handleDefaultChange = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed.length) {
+      updateSchema({ default: undefined });
+      return;
+    }
+
+    if (shouldParseDefault(trimmed)) {
+      try {
+        updateSchema({ default: JSON.parse(trimmed) });
+        return;
+      } catch {
+        // swallow parse errors and treat as plain text below
+      }
+    }
+
+    updateSchema({ default: value });
+  };
 
   return (
     <Card>
       <Header>
-        <Box display="flex" flexDirection="column">
+        <Box display="flex" flexDirection="column" width="100%">
           <Box
             display="flex"
             alignItems="center"
+            justifyContent="space-between"
             style={{ gap: theme.spacing(1) }}
           >
-            <TuneIcon
-              fontSize="small"
-              htmlColor={theme.palette.success.dark}
-            />
-            <Typography variant="subtitle2">
-              {schema?.title ?? fieldName}
+            <Box display="flex" alignItems="center" style={{ gap: theme.spacing(1) }}>
+              <TuneIcon
+                fontSize="small"
+                htmlColor={theme.palette.success.dark}
+              />
+              <Typography variant="subtitle2">
+                {schemaTitle || fieldName || "Field"}
+              </Typography>
+            </Box>
+            <Typography variant="caption" color="textSecondary">
+              {schemaSummary}
             </Typography>
           </Box>
           {sectionTitle ? (
@@ -103,53 +170,76 @@ export const ParameterInputNode: React.FC<{ data: ParameterInputNodeData }> = ({
             </Typography>
           ) : null}
         </Box>
-        <Chip
-          size="small"
-          label={required ? "required" : "optional"}
-          color={required ? "secondary" : "default"}
-          variant={required ? "default" : "outlined"}
-        />
       </Header>
-
-      {schema?.description ? (
-        <Typography variant="body2" color="textSecondary" gutterBottom>
-          {schema.description}
-        </Typography>
-      ) : null}
 
       <Box
         display="flex"
-        flexWrap="wrap"
-        style={{
-          gap: theme.spacing(1),
-          marginBottom: theme.spacing(1),
-        }}
+        flexDirection="column"
+        style={{ gap: theme.spacing(1.5) }}
       >
-        <Chip size="small" label={`type: ${schemaSummary}`} />
-        {enumValues
-          ? (
-            <Chip
-              size="small"
-              label={`enum: ${enumValues.length} values`}
+        <TextField
+          label="Field name"
+          size="small"
+          variant="outlined"
+          value={fieldName ?? ""}
+          onChange={(event) =>
+            updateField((current) => ({
+              ...current,
+              fieldName: event.target.value,
+            }))
+          }
+        />
+        <TextField
+          label="Label"
+          size="small"
+          variant="outlined"
+          value={schemaTitle}
+          onChange={(event) => updateSchema({ title: event.target.value })}
+        />
+        <TextField
+          label="Type"
+          size="small"
+          variant="outlined"
+          value={schemaSummary === "any" ? "" : schemaSummary}
+          onChange={(event) => {
+            const value = event.target.value.trim();
+            updateSchema({ type: value.length ? value : undefined });
+          }}
+        />
+        <TextField
+          label="Description"
+          size="small"
+          variant="outlined"
+          multiline
+          minRows={2}
+          value={schemaDescription}
+          onChange={(event) =>
+            updateSchema({ description: event.target.value })
+          }
+        />
+        <TextField
+          label="Default value"
+          size="small"
+          variant="outlined"
+          value={defaultString}
+          onChange={(event) => handleDefaultChange(event.target.value)}
+        />
+        <FormControlLabel
+          control={
+            <Switch
+              color="primary"
+              checked={required}
+              onChange={(event) =>
+                updateField((current) => ({
+                  ...current,
+                  required: event.target.checked,
+                }))
+              }
             />
-          )
-          : null}
-        {defaultValue !== undefined ? (
-          <Chip size="small" label={`default: ${String(defaultValue)}`} />
-        ) : null}
+          }
+          label="Required"
+        />
       </Box>
-
-      <Divider />
-
-      <Box mt={1}>
-        <Typography variant="caption" color="textSecondary">
-          schema
-        </Typography>
-        <SchemaPreview>{schemaPreview}</SchemaPreview>
-      </Box>
-
-      <Handle type="target" position={Position.Top} />
-      <Handle type="source" position={Position.Bottom} />
     </Card>
   );
 };

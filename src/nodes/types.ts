@@ -7,8 +7,6 @@ import type {
 
 export type DesignerNodeType =
   | "parametersNode"
-  | "parameterTitlesNode"
-  | "parameterInputNode"
   | "actionNode"
   | "outputNode";
 
@@ -57,12 +55,13 @@ export type OutputNodeData = BaseNodeData & {
   ) => void;
 };
 
-export type ParametersNodeData = BaseNodeData & {
-  parameters: TemplateParametersValue;
-  onUpdateParameters?: (
-    rfId: string,
-    updater: (prev: TemplateParametersValue) => TemplateParametersValue
-  ) => void;
+export type ParameterFieldDisplay = {
+  id: string;
+  fieldName: string;
+  sectionId: string;
+  sectionTitle?: string;
+  required: boolean;
+  schema?: Record<string, unknown>;
 };
 
 export type ParameterSectionDisplay = {
@@ -70,30 +69,21 @@ export type ParameterSectionDisplay = {
   title?: string;
   description?: string;
   required?: string[];
-  properties?: Record<string, TemplateParameterSchema>;
+  properties?: Record<string, Record<string, unknown>>;
+  fields: ParameterFieldDisplay[];
 };
 
-export type ParameterTitlesNodeData = BaseNodeData & {
-  sections: ParameterSectionDisplay[];
-};
-
-export type ParameterInputNodeData = BaseNodeData & {
-  fieldName: string;
-  sectionTitle?: string;
-  required: boolean;
-  schema?: TemplateParameterSchema;
+export type ParametersNodeData = BaseNodeData & {
+  parameters: TemplateParametersValue;
+  sections?: ParameterSectionDisplay[];
+  onUpdateSections?: (
+    rfId: string,
+    updater: (prev: ParameterSectionDisplay[]) => ParameterSectionDisplay[]
+  ) => void;
 };
 
 export const NODE_VERTICAL_SPACING: Record<DesignerNodeType, number> = {
   parametersNode: 520,
-  parameterTitlesNode: 380,
-  parameterInputNode: 320,
   actionNode: 420,
   outputNode: 480,
 };
-
-export const PARAMETER_NODE_TYPES: DesignerNodeType[] = [
-  "parametersNode",
-  "parameterTitlesNode",
-  "parameterInputNode",
-];

@@ -1,10 +1,15 @@
-import type { KeyboardEvent, SyntheticEvent } from "react";
+import { useCallback, type KeyboardEvent, type SyntheticEvent } from "react";
 import { Handle, NodeToolbar, Position } from "@xyflow/react";
 import { alpha, styled, useTheme } from "@mui/material/styles";
 import { Box, Button, Chip, Typography } from "@material-ui/core";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AddIcon from "@mui/icons-material/Add";
-import type { ParametersNodeData } from "./types";
+import type {
+  ParameterFieldDisplay,
+  ParameterSectionDisplay,
+  ParametersNodeData,
+} from "./types";
+import { ParameterTitlesNode } from "./ParameterTitlesNode";
 
 const Card = styled(Box)(({ theme }) => ({
   position: "relative",
@@ -74,7 +79,51 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
   data,
 }) => {
   const theme = useTheme();
-  const { rfId } = data;
+  const { rfId, sections = [] } = data;
+
+  const applySectionsUpdate = useCallback(
+    (
+      updater: (
+        prevSections: ParameterSectionDisplay[]
+      ) => ParameterSectionDisplay[]
+    ) => {
+      if (!data.onUpdateSections) {
+        return;
+      }
+      data.onUpdateSections(rfId, (prev) => updater(prev ?? []));
+    },
+    [data, rfId]
+  );
+
+  const handleSectionUpdate = useCallback(
+    (
+      sectionId: string,
+      updater: (section: ParameterSectionDisplay) => ParameterSectionDisplay
+    ) => {
+      applySectionsUpdate((prev) =>
+        (prev ?? []).map((section) =>
+          section.id === sectionId ? updater(section) : section
+        )
+      );
+    },
+    [applySectionsUpdate]
+  );
+
+  const handleFieldUpdate = useCallback(
+    (
+      sectionId: string,
+      fieldId: string,
+      updater: (field: ParameterFieldDisplay) => ParameterFieldDisplay
+    ) => {
+      handleSectionUpdate(sectionId, (section) => ({
+        ...section,
+        fields: section.fields?.map((field) =>
+          field.id === fieldId ? updater(field) : field
+        ) ?? [],
+      }));
+    },
+    [handleSectionUpdate]
+  );
 
   const stopAll = {
     onPointerDown: (event: SyntheticEvent) => event.stopPropagation(),
@@ -119,14 +168,22 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
           Ready for parameter structure
         </Typography>
         <PlaceholderHint>
-          This node pins the start of your template inputs. Attach the title and
-          field nodes below to describe each parameter group and property.
+          This node pins the start of your template inputs. The cards below show
+          every parameter section and the individual fields that belong to it.
         </PlaceholderHint>
         <PlaceholderHint>
           Customize styling later — for now it simply reserves space for the
           advanced parameter flow.
         </PlaceholderHint>
       </Placeholder>
+
+      <Box mt={2}>
+        <ParameterTitlesNode
+          sections={sections}
+          onSectionUpdate={handleSectionUpdate}
+          onFieldUpdate={handleFieldUpdate}
+        />
+      </Box>
 
       <NodeToolbar position={Position.Bottom}>
         <Button

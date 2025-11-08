@@ -1,8 +1,17 @@
-import { Handle, Position } from "@xyflow/react";
 import { alpha, styled, useTheme } from "@mui/material/styles";
-import { Box, Chip, Divider, Typography } from "@material-ui/core";
+import {
+  Box,
+  Chip,
+  Divider,
+  TextField,
+  Typography,
+} from "@material-ui/core";
 import ViewListIcon from "@mui/icons-material/ViewList";
-import type { ParameterTitlesNodeData } from "./types";
+import type {
+  ParameterFieldDisplay,
+  ParameterSectionDisplay,
+} from "./types";
+import { ParameterInputNode } from "./ParameterInputNode";
 
 const Card = styled(Box)(({ theme }) => ({
   position: "relative",
@@ -45,19 +54,72 @@ const SectionMeta = styled(Box)(({ theme }) => ({
   flexWrap: "wrap",
 }));
 
+const FieldsGrid = styled(Box)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  gap: theme.spacing(1),
+}));
+
 const EmptyState = styled(Box)(({ theme }) => ({
-  border: `2px dashed ${alpha(theme.palette.info.main, 0.5)}`,
+  border: `2px dashed ${alpha(theme.palette.info.main, 0.4)}`,
   borderRadius: 12,
   padding: theme.spacing(3),
   textAlign: "center",
   color: alpha(theme.palette.text.primary, 0.7),
 }));
 
-export const ParameterTitlesNode: React.FC<{ data: ParameterTitlesNodeData }> = ({
-  data,
+type ParameterTitlesProps = {
+  sections: ParameterSectionDisplay[];
+  onSectionUpdate?: (
+    sectionId: string,
+    updater: (section: ParameterSectionDisplay) => ParameterSectionDisplay
+  ) => void;
+  onFieldUpdate?: (
+    sectionId: string,
+    fieldId: string,
+    updater: (field: ParameterFieldDisplay) => ParameterFieldDisplay
+  ) => void;
+};
+
+export const ParameterTitlesNode: React.FC<ParameterTitlesProps> = ({
+  sections,
+  onSectionUpdate,
+  onFieldUpdate,
 }) => {
   const theme = useTheme();
-  const sections = data.sections ?? [];
+  const safeSections = sections ?? [];
+
+  const handleSectionTitleChange = (
+    sectionId: string,
+    value: string
+  ) => {
+    onSectionUpdate?.(sectionId, (section) => ({
+      ...section,
+      title: value,
+      fields: section.fields?.map((field) => ({
+        ...field,
+        sectionTitle: value,
+      })) ?? [],
+    }));
+  };
+
+  const handleSectionDescriptionChange = (
+    sectionId: string,
+    value: string
+  ) => {
+    onSectionUpdate?.(sectionId, (section) => ({
+      ...section,
+      description: value,
+    }));
+  };
+
+  const handleFieldUpdate = (
+    sectionId: string,
+    fieldId: string,
+    updater: (field: ParameterFieldDisplay) => ParameterFieldDisplay
+  ) => {
+    onFieldUpdate?.(sectionId, fieldId, updater);
+  };
 
   return (
     <Card>
@@ -77,7 +139,9 @@ export const ParameterTitlesNode: React.FC<{ data: ParameterTitlesNodeData }> = 
         </Box>
         <Chip
           size="small"
-          label={`${sections.length} section${sections.length === 1 ? "" : "s"}`}
+          label={`${safeSections.length} section${
+            safeSections.length === 1 ? "" : "s"
+          }`}
           variant="outlined"
           style={{
             borderColor: theme.palette.info.dark,
@@ -89,54 +153,78 @@ export const ParameterTitlesNode: React.FC<{ data: ParameterTitlesNodeData }> = 
         />
       </Header>
 
-      {sections.length === 0 ? (
+      {safeSections.length === 0 ? (
         <EmptyState>
           <Typography variant="body2">
-            No parameter sections were detected. Add entries in your template
-            YAML to see them listed here.
+            No parameter sections were detected. Define template parameters to
+            see them listed here.
           </Typography>
         </EmptyState>
-      ) : (
-        sections.map((section, index) => {
-          const propertyKeys = Object.keys(section.properties ?? {});
-          return (
-            <Box key={section.id ?? index}>
-              <SectionRow>
-                <Typography variant="subtitle1">
-                  {section.title ?? `Untitled section ${index + 1}`}
-                </Typography>
-                {section.description ? (
-                  <Typography variant="body2" color="textSecondary">
-                    {section.description}
-                  </Typography>
-                ) : null}
-                <SectionMeta>
-                  <Chip
-                    size="small"
-                    label={`${propertyKeys.length} propert${
-                      propertyKeys.length === 1 ? "y" : "ies"
-                    }`}
-                  />
-                  <Chip
-                    size="small"
-                    variant="outlined"
-                    color="primary"
-                    label={
-                      section.required?.length
-                        ? `${section.required.length} required`
-                        : "No required fields"
+      ) : null}
+
+      {safeSections.map((section, index) => {
+        const fieldCount = section.fields?.length ?? 0;
+        return (
+          <Box key={section.id ?? index}>
+            <SectionRow>
+              <TextField
+                label="Section title"
+                size="small"
+                variant="outlined"
+                value={section.title ?? ""}
+                onChange={(event) =>
+                  handleSectionTitleChange(section.id, event.target.value)
+                }
+                fullWidth
+              />
+              <TextField
+                label="Section description"
+                size="small"
+                variant="outlined"
+                value={section.description ?? ""}
+                onChange={(event) =>
+                  handleSectionDescriptionChange(section.id, event.target.value)
+                }
+                fullWidth
+                multiline
+                minRows={2}
+              />
+              <SectionMeta>
+                <Chip
+                  size="small"
+                  label={`${fieldCount} propert${fieldCount === 1 ? "y" : "ies"}`}
+                />
+                <Chip
+                  size="small"
+                  variant="outlined"
+                  color="primary"
+                  label={
+                    section.required?.length
+                      ? `${section.required.length} required`
+                      : "No required fields"
+                  }
+                />
+              </SectionMeta>
+            </SectionRow>
+
+            {section.fields?.length ? (
+              <FieldsGrid>
+                {section.fields.map((field) => (
+                  <ParameterInputNode
+                    key={field.id}
+                    field={field}
+                    onFieldUpdate={(updater) =>
+                      handleFieldUpdate(section.id, field.id, updater)
                     }
                   />
-                </SectionMeta>
-              </SectionRow>
-              {index < sections.length - 1 ? <Divider /> : null}
-            </Box>
-          );
-        })
-      )}
+                ))}
+              </FieldsGrid>
+            ) : null}
 
-      <Handle type="target" position={Position.Top} />
-      <Handle type="source" position={Position.Bottom} />
+            {index < sections.length - 1 ? <Divider /> : null}
+          </Box>
+        );
+      })}
     </Card>
   );
 };
