@@ -154,11 +154,7 @@ export const sectionsToParametersValue = (
     return undefined;
   }
 
-  if (templates.length === 1) {
-    return templates[0];
-  }
-
-  return templates;
+  return templates.length === 1 ? [templates[0]] : templates;
 };
 
 export const normalizeParametersToSections = (
