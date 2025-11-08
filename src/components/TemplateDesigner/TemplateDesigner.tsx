@@ -739,281 +739,292 @@ export const TemplateDesigner = () => {
     <div ref={interactionRootRef} style={{ height: "100%" }}>
       <Page themeId="tool">
         <Content>
-        <ContentHeader title="Template Designer">
-          <SupportButton>A description of your plugin goes here.</SupportButton>
-        </ContentHeader>
+          <ContentHeader title="Template Designer">
+            <SupportButton>
+              A description of your plugin goes here.
+            </SupportButton>
+          </ContentHeader>
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".yaml,.yml,.json"
-          style={{ display: "none" }}
-          onChange={handleTemplateFileSelected}
-        />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".yaml,.yml,.json"
+            style={{ display: "none" }}
+            onChange={handleTemplateFileSelected}
+          />
 
-        {!templateObject ? (
-          <Grid
-            container
-            justifyContent="center"
-            alignItems="center"
-            style={{ minHeight: "60vh" }}
-          >
-            <Grid item xs={12} md={10} lg={8}>
-              <Grid container spacing={4} alignItems="stretch">
-                <Grid item xs={12} md={6}>
-                  <Paper
-                    elevation={3}
-                    style={{
-                      padding: 32,
-                      height: "100%",
-                      minHeight: 320,
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 16,
-                    }}
-                  >
-                    <Box>
-                      <Typography variant="h6">Create new template</Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        Start with a tidy sample blueprint that includes a
-                        single action step and some helpful starter metadata.
-                      </Typography>
-                    </Box>
-                    <Box mt="auto" display="flex" justifyContent="flex-start">
-                      <Button
-                        color="primary"
-                        variant="contained"
-                        onClick={handleStartSampleTemplate}
-                      >
-                        Start new template
-                      </Button>
-                    </Box>
-                  </Paper>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Paper
-                    elevation={3}
-                    style={{
-                      padding: 32,
-                      height: "100%",
-                      minHeight: 320,
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 16,
-                    }}
-                  >
-                    <Box>
-                      <Typography variant="h6">Load from file</Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        Import an existing template in YAML or JSON format and
-                        keep iterating in the visual designer.
-                      </Typography>
-                    </Box>
-                    <Box
-                      mt="auto"
-                      display="flex"
-                      flexDirection="column"
-                      style={{ gap: 8 }}
+          {!templateObject ? (
+            <Grid
+              container
+              justifyContent="center"
+              alignItems="center"
+              style={{ minHeight: "60vh" }}
+            >
+              <Grid item xs={12} md={10} lg={8}>
+                <Grid container spacing={4} alignItems="stretch">
+                  <Grid item xs={12} md={6}>
+                    <Paper
+                      elevation={3}
+                      style={{
+                        padding: 32,
+                        height: "100%",
+                        minHeight: 320,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 16,
+                      }}
                     >
-                      <Button
-                        color="primary"
-                        variant="outlined"
-                        onClick={handleOpenTemplatePicker}
-                      >
-                        Choose file
-                      </Button>
-                      {loadError && (
-                        <Typography
-                          variant="body2"
-                          style={{ color: theme.palette.error.main }}
-                        >
-                          {loadError}
+                      <Box>
+                        <Typography variant="h6">
+                          Create new template
                         </Typography>
-                      )}
-                    </Box>
-                  </Paper>
+                        <Typography variant="body2" color="textSecondary">
+                          Start with a tidy sample blueprint that includes a
+                          single action step and some helpful starter metadata.
+                        </Typography>
+                      </Box>
+                      <Box mt="auto" display="flex" justifyContent="flex-start">
+                        <Button
+                          color="primary"
+                          variant="contained"
+                          onClick={handleStartSampleTemplate}
+                        >
+                          Start new template
+                        </Button>
+                      </Box>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Paper
+                      elevation={3}
+                      style={{
+                        padding: 32,
+                        height: "100%",
+                        minHeight: 320,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 16,
+                      }}
+                    >
+                      <Box>
+                        <Typography variant="h6">Load from file</Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          Import an existing template in YAML or JSON format and
+                          keep iterating in the visual designer.
+                        </Typography>
+                      </Box>
+                      <Box
+                        mt="auto"
+                        display="flex"
+                        flexDirection="column"
+                        style={{ gap: 8 }}
+                      >
+                        <Button
+                          color="primary"
+                          variant="outlined"
+                          onClick={handleOpenTemplatePicker}
+                        >
+                          Choose file
+                        </Button>
+                        {loadError && (
+                          <Typography
+                            variant="body2"
+                            style={{ color: theme.palette.error.main }}
+                          >
+                            {loadError}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Paper>
+                  </Grid>
                 </Grid>
               </Grid>
             </Grid>
-          </Grid>
-        ) : (
-          <Grid container spacing={3} direction="column">
-            <Grid style={{ height: 800 }} item>
-              <div
-                style={{
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 16,
-                }}
-              >
+          ) : (
+            <Grid container spacing={3} direction="column">
+              <Grid style={{ height: 800 }} item>
                 <div
                   style={{
+                    height: "100%",
                     display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    flexWrap: "wrap",
-                    gap: 12,
+                    flexDirection: "column",
+                    gap: 16,
                   }}
                 >
                   <div
                     style={{
                       display: "flex",
+                      justifyContent: "space-between",
                       alignItems: "center",
-                      gap: 12,
                       flexWrap: "wrap",
+                      gap: 12,
                     }}
                   >
-                    {activeTemplateLabel && (
-                      <Typography variant="body2" color="textSecondary">
-                        Active template: {activeTemplateLabel}
-                      </Typography>
-                    )}
-                    <Button
-                      color="primary"
-                      variant="contained"
-                      size="small"
-                      onClick={handleReloadFromFile}
-                      disabled={isReloading}
-                    >
-                      {reloadButtonLabel}
-                    </Button>
-                    <Button
-                      color="primary"
-                      variant="outlined"
-                      size="small"
-                      onClick={handleSaveTemplate}
-                      disabled={isSaving}
-                    >
-                      {saveButtonLabel}
-                    </Button>
-                    <Button
-                      color="primary"
-                      variant="outlined"
-                      size="small"
-                      onClick={handleOpenTemplatePicker}
-                    >
-                      Load different file
-                    </Button>
-                  </div>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={handleToggleYaml}
-                  >
-                    {showYaml ? "Hide YAML" : "Show YAML"}
-                  </Button>
-                </div>
-                {loadError && (
-                  <Typography
-                    variant="body2"
-                    style={{ color: theme.palette.error.main }}
-                  >
-                    {loadError}
-                  </Typography>
-                )}
-                <div
-                  style={{
-                    flex: 1,
-                    display: "flex",
-                    gap: 16,
-                    minHeight: 0,
-                  }}
-                >
-                  <div style={{ flex: showYaml ? 1.6 : 1, minWidth: 0 }}>
-                    <div style={{ height: "100%" }}>
-                      <App
-                        steps={templateSteps}
-                        parameters={templateParameters}
-                        output={templateOutput}
-                        onStepsChange={handleStepsChange}
-                        onParametersChange={handleParametersChange}
-                        onOutputChange={handleOutputChange}
-                      />
-                    </div>
-                  </div>
-                  {showYaml && (
-                    <Paper
-                      elevation={2}
+                    <div
                       style={{
-                        flex: 1,
                         display: "flex",
-                        flexDirection: "column",
-                        minWidth: 0,
-                        overflow: "hidden",
+                        alignItems: "center",
+                        gap: 12,
+                        flexWrap: "wrap",
                       }}
                     >
-                      <div
-                        style={{
-                          padding: "12px 16px",
-                          borderBottom: "1px solid rgba(0,0,0,0.12)",
-                          fontWeight: 600,
-                          fontSize: "0.875rem",
-                        }}
-                      >
-                        YAML Preview
-                      </div>
-                      {yamlError && (
-                        <div
-                          style={{
-                            padding: "8px 16px",
-                            borderBottom: "1px solid rgba(0,0,0,0.08)",
-                            color: theme.palette.error.main,
-                            fontSize: "0.75rem",
-                            background:
-                              theme.palette.type === "dark"
-                                ? "rgba(255, 82, 82, 0.1)"
-                                : "rgba(244, 67, 54, 0.08)",
-                          }}
-                        >
-                          {yamlError}
-                        </div>
+                      {activeTemplateLabel && (
+                        <Typography variant="body2" color="textSecondary">
+                          Active template: {activeTemplateLabel}
+                        </Typography>
                       )}
-                      <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
-                        <CodeMirror
-                          value={templateYaml}
-                          extensions={yamlExtensions}
-                          theme={codeMirrorTheme}
-                          height="100%"
-                          onChange={handleYamlChange}
+                      <Button
+                        color="primary"
+                        variant="contained"
+                        size="small"
+                        onClick={handleReloadFromFile}
+                        disabled={isReloading}
+                      >
+                        {reloadButtonLabel}
+                      </Button>
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        size="small"
+                        onClick={handleSaveTemplate}
+                        disabled={isSaving}
+                      >
+                        {saveButtonLabel}
+                      </Button>
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        size="small"
+                        onClick={handleOpenTemplatePicker}
+                      >
+                        Load different file
+                      </Button>
+                    </div>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={handleToggleYaml}
+                    >
+                      {showYaml ? "Hide YAML" : "Show YAML"}
+                    </Button>
+                  </div>
+                  {loadError && (
+                    <Typography
+                      variant="body2"
+                      style={{ color: theme.palette.error.main }}
+                    >
+                      {loadError}
+                    </Typography>
+                  )}
+                  <div
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      gap: 16,
+                      minHeight: 0,
+                    }}
+                  >
+                    <div style={{ flex: showYaml ? 1.6 : 1, minWidth: 0 }}>
+                      <div style={{ height: "100%" }}>
+                        <App
+                          steps={templateSteps}
+                          parameters={templateParameters}
+                          output={templateOutput}
+                          onStepsChange={handleStepsChange}
+                          onParametersChange={handleParametersChange}
+                          onOutputChange={handleOutputChange}
                         />
                       </div>
-                    </Paper>
-                  )}
+                    </div>
+                    {showYaml && (
+                      <Paper
+                        elevation={2}
+                        style={{
+                          flex: 1,
+                          display: "flex",
+                          flexDirection: "column",
+                          minWidth: 0,
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            padding: "12px 16px",
+                            borderBottom: "1px solid rgba(0,0,0,0.12)",
+                            fontWeight: 600,
+                            fontSize: "0.875rem",
+                          }}
+                        >
+                          YAML Preview
+                        </div>
+                        {yamlError && (
+                          <div
+                            style={{
+                              padding: "8px 16px",
+                              borderBottom: "1px solid rgba(0,0,0,0.08)",
+                              color: theme.palette.error.main,
+                              fontSize: "0.75rem",
+                              background:
+                                theme.palette.type === "dark"
+                                  ? "rgba(255, 82, 82, 0.1)"
+                                  : "rgba(244, 67, 54, 0.08)",
+                            }}
+                          >
+                            {yamlError}
+                          </div>
+                        )}
+                        <div
+                          style={{ flex: 1, minHeight: 0, overflow: "auto" }}
+                        >
+                          <CodeMirror
+                            value={templateYaml}
+                            extensions={yamlExtensions}
+                            theme={codeMirrorTheme}
+                            height="100%"
+                            onChange={handleYamlChange}
+                          />
+                        </div>
+                      </Paper>
+                    )}
+                  </div>
                 </div>
-              </div>
+              </Grid>
             </Grid>
-          </Grid>
-        )}
-      </Content>
-    </Page>
-    <Dialog
-      open={Boolean(editorState)}
-      onClose={closeEditor}
-      fullWidth
-      maxWidth="md"
-    >
-      <DialogTitle>
-        {editorState ? `Edit ${editorState.label}` : "Edit field"}
-      </DialogTitle>
-      <DialogContent>
-        <TextField
-          multiline
-          minRows={8}
-          variant="outlined"
-          value={editorValue}
-          onChange={(event) => setEditorValue(event.target.value)}
-          fullWidth
-          autoFocus
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={closeEditor}>Cancel</Button>
-        <Button color="primary" variant="contained" onClick={applyEditorValue}>
-          Apply
-        </Button>
-      </DialogActions>
-    </Dialog>
-  </div>
+          )}
+        </Content>
+      </Page>
+      <Dialog
+        open={Boolean(editorState)}
+        onClose={closeEditor}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>
+          {editorState ? `Edit ${editorState.label}` : "Edit field"}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            multiline
+            minRows={8}
+            variant="outlined"
+            value={editorValue}
+            onChange={(event) => setEditorValue(event.target.value)}
+            fullWidth
+            // eslint-disable-next-line jsx-a11y/no-autofocus
+            autoFocus
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeEditor}>Cancel</Button>
+          <Button
+            color="primary"
+            variant="contained"
+            onClick={applyEditorValue}
+          >
+            Apply
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </div>
   );
 };
