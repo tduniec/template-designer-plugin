@@ -2,20 +2,18 @@ import { useState } from "react";
 import type { ChangeEvent } from "react";
 import { Handle, Position, NodeToolbar } from "@xyflow/react";
 import { styled } from "@mui/material/styles";
-import {
-  Box,
-  Typography,
-  TextField,
-  IconButton,
-  Button,
-  Divider,
-  Chip,
-} from "@material-ui/core";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import TextField from "@mui/material/TextField";
+import IconButton from "@mui/material/IconButton";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
+import Chip from "@mui/material/Chip";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import AddIcon from "@mui/icons-material/Add";
 import type { TaskStep } from "@backstage/plugin-scaffolder-common";
 import { useTheme } from "@mui/material/styles";
-import Autocomplete from "@material-ui/lab/Autocomplete";
+import Autocomplete from "@mui/material/Autocomplete";
 import type { ActionNodeData } from "./types";
 import type { JsonSchemaProperty } from "./action/schema";
 import {
@@ -392,7 +390,12 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
             onPointerDown={stopAll.onPointerDown}
             onKeyDown={stopAll.onKeyDown}
             className={stopAll.className}
-            getOptionSelected={(option, value) => option.key === value?.key}
+            isOptionEqualToValue={(option, value) => {
+              if (typeof value === "string") {
+                return option.key === value;
+              }
+              return option.key === (value?.key ?? "");
+            }}
             getOptionLabel={(option) =>
               typeof option === "string" ? option : option.label
             }

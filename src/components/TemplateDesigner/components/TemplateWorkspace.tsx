@@ -1,6 +1,9 @@
 import { useMemo } from "react";
-import { Button, Grid, Paper, Typography } from "@material-ui/core";
-import { useTheme } from "@material-ui/core/styles";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/GridLegacy";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
 import CodeMirror from "@uiw/react-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import type {
@@ -58,13 +61,13 @@ export const TemplateWorkspace = ({
   const theme = useTheme();
   const yamlExtensions = useMemo(() => [yaml()], []);
   const codeMirrorTheme = useMemo(
-    () => (theme.palette.type === "dark" ? "dark" : "light"),
-    [theme.palette.type]
+    () => (theme.palette.mode === "dark" ? "dark" : "light"),
+    [theme.palette.mode]
   );
 
   return (
     <Grid container spacing={3} direction="column">
-      <Grid style={{ height: 800 }} item>
+      <Grid item style={{ height: 800 }}>
         <div
           style={{
             height: "100%",
@@ -183,7 +186,7 @@ export const TemplateWorkspace = ({
                       color: theme.palette.error.main,
                       fontSize: "0.75rem",
                       background:
-                        theme.palette.type === "dark"
+                        theme.palette.mode === "dark"
                           ? "rgba(255, 82, 82, 0.1)"
                           : "rgba(244, 67, 54, 0.08)",
                     }}

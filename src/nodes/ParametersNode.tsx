@@ -1,6 +1,9 @@
 import { Handle, NodeToolbar, Position } from "@xyflow/react";
 import { alpha, styled, useTheme } from "@mui/material/styles";
-import { Box, Button, Chip, Typography } from "@material-ui/core";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
+import Typography from "@mui/material/Typography";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AddIcon from "@mui/icons-material/Add";
 import type { ParametersNodeData } from "./types";

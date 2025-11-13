@@ -1,17 +1,15 @@
 import { Handle, NodeToolbar, Position } from "@xyflow/react";
 import { alpha, styled, useTheme } from "@mui/material/styles";
-import {
-  Box,
-  Button,
-  Checkbox,
-  Divider,
-  FormControlLabel,
-  IconButton,
-  TextField,
-  Typography,
-  Chip,
-} from "@material-ui/core";
-import Autocomplete from "@material-ui/lab/Autocomplete";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
+import Divider from "@mui/material/Divider";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import IconButton from "@mui/material/IconButton";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import Chip from "@mui/material/Chip";
+import Autocomplete from "@mui/material/Autocomplete";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import OutboxIcon from "@mui/icons-material/Outbox";
