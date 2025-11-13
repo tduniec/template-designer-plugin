@@ -58,9 +58,11 @@ const nodeDefaults = {
   targetPosition: Position.Top,
 };
 
+// TODO move to utils
 const sanitizeForRfId = (value: string) =>
   value.replace(/[^a-zA-Z0-9-_.:]/g, "_");
 
+// TODO move to utils
 const buildRfId = (step: TaskStep | undefined, index: number) => {
   if (step && typeof step.id === "string" && step.id.trim().length > 0) {
     return `rf-${sanitizeForRfId(step.id)}-${index}`;
@@ -68,6 +70,7 @@ const buildRfId = (step: TaskStep | undefined, index: number) => {
   return `rf-${index + 1}`;
 };
 
+// TODO move to utils
 const cloneStep = (step: TaskStep): TaskStep =>
   JSON.parse(JSON.stringify(step ?? {})) as TaskStep;
 
@@ -83,6 +86,7 @@ const cloneParameters = (
     ? undefined
     : (JSON.parse(JSON.stringify(parameters)) as TemplateParametersValue);
 
+// this is related to display
 const resolveNodeHeightForTracking = (node: Node): number | undefined => {
   const measuredHeight = node.measured?.height;
   if (typeof measuredHeight === "number" && measuredHeight > 0) {
@@ -97,6 +101,7 @@ const resolveNodeHeightForTracking = (node: Node): number | undefined => {
   return undefined;
 };
 
+// move to types
 type BuildNodesFromModelOptions = {
   scaffolderActionIds: string[];
   scaffolderActionInputsById: Record<string, Record<string, unknown>>;
@@ -104,8 +109,8 @@ type BuildNodesFromModelOptions = {
 };
 
 const buildNodesFromModel = (
-  steps: TaskStep[],
   parameters: TemplateParametersValue,
+  steps: TaskStep[],
   output: ScaffolderTaskOutput | undefined | null,
   options: BuildNodesFromModelOptions
 ) => {
@@ -173,6 +178,7 @@ const buildNodesFromModel = (
   return alignNodes(nodes, FIXED_X_POSITION, VERTICAL_SPACING);
 };
 
+// move to params handlers ??
 const collectParameterReferences = (
   parameters: TemplateParametersValue
 ): string[] => {
@@ -213,6 +219,7 @@ const collectParameterReferences = (
   return Array.from(refs).sort();
 };
 
+// why it is needed ?
 const normalizeValueForStableStringify = (value: unknown): unknown => {
   if (Array.isArray(value)) {
     return value.map(normalizeValueForStableStringify);
@@ -230,9 +237,11 @@ const normalizeValueForStableStringify = (value: unknown): unknown => {
   return value;
 };
 
+// utils
 const stableStringify = (value: unknown): string =>
   JSON.stringify(normalizeValueForStableStringify(value));
 
+// types
 type ScaffolderAction = {
   id: string;
   schema?: {
@@ -245,6 +254,7 @@ type ScaffolderAction = {
   };
 };
 
+// core cache ...
 const buildScaffolderActionsCache = (list: ScaffolderAction[]) => {
   const { inputsById, outputsById } = list.reduce<{
     inputsById: Record<string, Record<string, unknown>>;
@@ -265,6 +275,7 @@ const buildScaffolderActionsCache = (list: ScaffolderAction[]) => {
   };
 };
 
+// important function that is collecting acctions from scaffolder
 const useScaffolderActions = () => {
   const scaffolderApi = useApi(scaffolderApiRef);
   const [cache, setCache] = useState(() => buildScaffolderActionsCache([]));
@@ -290,6 +301,7 @@ const useScaffolderActions = () => {
   return cache;
 };
 
+// keep it here
 type DesignerFlowProps = {
   steps?: TaskStep[];
   parameters?: TemplateParametersValue;
@@ -321,8 +333,8 @@ export default function App({
   const initialNodes = useMemo(
     () =>
       buildNodesFromModel(
-        steps,
         normalizedParametersProp,
+        steps,
         normalizedOutputProp,
         {
           scaffolderActionIds,
@@ -348,8 +360,8 @@ export default function App({
   const modelHash = useMemo(
     () =>
       stableStringify({
-        steps,
         parameters: normalizedParametersProp,
+        steps,
         output: normalizedOutputProp,
       }),
     [steps, normalizedParametersProp, normalizedOutputProp]
@@ -392,8 +404,8 @@ export default function App({
     }
 
     const nextNodes = buildNodesFromModel(
-      steps,
       normalizedParametersProp,
+      steps,
       normalizedOutputProp,
       {
         scaffolderActionIds,
