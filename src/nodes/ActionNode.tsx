@@ -384,20 +384,6 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
         >
           Add Action
         </ToolbarBtn>
-        <ToolbarBtn
-          variant="outlined"
-          startIcon={<AddIcon fontSize="small" />}
-          onClick={() =>
-            data.onAddNode?.({
-              afterRfId: rfId,
-              type: "outputNode",
-            })
-          }
-          onPointerDown={(e) => e.stopPropagation()}
-          className="nodrag nowheel"
-        >
-          Add Output
-        </ToolbarBtn>
       </NodeToolbar>
 
       <Divider />
