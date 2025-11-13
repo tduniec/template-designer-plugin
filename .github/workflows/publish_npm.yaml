@@ -44,8 +44,8 @@ jobs:
 
       - name: Build the package
         run: |
-          yarn tsc
           yarn clean
+          yarn tsc
           yarn build
           yarn prepack
 
