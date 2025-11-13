@@ -66,4 +66,3 @@ jobs:
         # TEMP DRY RUN
         run: |
           npm publish --dry-run
-          temp dry run
