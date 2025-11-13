@@ -730,29 +730,7 @@ export default function App({
         onConnect={onConnect}
         fitView
         fitViewOptions={fitViewOptions}
-      >
-        <Panel
-          position="bottom-right"
-          style={{
-            maxHeight: "60vh",
-            width: 320,
-            overflow: "auto",
-            background: "#fff",
-            borderRadius: 8,
-            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.12)",
-            padding: "12px 16px",
-            fontFamily: "monospace",
-            fontSize: "0.75rem",
-            lineHeight: 1.4,
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-          }}
-        >
-          <pre style={{ margin: 0 }}>
-            {JSON.stringify(stepOutputReferencesByNode, null, 2)}
-          </pre>
-        </Panel>
-      </ReactFlow>
+      />
     </div>
   );
 }
