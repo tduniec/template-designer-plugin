@@ -1,16 +1,9 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-type EditorState =
-  | null
-  | {
-      target: HTMLInputElement | HTMLTextAreaElement;
-      label: string;
-    };
+type EditorState = null | {
+  target: HTMLInputElement | HTMLTextAreaElement;
+  label: string;
+};
 
 const resolveLabel = (element: HTMLInputElement | HTMLTextAreaElement) =>
   element.getAttribute("aria-label") ??

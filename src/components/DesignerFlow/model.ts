@@ -113,7 +113,11 @@ export const buildNodesFromModel = (
     });
   }
 
-  return alignNodes(nodes, FLOW_LAYOUT.fixedXPosition, FLOW_LAYOUT.verticalSpacing);
+  return alignNodes(
+    nodes,
+    FLOW_LAYOUT.fixedXPosition,
+    FLOW_LAYOUT.verticalSpacing
+  );
 };
 
 export const collectParameterReferences = (
@@ -163,7 +167,15 @@ const normalizeValueForStableStringify = (value: unknown): unknown => {
   if (value && typeof value === "object") {
     const entries = Object.entries(value as Record<string, unknown>)
       .filter(([key]) => key !== undefined)
-      .sort(([a], [b]) => (a > b ? 1 : a < b ? -1 : 0));
+      .sort(([a], [b]) => {
+        if (a > b) {
+          return 1;
+        }
+        if (a < b) {
+          return -1;
+        }
+        return 0;
+      });
     return entries.reduce<Record<string, unknown>>((acc, [key, val]) => {
       acc[key] = normalizeValueForStableStringify(val);
       return acc;
@@ -191,7 +203,8 @@ export const resolveNodeHeightForTracking = (
   return undefined;
 };
 
-const sortNodesByY = (nodes: Node[]) => [...nodes].sort((a, b) => a.position.y - b.position.y);
+const sortNodesByY = (nodes: Node[]) =>
+  [...nodes].sort((a, b) => a.position.y - b.position.y);
 
 export const extractStepsFromNodes = (nodes: Node[]): TaskStep[] => {
   const sorted = sortNodesByY(nodes);

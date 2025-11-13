@@ -39,8 +39,9 @@ export const useOutputController = (data: OutputNodeData) => {
   }, [output]);
 
   const updateOutput = useCallback(
-    (updater: (prev: OutputNodeData["output"]) => OutputNodeData["output"])
-      : void => {
+    (
+      updater: (prev: OutputNodeData["output"]) => OutputNodeData["output"]
+    ): void => {
       data.onUpdateOutput?.(rfId, updater);
     },
     [data, rfId]

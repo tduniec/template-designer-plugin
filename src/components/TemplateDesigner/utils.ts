@@ -26,7 +26,7 @@ export const isTaskStep = (candidate: unknown): candidate is TaskStep => {
   );
 };
 
-export const cloneDeep = <T,>(value: T): T => {
+export const cloneDeep = <T>(value: T): T => {
   if (value === undefined || value === null) {
     return value;
   }

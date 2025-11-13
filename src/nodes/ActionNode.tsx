@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { ChangeEvent } from "react";
 import { Handle, Position, NodeToolbar } from "@xyflow/react";
 import { styled } from "@mui/material/styles";
@@ -90,13 +90,11 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
   const actionId = typeof step?.action === "string" ? step.action : "";
   const {
     actionInputSchema,
-    actionInputOptions,
     inputEntries,
     usedInputKeys,
     availableInputOptions,
     trimmedNewKey,
     selectedNewKeyOption,
-    newKeySchema,
     newKeyNormalizedType,
     newKeyTypeLabel,
     newKeyEnumOptions,

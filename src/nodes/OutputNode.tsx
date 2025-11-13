@@ -197,12 +197,20 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
             size="small"
             freeSolo
             options={referenceOptions}
-            value={link.url === undefined || link.url === null ? "" : String(link.url)}
+            value={
+              link.url === undefined || link.url === null
+                ? ""
+                : String(link.url)
+            }
             inputValue={
-              link.url === undefined || link.url === null ? "" : String(link.url)
+              link.url === undefined || link.url === null
+                ? ""
+                : String(link.url)
             }
             fullWidth
-            onChange={(_, value) => setLinkFieldValue(index, "url", value ?? "")}
+            onChange={(_, value) =>
+              setLinkFieldValue(index, "url", value ?? "")
+            }
             onInputChange={(_, value, reason) => {
               if (reason === "reset") {
                 return;
@@ -382,7 +390,9 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
         </CustomRow>
       ))}
 
-      <Box sx={{ mt: 1, display: "grid", gridTemplateColumns: "160px 1fr auto" }}>
+      <Box
+        sx={{ mt: 1, display: "grid", gridTemplateColumns: "160px 1fr auto" }}
+      >
         <TextField
           {...stopAll}
           size="small"
@@ -417,7 +427,12 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
           </Typography>
           <Box sx={{ display: "flex", flexWrap: "wrap", mt: 0.5 }}>
             {stepOutputReferences.map((reference) => (
-              <Chip key={reference} label={reference} size="small" variant="outlined" />
+              <Chip
+                key={reference}
+                label={reference}
+                size="small"
+                variant="outlined"
+              />
             ))}
           </Box>
         </Box>

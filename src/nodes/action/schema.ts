@@ -145,8 +145,8 @@ export const extractEnumOptions = (schema: JsonSchemaProperty | undefined) => {
   if (!schema || !Array.isArray(schema.enum)) {
     return [] as string[];
   }
-  return schema
-    .map((option) => {
+  return schema.enum
+    .map((option): string => {
       if (option === undefined || option === null) {
         return "";
       }
