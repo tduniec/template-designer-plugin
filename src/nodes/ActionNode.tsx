@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { ChangeEvent, KeyboardEvent, SyntheticEvent } from "react";
+import type { ChangeEvent } from "react";
 import { Handle, Position, NodeToolbar } from "@xyflow/react";
 import { styled } from "@mui/material/styles";
 import {
@@ -17,6 +17,16 @@ import type { TaskStep } from "@backstage/plugin-scaffolder-common";
 import { useTheme } from "@mui/material/styles";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import type { ActionNodeData } from "./types";
+import type { JsonSchemaProperty } from "./action/schema";
+import {
+  coerceValueForType,
+  extractEnumOptions,
+  buildTypeLabel,
+  normalizeSchemaType,
+  stringifyValueForDisplay,
+} from "./action/schema";
+import { useActionInputs } from "./action/useActionInputs";
+import { createStopNodeInteraction } from "./common/nodeInteraction";
 
 const Card = styled(Box)(({ theme }) => ({
   background: theme.palette.background.paper,
@@ -60,177 +70,6 @@ const DEFAULT_ACTION_OPTIONS = [
   "fetch:template", // TODO to be fixed later to not uses default actions
 ];
 
-type JsonSchemaProperty = {
-  type?: string | string[];
-  enum?: unknown[];
-  items?: JsonSchemaProperty | JsonSchemaProperty[];
-} & Record<string, unknown>;
-
-type NormalizedSchemaType =
-  | "string"
-  | "number"
-  | "integer"
-  | "boolean"
-  | "array"
-  | "object"
-  | "unknown";
-
-const capitalize = (value: string) =>
-  value.length > 0 ? value[0].toUpperCase() + value.slice(1) : value;
-
-const getFirstType = (
-  type: string | string[] | undefined
-): NormalizedSchemaType => {
-  if (!type) {
-    return "string";
-  }
-  const value = Array.isArray(type) ? type[0] : type;
-  if (
-    value === "string" ||
-    value === "number" ||
-    value === "integer" ||
-    value === "boolean" ||
-    value === "array" ||
-    value === "object"
-  ) {
-    return value;
-  }
-  return "string";
-};
-
-const normalizeSchemaType = (
-  schema: JsonSchemaProperty | undefined
-): NormalizedSchemaType => {
-  if (!schema || typeof schema !== "object") {
-    return "string";
-  }
-  return getFirstType(schema.type);
-};
-
-const getArrayItemTypeLabel = (schema: JsonSchemaProperty | undefined) => {
-  if (!schema) {
-    return "";
-  }
-  const items = schema.items;
-  if (!items) {
-    return "";
-  }
-  if (Array.isArray(items)) {
-    const [first] = items;
-    if (!first) {
-      return "";
-    }
-    return capitalize(normalizeSchemaType(first));
-  }
-  return capitalize(normalizeSchemaType(items));
-};
-
-const buildTypeLabel = (schema: JsonSchemaProperty | undefined) => {
-  const normalized = normalizeSchemaType(schema);
-  if (normalized === "array") {
-    const itemsLabel = getArrayItemTypeLabel(schema);
-    return itemsLabel ? `Array<${itemsLabel}>` : "Array";
-  }
-  if (normalized === "integer") {
-    return "Integer";
-  }
-  if (normalized === "unknown") {
-    return "Unknown";
-  }
-  return capitalize(normalized);
-};
-
-const stringifyValueForDisplay = (
-  value: unknown,
-  type: NormalizedSchemaType
-) => {
-  if (value === undefined || value === null) {
-    return "";
-  }
-
-  if (type === "array" || type === "object") {
-    if (typeof value === "string") {
-      return value;
-    }
-    try {
-      return JSON.stringify(value, null, 2);
-    } catch {
-      return String(value);
-    }
-  }
-
-  if (typeof value === "boolean") {
-    return value ? "true" : "false";
-  }
-
-  return String(value);
-};
-
-const coerceValueForType = (
-  raw: string,
-  type: NormalizedSchemaType
-): unknown => {
-  if (raw === "") {
-    return "";
-  }
-
-  if (type === "boolean") {
-    if (raw === "true") {
-      return true;
-    }
-    if (raw === "false") {
-      return false;
-    }
-    return raw;
-  }
-
-  if (type === "number" || type === "integer") {
-    const num = Number(raw);
-    if (!Number.isNaN(num)) {
-      return num;
-    }
-    return raw;
-  }
-
-  if (type === "array" || type === "object") {
-    try {
-      return JSON.parse(raw);
-    } catch {
-      return raw;
-    }
-  }
-
-  return raw;
-};
-
-const extractEnumOptions = (schema: JsonSchemaProperty | undefined) => {
-  if (!schema || !Array.isArray(schema.enum)) {
-    return [] as string[];
-  }
-  return schema.enum
-    .map((option) => {
-      if (option === undefined || option === null) {
-        return "";
-      }
-      if (typeof option === "object") {
-        try {
-          return JSON.stringify(option);
-        } catch {
-          return String(option);
-        }
-      }
-      return String(option);
-    })
-    .filter((option) => option !== "");
-};
-
-type ActionInputOption = {
-  key: string;
-  label: string;
-  schema?: JsonSchemaProperty;
-  type: NormalizedSchemaType;
-};
-
 export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
   const { rfId, step } = data;
   const [newKey, setNewKey] = useState("");
@@ -249,54 +88,20 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
       data.onUpdateField?.(rfId, field, e.target.value);
 
   const actionId = typeof step?.action === "string" ? step.action : "";
-  const actionInputSchema = useMemo(() => {
-    if (!actionId) {
-      return {} as Record<string, JsonSchemaProperty>;
-    }
-    const inputs = (data.scaffolderActionInputsById?.[actionId] ??
-      {}) as Record<string, JsonSchemaProperty>;
-    return inputs;
-  }, [actionId, data.scaffolderActionInputsById]);
-
-  const actionInputOptions = useMemo<ActionInputOption[]>(() => {
-    return Object.entries(actionInputSchema).map(([key, schema]) => {
-      const normalized = normalizeSchemaType(schema);
-      const label = buildTypeLabel(schema);
-      return {
-        key,
-        label: label ? `${key} (${label})` : key,
-        schema,
-        type: normalized,
-      };
-    });
-  }, [actionInputSchema]);
-  const inputEntries = useMemo(
-    () => Object.entries(step.input ?? {}),
-    [step.input]
-  );
-  const usedInputKeys = useMemo(
-    () => new Set(inputEntries.map(([key]) => key)),
-    [inputEntries]
-  );
-  const availableInputOptions = useMemo(
-    () => actionInputOptions.filter((option) => !usedInputKeys.has(option.key)),
-    [actionInputOptions, usedInputKeys]
-  );
-  const trimmedNewKey = newKey.trim();
-  const selectedNewKeyOption = useMemo(
-    () =>
-      availableInputOptions.find((option) => option.key === trimmedNewKey) ??
-      null,
-    [availableInputOptions, trimmedNewKey]
-  );
+  const {
+    actionInputSchema,
+    actionInputOptions,
+    inputEntries,
+    usedInputKeys,
+    availableInputOptions,
+    trimmedNewKey,
+    selectedNewKeyOption,
+    newKeySchema,
+    newKeyNormalizedType,
+    newKeyTypeLabel,
+    newKeyEnumOptions,
+  } = useActionInputs({ data, step, actionId, newKey });
   const isAddDisabled = !trimmedNewKey || usedInputKeys.has(trimmedNewKey);
-
-  const newKeySchema =
-    selectedNewKeyOption?.schema ??
-    (trimmedNewKey ? actionInputSchema?.[trimmedNewKey] : undefined);
-  const newKeyNormalizedType = normalizeSchemaType(newKeySchema);
-  const newKeyTypeLabel = buildTypeLabel(newKeySchema) || "String";
-  const newKeyEnumOptions = extractEnumOptions(newKeySchema);
   const newValueOptions = Array.from(
     new Set([
       ...(newKeyNormalizedType === "boolean" ? ["true", "false"] : []),
@@ -321,12 +126,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
   };
 
   // Make inputs editable inside ReactFlow
-  const stopAll = {
-    onPointerDown: (e: SyntheticEvent) => e.stopPropagation(),
-    onKeyDown: (e: KeyboardEvent) => e.stopPropagation(),
-    className: "nodrag nowheel",
-    inputProps: { "data-nodrag": true },
-  } as const;
+  const stopAll = createStopNodeInteraction();
 
   return (
     <Card>

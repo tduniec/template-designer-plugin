@@ -1,10 +1,3 @@
-import { useMemo, useState } from "react";
-import type {
-  ChangeEvent,
-  InputHTMLAttributes,
-  KeyboardEvent,
-  SyntheticEvent,
-} from "react";
 import { Handle, NodeToolbar, Position } from "@xyflow/react";
 import { alpha, styled, useTheme } from "@mui/material/styles";
 import {
@@ -23,6 +16,8 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import OutboxIcon from "@mui/icons-material/Outbox";
 import type { OutputNodeData } from "./types";
+import { createStopNodeInteraction } from "./common/nodeInteraction";
+import { useOutputController } from "./output/useOutputController";
 
 const Card = styled(Box)(({ theme }) => ({
   position: "relative",
@@ -106,183 +101,32 @@ const CustomRow = styled(Box)(({ theme }) => ({
   marginBottom: theme.spacing(1),
 }));
 
-const BUILTIN_KEYS = new Set(["links", "text"]);
-
 export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
   const theme = useTheme();
-  const { rfId, output } = data;
-  const [newCustomKey, setNewCustomKey] = useState("");
-  const [newCustomValue, setNewCustomValue] = useState("");
-  const stepOutputReferences = useMemo(
-    () => data.stepOutputReferences ?? [],
-    [data.stepOutputReferences]
-  );
-  const referenceOptions = useMemo(
-    () => Array.from(new Set(stepOutputReferences.filter(Boolean))),
-    [stepOutputReferences]
-  );
-
-  const stopAll: {
-    onPointerDown: (event: SyntheticEvent) => void;
-    onKeyDown: (event: KeyboardEvent) => void;
-    className: string;
-    inputProps: InputHTMLAttributes<HTMLInputElement> & {
-      [key: string]: unknown;
-    };
-  } = {
-    onPointerDown: (event: SyntheticEvent) => event.stopPropagation(),
-    onKeyDown: (event: KeyboardEvent) => event.stopPropagation(),
-    className: "nodrag nowheel",
-    inputProps: { "data-nodrag": true },
-  };
-
-  const links = useMemo(
-    () => (Array.isArray(output?.links) ? [...output.links] : []),
-    [output?.links]
-  );
-
-  const textEntries = useMemo(
-    () => (Array.isArray(output?.text) ? [...output.text] : []),
-    [output?.text]
-  );
-
-  const customEntries = useMemo(() => {
-    if (!output || typeof output !== "object") {
-      return [] as Array<[string, unknown]>;
-    }
-    return Object.entries(output).filter(([key]) => !BUILTIN_KEYS.has(key));
-  }, [output]);
-
-  const updateOutput = (
-    updater: (prev: OutputNodeData["output"]) => OutputNodeData["output"]
-  ) => data.onUpdateOutput?.(rfId, updater);
-
-  const handleCustomValueChange =
-    (key: string) => (event: ChangeEvent<HTMLInputElement>) => {
-      const raw = event.target.value;
-      updateOutput((prev) => ({
-        ...prev,
-        [key]: raw,
-      }));
-    };
-
-  const handleRemoveCustom = (key: string) => {
-    updateOutput((prev) => {
-      const next = { ...(prev ?? {}) };
-      delete next[key];
-      return next;
-    });
-  };
-
-  const handleAddCustom = () => {
-    const trimmedKey = newCustomKey.trim();
-    if (!trimmedKey || BUILTIN_KEYS.has(trimmedKey)) {
-      return;
-    }
-    updateOutput((prev) => {
-      if (prev && Object.prototype.hasOwnProperty.call(prev, trimmedKey)) {
-        return prev;
-      }
-      return {
-        ...(prev ?? {}),
-        [trimmedKey]: newCustomValue,
-      };
-    });
-    setNewCustomKey("");
-    setNewCustomValue("");
-  };
-
-  const setLinkFieldValue = (
-    index: number,
-    field: "title" | "icon" | "url" | "entityRef",
-    value: string
-  ) => {
-    const normalized = value ?? "";
-    updateOutput((prev) => {
-      const currentLinks = Array.isArray(prev?.links) ? [...prev.links] : [];
-      const target = { ...(currentLinks[index] ?? {}) };
-      target[field] = normalized;
-      currentLinks[index] = target;
-      return { ...(prev ?? {}), links: currentLinks };
-    });
-  };
-
-  const handleLinkChange =
-    (index: number, field: "title" | "icon" | "url" | "entityRef") =>
-    (event: ChangeEvent<HTMLInputElement>) => {
-      setLinkFieldValue(index, field, event.target.value);
-    };
-
-  const handleRemoveLink = (index: number) => {
-    updateOutput((prev) => {
-      const currentLinks = Array.isArray(prev?.links) ? [...prev.links] : [];
-      currentLinks.splice(index, 1);
-      if (currentLinks.length === 0) {
-        const { links: _removed, ...rest } = prev ?? {};
-        return rest;
-      }
-      return { ...(prev ?? {}), links: currentLinks };
-    });
-  };
-
-  const handleAddLink = () => {
-    updateOutput((prev) => {
-      const currentLinks = Array.isArray(prev?.links) ? [...prev.links] : [];
-      currentLinks.push({ title: "", url: "" });
-      return { ...(prev ?? {}), links: currentLinks };
-    });
-  };
-
-  const setTextFieldValue = (
-    index: number,
-    field: "title" | "icon" | "content",
-    value: string
-  ) => {
-    const normalized = value ?? "";
-    updateOutput((prev) => {
-      const currentText = Array.isArray(prev?.text) ? [...prev.text] : [];
-      const target = { ...(currentText[index] ?? {}) };
-      target[field] = normalized;
-      currentText[index] = target;
-      return { ...(prev ?? {}), text: currentText };
-    });
-  };
-
-  const handleTextChange =
-    (index: number, field: "title" | "icon" | "content") =>
-    (event: ChangeEvent<HTMLInputElement>) => {
-      setTextFieldValue(index, field, event.target.value);
-    };
-
-  const handleTextDefaultToggle = (index: number) => {
-    updateOutput((prev) => {
-      const currentText = Array.isArray(prev?.text) ? [...prev.text] : [];
-      const target = { ...(currentText[index] ?? {}) };
-      target.default = !target.default;
-      currentText[index] = target;
-      return { ...(prev ?? {}), text: currentText };
-    });
-  };
-
-  const handleRemoveText = (index: number) => {
-    updateOutput((prev) => {
-      const currentText = Array.isArray(prev?.text) ? [...prev.text] : [];
-      currentText.splice(index, 1);
-      if (currentText.length === 0) {
-        const { text: _removed, ...rest } = prev ?? {};
-        return rest;
-      }
-      return { ...(prev ?? {}), text: currentText };
-    });
-  };
-
-  const handleAddText = () => {
-    updateOutput((prev) => {
-      const currentText = Array.isArray(prev?.text) ? [...prev.text] : [];
-      currentText.push({ title: "", content: "" });
-      return { ...(prev ?? {}), text: currentText };
-    });
-  };
+  const stopAll = createStopNodeInteraction();
+  const {
+    stepOutputReferences,
+    referenceOptions,
+    links,
+    textEntries,
+    customEntries,
+    newCustomKey,
+    setNewCustomKey,
+    newCustomValue,
+    setNewCustomValue,
+    handleAddCustom,
+    handleCustomValueChange,
+    handleRemoveCustom,
+    setLinkFieldValue,
+    handleLinkChange,
+    handleAddLink,
+    handleRemoveLink,
+    setTextFieldValue,
+    handleTextChange,
+    handleTextDefaultToggle,
+    handleAddText,
+    handleRemoveText,
+  } = useOutputController(data);
 
   return (
     <Card>
@@ -353,20 +197,12 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
             size="small"
             freeSolo
             options={referenceOptions}
-            value={
-              link.url === undefined || link.url === null
-                ? ""
-                : String(link.url)
-            }
+            value={link.url === undefined || link.url === null ? "" : String(link.url)}
             inputValue={
-              link.url === undefined || link.url === null
-                ? ""
-                : String(link.url)
+              link.url === undefined || link.url === null ? "" : String(link.url)
             }
             fullWidth
-            onChange={(_, value) =>
-              setLinkFieldValue(index, "url", value ?? "")
-            }
+            onChange={(_, value) => setLinkFieldValue(index, "url", value ?? "")}
             onInputChange={(_, value, reason) => {
               if (reason === "reset") {
                 return;
@@ -535,7 +371,6 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
             placeholder="Value"
             value={value === undefined || value === null ? "" : String(value)}
             onChange={handleCustomValueChange(key)}
-            select={false}
           />
           <IconButton
             size="small"
@@ -547,9 +382,7 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
         </CustomRow>
       ))}
 
-      <Box
-        sx={{ mt: 1, display: "grid", gridTemplateColumns: "160px 1fr auto" }}
-      >
+      <Box sx={{ mt: 1, display: "grid", gridTemplateColumns: "160px 1fr auto" }}>
         <TextField
           {...stopAll}
           size="small"
@@ -582,20 +415,9 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
           <Typography variant="caption" color="textSecondary">
             Available step output references
           </Typography>
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              mt: 0.5,
-            }}
-          >
+          <Box sx={{ display: "flex", flexWrap: "wrap", mt: 0.5 }}>
             {stepOutputReferences.map((reference) => (
-              <Chip
-                key={reference}
-                label={reference}
-                size="small"
-                variant="outlined"
-              />
+              <Chip key={reference} label={reference} size="small" variant="outlined" />
             ))}
           </Box>
         </Box>
@@ -608,7 +430,7 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
           startIcon={<AddIcon fontSize="small" />}
           onClick={() =>
             data.onAddNode?.({
-              afterRfId: rfId,
+              afterRfId: data.rfId,
               type: "actionNode",
             })
           }
