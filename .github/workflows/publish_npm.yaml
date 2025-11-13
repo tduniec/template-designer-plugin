@@ -1,0 +1,69 @@
+name: Publish package
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - name: Cache Yarn 4 artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            .yarn/cache
+            .yarn/install-state.gz
+            node_modules
+          key: >
+            yarn4-node-modules-${{ runner.os }}-node22-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            yarn4-node-modules-${{ runner.os }}-node22-
+            yarn4-node-modules-${{ runner.os }}-
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install dependencies
+        run: |
+          yarn install --immutable
+
+      - name: Build the package
+        run: |
+          yarn clean
+          yarn tsc
+          yarn build
+          yarn prepack
+
+      - name: NPM publish [dry-run]
+        if: github.event_name == 'pull_request'
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+        run: |
+          npm publish --dry-run
+
+      - name: NPM publish [dry-run]
+        if: github.event_name == 'push'
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+        # run: |
+        #   export PUBLISH=$(if [ "$(npm view $(cut -d "=" -f 2 <<< $(npm run env | grep "npm_package_name")) version)" == "$(cut -d "=" -f 2 <<< $(npm run env | grep "npm_package_version"))" ]; then echo false; else echo true; fi)
+        #   if [ "$PUBLISH" == true ]; then npm publish ; else echo "since release not created not publishing the package"; fi
+        # TEMP DRY RUN
+        run: |
+          npm publish --dry-run
+          temp dry run

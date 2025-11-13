@@ -1,12 +1,12 @@
 {
-  "name": "@internal/plugin-template-designer",
+  "name": "@tduniec/plugin-template-designer",
   "version": "0.1.5",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tduniec/template-designer-plugin.git"
+    "url": "git+https://github.com/tduniec/template-designer-plugin.git",
+    "directory": "."
   },
-  "private": true,
   "main": "src/index.ts",
   "types": "src/index.ts",
   "publishConfig": {
@@ -16,7 +16,10 @@
   },
   "backstage": {
     "role": "frontend-plugin",
-    "pluginId": "template-designer"
+    "pluginId": "template-designer",
+    "pluginPackages": [
+      "@tduniec/plugin-template-designer"
+    ]
   },
   "sideEffects": false,
   "scripts": {
