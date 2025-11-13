@@ -9,28 +9,22 @@ import {
   Edge,
   NodeChange,
   EdgeChange,
-  Position,
   useNodesState,
-  Panel,
   ReactFlowInstance,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { createSequentialEdges } from "../../utils/createSequentialEdges";
 import type {
   ScaffolderTaskOutput,
   TaskStep,
 } from "@backstage/plugin-scaffolder-common";
-import { ActionNode } from "../../nodes/ActionNode";
-import { ParametersNode } from "../../nodes/ParametersNode";
-import { OutputNode } from "../../nodes/OutputNode";
 import type {
   ActionNodeData,
   OutputNodeData,
   ParametersNodeData,
   TemplateParametersValue,
 } from "../../nodes/types";
+import { createSequentialEdges } from "../../utils/createSequentialEdges";
 import {
-  alignNodes,
   collectStepOutputReferences,
   createHandleAddNode,
   createHandleRemoveInputKey,
@@ -40,255 +34,23 @@ import {
   createHandleUpdateOutput,
   createHandleUpdateSections,
 } from "./handlers";
-import { normalizeParametersToSections } from "./parameterTransforms";
-import { scaffolderApiRef } from "@backstage/plugin-scaffolder-react";
-import { useApi } from "@backstage/core-plugin-api";
+import {
+  buildNodesFromModel,
+  collectParameterReferences,
+  stableStringify,
+  resolveNodeHeightForTracking,
+  extractStepsFromNodes,
+  extractParametersFromNodes,
+  extractOutputFromNodes,
+} from "./model";
+import { alignNodes } from "./nodeLayout";
+import { FLOW_LAYOUT, nodeDefaults, nodeTypes } from "./flowConfig";
+import { useScaffolderActions } from "./scaffolderActions";
 
-const VERTICAL_SPACING = 400;
-const FIXED_X_POSITION = 100;
+// Main orchestration component that renders and synchronizes the Designer flow.
 
-const nodeTypes = {
-  parametersNode: ParametersNode,
-  actionNode: ActionNode,
-  outputNode: OutputNode,
-};
-
-const nodeDefaults = {
-  sourcePosition: Position.Bottom,
-  targetPosition: Position.Top,
-};
-
-const sanitizeForRfId = (value: string) =>
-  value.replace(/[^a-zA-Z0-9-_.:]/g, "_");
-
-const buildRfId = (step: TaskStep | undefined, index: number) => {
-  if (step && typeof step.id === "string" && step.id.trim().length > 0) {
-    return `rf-${sanitizeForRfId(step.id)}-${index}`;
-  }
-  return `rf-${index + 1}`;
-};
-
-const cloneStep = (step: TaskStep): TaskStep =>
-  JSON.parse(JSON.stringify(step ?? {})) as TaskStep;
-
-const cloneOutput = (
-  output: ScaffolderTaskOutput | undefined | null
-): ScaffolderTaskOutput =>
-  JSON.parse(JSON.stringify(output ?? {})) as ScaffolderTaskOutput;
-
-const cloneParameters = (
-  parameters: TemplateParametersValue
-): TemplateParametersValue =>
-  parameters === undefined
-    ? undefined
-    : (JSON.parse(JSON.stringify(parameters)) as TemplateParametersValue);
-
-const resolveNodeHeightForTracking = (node: Node): number | undefined => {
-  const measuredHeight = node.measured?.height;
-  if (typeof measuredHeight === "number" && measuredHeight > 0) {
-    return measuredHeight;
-  }
-
-  const explicitHeight = node.height;
-  if (typeof explicitHeight === "number" && explicitHeight > 0) {
-    return explicitHeight;
-  }
-
-  return undefined;
-};
-
-type BuildNodesFromModelOptions = {
-  scaffolderActionIds: string[];
-  scaffolderActionInputsById: Record<string, Record<string, unknown>>;
-  scaffolderActionOutputsById: Record<string, Record<string, unknown>>;
-};
-
-const buildNodesFromModel = (
-  steps: TaskStep[],
-  parameters: TemplateParametersValue,
-  output: ScaffolderTaskOutput | undefined | null,
-  options: BuildNodesFromModelOptions
-) => {
-  const {
-    scaffolderActionIds,
-    scaffolderActionInputsById,
-    scaffolderActionOutputsById,
-  } = options;
-
-  const parameterSections = normalizeParametersToSections(parameters);
-  const nodes: Node[] = [];
-
-  const rfParametersId = "rf-parameters";
-  nodes.push({
-    id: rfParametersId,
-    type: "parametersNode",
-    position: { x: FIXED_X_POSITION, y: 0 },
-    data: {
-      rfId: rfParametersId,
-      parameters: cloneParameters(parameters),
-      sections: parameterSections,
-      scaffolderActionIds,
-      scaffolderActionInputsById,
-      scaffolderActionOutputsById,
-    },
-    ...nodeDefaults,
-  });
-
-  const actionNodes = steps.map((step, index) => {
-    const rfId = buildRfId(step, index);
-    return {
-      id: rfId,
-      type: "actionNode",
-      position: { x: FIXED_X_POSITION, y: 0 },
-      data: {
-        rfId,
-        step: cloneStep(step),
-        scaffolderActionIds,
-        scaffolderActionInputsById,
-        scaffolderActionOutputsById,
-      },
-      ...nodeDefaults,
-    } as Node;
-  });
-
-  nodes.push(...actionNodes);
-
-  if (output !== undefined && output !== null) {
-    const rfOutputId = "rf-output";
-    nodes.push({
-      id: rfOutputId,
-      type: "outputNode",
-      position: { x: FIXED_X_POSITION, y: 0 },
-      data: {
-        rfId: rfOutputId,
-        output: cloneOutput(output),
-        scaffolderActionIds,
-        scaffolderActionInputsById,
-        scaffolderActionOutputsById,
-      },
-      ...nodeDefaults,
-    });
-  }
-
-  return alignNodes(nodes, FIXED_X_POSITION, VERTICAL_SPACING);
-};
-
-const collectParameterReferences = (
-  parameters: TemplateParametersValue
-): string[] => {
-  const refs = new Set<string>();
-
-  const extractProperties = (schema: unknown) => {
-    if (!schema || typeof schema !== "object") {
-      return;
-    }
-
-    const record = schema as Record<string, unknown>;
-    if (record.properties && typeof record.properties === "object") {
-      Object.keys(record.properties as Record<string, unknown>).forEach(
-        (key) => {
-          if (key) {
-            refs.add(`\${{ parameters.${key} }}`);
-          }
-        }
-      );
-    }
-
-    if (Array.isArray(record.steps)) {
-      record.steps.forEach((stepSchema) => {
-        if (!stepSchema || typeof stepSchema !== "object") {
-          return;
-        }
-        extractProperties((stepSchema as Record<string, unknown>).schema);
-      });
-    }
-  };
-
-  if (Array.isArray(parameters)) {
-    parameters.forEach((item) => extractProperties(item));
-  } else {
-    extractProperties(parameters);
-  }
-
-  return Array.from(refs).sort();
-};
-
-const normalizeValueForStableStringify = (value: unknown): unknown => {
-  if (Array.isArray(value)) {
-    return value.map(normalizeValueForStableStringify);
-  }
-  if (value && typeof value === "object") {
-    const entries = Object.entries(value as Record<string, unknown>)
-      .filter(([key]) => key !== undefined)
-      // eslint-disable-next-line no-nested-ternary
-      .sort(([a], [b]) => (a > b ? 1 : a < b ? -1 : 0));
-    return entries.reduce<Record<string, unknown>>((acc, [key, val]) => {
-      acc[key] = normalizeValueForStableStringify(val);
-      return acc;
-    }, {});
-  }
-  return value;
-};
-
-const stableStringify = (value: unknown): string =>
-  JSON.stringify(normalizeValueForStableStringify(value));
-
-type ScaffolderAction = {
-  id: string;
-  schema?: {
-    input?: {
-      properties?: Record<string, unknown>;
-    };
-    output?: {
-      properties?: Record<string, unknown>;
-    };
-  };
-};
-
-const buildScaffolderActionsCache = (list: ScaffolderAction[]) => {
-  const { inputsById, outputsById } = list.reduce<{
-    inputsById: Record<string, Record<string, unknown>>;
-    outputsById: Record<string, Record<string, unknown>>;
-  }>(
-    (acc, action) => {
-      acc.inputsById[action.id] = action.schema?.input?.properties ?? {};
-      acc.outputsById[action.id] = action.schema?.output?.properties ?? {};
-      return acc;
-    },
-    { inputsById: {}, outputsById: {} }
-  );
-
-  return {
-    ids: list.map((action) => action.id),
-    inputsById,
-    outputsById,
-  };
-};
-
-const useScaffolderActions = () => {
-  const scaffolderApi = useApi(scaffolderApiRef);
-  const [cache, setCache] = useState(() => buildScaffolderActionsCache([]));
-
-  useEffect(() => {
-    let cancelled = false;
-
-    scaffolderApi
-      .listActions()
-      .then((remoteActions) => {
-        if (cancelled) {
-          return;
-        }
-        setCache(buildScaffolderActionsCache(remoteActions));
-      })
-      .catch(() => {});
-
-    return () => {
-      cancelled = true;
-    };
-  }, [scaffolderApi]);
-
-  return cache;
-};
+const FIXED_X_POSITION = FLOW_LAYOUT.fixedXPosition;
+const VERTICAL_SPACING = FLOW_LAYOUT.verticalSpacing;
 
 type DesignerFlowProps = {
   steps?: TaskStep[];
@@ -618,46 +380,14 @@ export default function App({
     ]
   );
 
-  const stepsFromNodes = useMemo(() => {
-    const sorted = [...nodes].sort((a, b) => a.position.y - b.position.y);
-    return sorted
-      .map((node) => {
-        const data = node.data as ActionNodeData | undefined;
-        if (!data || !data.step) {
-          return undefined;
-        }
-        return cloneStep(data.step as TaskStep);
-      })
-      .filter((step): step is TaskStep => !!step);
-  }, [nodes]);
+  const stepsFromNodes = useMemo(() => extractStepsFromNodes(nodes), [nodes]);
 
-  const parametersFromNodes = useMemo(() => {
-    const parametersNode = [...nodes]
-      .sort((a, b) => a.position.y - b.position.y)
-      .find((node) => node.type === "parametersNode");
-    if (!parametersNode) {
-      return undefined;
-    }
-    const data = parametersNode.data as ParametersNodeData | undefined;
-    if (!data) {
-      return undefined;
-    }
-    return cloneParameters(data.parameters);
-  }, [nodes]);
+  const parametersFromNodes = useMemo(
+    () => extractParametersFromNodes(nodes),
+    [nodes]
+  );
 
-  const outputFromNodes = useMemo(() => {
-    const outputNode = [...nodes]
-      .sort((a, b) => a.position.y - b.position.y)
-      .find((node) => node.type === "outputNode");
-    if (!outputNode) {
-      return undefined;
-    }
-    const data = outputNode.data as OutputNodeData | undefined;
-    if (!data) {
-      return undefined;
-    }
-    return cloneOutput(data.output);
-  }, [nodes]);
+  const outputFromNodes = useMemo(() => extractOutputFromNodes(nodes), [nodes]);
 
   const normalizedOutputFromNodes = outputFromNodes ?? null;
 
@@ -695,7 +425,8 @@ export default function App({
   ]);
 
   const fitViewOptions = useMemo(() => ({ padding: 0.2, duration: 300 }), []);
-  const [reactFlowInstance] = useState<ReactFlowInstance | null>(null);
+  const [reactFlowInstance, setReactFlowInstance] =
+    useState<ReactFlowInstance | null>(null);
 
   const fitFlowToView = useCallback(() => {
     if (!reactFlowInstance) {
@@ -729,6 +460,7 @@ export default function App({
         onNodeDragStop={onNodeDragStop}
         onConnect={onConnect}
         fitView
+        onInit={setReactFlowInstance}
         fitViewOptions={fitViewOptions}
       />
     </div>
