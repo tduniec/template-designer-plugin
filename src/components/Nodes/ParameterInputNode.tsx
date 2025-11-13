@@ -1,45 +1,58 @@
 import { useCallback, useMemo } from "react";
-import { alpha, styled, useTheme } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import IconButton from "@mui/material/IconButton";
-import Switch from "@mui/material/Switch";
-import TextField from "@mui/material/TextField";
-import Tooltip from "@mui/material/Tooltip";
-import Typography from "@mui/material/Typography";
-import TuneIcon from "@mui/icons-material/Tune";
-import AddIcon from "@mui/icons-material/Add";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import { alpha, styled, useTheme } from "@material-ui/core/styles";
+import {
+  Box,
+  FormControlLabel,
+  IconButton,
+  Switch,
+  TextField,
+  Tooltip,
+  Typography,
+} from "@material-ui/core";
+import TuneIcon from "@material-ui/icons/Tune";
+import AddIcon from "@material-ui/icons/Add";
+import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
+import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
 import type { ParameterFieldDisplay } from "./types";
 
-const Card = styled(Box)(({ theme }) => ({
-  position: "relative",
-  background: alpha(
-    theme.palette.success.main,
-    theme.palette.mode === "dark" ? 0.2 : 0.12
-  ),
-  border: `1px solid ${alpha(theme.palette.success.main, 0.45)}`,
-  borderRadius: 12,
-  width: 520,
-  padding: theme.spacing(1.5),
-  boxShadow: theme.shadows[2],
-  color: theme.palette.text.primary,
-}));
+const resolvePaletteMode = (theme: { palette: { type?: string } }) =>
+  (theme.palette as { mode?: "light" | "dark" }).mode ??
+  theme.palette.type ??
+  "light";
 
-const Header = styled(Box)(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: theme.spacing(1),
-  marginBottom: theme.spacing(1),
-  borderRadius: 8,
-  backgroundColor: alpha(
-    theme.palette.success.main,
-    theme.palette.mode === "dark" ? 0.25 : 0.16
-  ),
-  border: `1px solid ${alpha(theme.palette.success.main, 0.45)}`,
-}));
+const Card = styled(Box)(({ theme }) => {
+  const paletteMode = resolvePaletteMode(theme);
+  return {
+    position: "relative",
+    background: alpha(
+      theme.palette.success.main,
+      paletteMode === "dark" ? 0.2 : 0.12
+    ),
+    border: `1px solid ${alpha(theme.palette.success.main, 0.45)}`,
+    borderRadius: 12,
+    width: 520,
+    padding: theme.spacing(1.5),
+    boxShadow: theme.shadows[2],
+    color: theme.palette.text.primary,
+  };
+});
+
+const Header = styled(Box)(({ theme }) => {
+  const paletteMode = resolvePaletteMode(theme);
+  return {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    borderRadius: 8,
+    backgroundColor: alpha(
+      theme.palette.success.main,
+      paletteMode === "dark" ? 0.25 : 0.16
+    ),
+    border: `1px solid ${alpha(theme.palette.success.main, 0.45)}`,
+  };
+});
 
 type ParameterInputProps = {
   field: ParameterFieldDisplay;

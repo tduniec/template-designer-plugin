@@ -1,46 +1,59 @@
-import { alpha, styled, useTheme } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
-import Divider from "@mui/material/Divider";
-import IconButton from "@mui/material/IconButton";
-import TextField from "@mui/material/TextField";
-import Tooltip from "@mui/material/Tooltip";
-import Typography from "@mui/material/Typography";
-import ViewListIcon from "@mui/icons-material/ViewList";
-import AddIcon from "@mui/icons-material/Add";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import { alpha, styled, useTheme } from "@material-ui/core/styles";
+import {
+  Box,
+  Button,
+  Chip,
+  Divider,
+  IconButton,
+  TextField,
+  Tooltip,
+  Typography,
+} from "@material-ui/core";
+import ViewListIcon from "@material-ui/icons/ViewList";
+import AddIcon from "@material-ui/icons/Add";
+import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
+import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
 import type { ParameterFieldDisplay, ParameterSectionDisplay } from "./types";
 import { ParameterInputNode } from "./ParameterInputNode";
 
-const Card = styled(Box)(({ theme }) => ({
-  position: "relative",
-  background: alpha(
-    theme.palette.info.main,
-    theme.palette.mode === "dark" ? 0.22 : 0.12
-  ),
-  border: `1px solid ${alpha(theme.palette.info.main, 0.4)}`,
-  borderRadius: 12,
-  width: 600,
-  padding: theme.spacing(1.5),
-  boxShadow: theme.shadows[2],
-  color: theme.palette.text.primary,
-}));
+const resolvePaletteMode = (theme: { palette: { type?: string } }) =>
+  (theme.palette as { mode?: "light" | "dark" }).mode ??
+  theme.palette.type ??
+  "light";
 
-const Header = styled(Box)(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: theme.spacing(1),
-  marginBottom: theme.spacing(1),
-  borderRadius: 8,
-  backgroundColor: alpha(
-    theme.palette.info.main,
-    theme.palette.mode === "dark" ? 0.25 : 0.16
-  ),
-  border: `1px solid ${alpha(theme.palette.info.main, 0.45)}`,
-}));
+const Card = styled(Box)(({ theme }) => {
+  const paletteMode = resolvePaletteMode(theme);
+  return {
+    position: "relative",
+    background: alpha(
+      theme.palette.info.main,
+      paletteMode === "dark" ? 0.22 : 0.12
+    ),
+    border: `1px solid ${alpha(theme.palette.info.main, 0.4)}`,
+    borderRadius: 12,
+    width: 600,
+    padding: theme.spacing(1.5),
+    boxShadow: theme.shadows[2],
+    color: theme.palette.text.primary,
+  };
+});
+
+const Header = styled(Box)(({ theme }) => {
+  const paletteMode = resolvePaletteMode(theme);
+  return {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    borderRadius: 8,
+    backgroundColor: alpha(
+      theme.palette.info.main,
+      paletteMode === "dark" ? 0.25 : 0.16
+    ),
+    border: `1px solid ${alpha(theme.palette.info.main, 0.45)}`,
+  };
+});
 
 const SectionRow = styled(Box)(({ theme }) => ({
   display: "flex",
@@ -100,6 +113,7 @@ export const ParameterTitlesNode: React.FC<ParameterTitlesProps> = ({
   onMoveField,
 }) => {
   const theme = useTheme();
+  const paletteMode = resolvePaletteMode(theme);
   const safeSections = sections ?? [];
 
   const handleSectionTitleChange = (sectionId: string, value: string) => {
@@ -156,7 +170,7 @@ export const ParameterTitlesNode: React.FC<ParameterTitlesProps> = ({
           style={{
             borderColor: theme.palette.info.dark,
             color:
-              theme.palette.mode === "dark"
+              paletteMode === "dark"
                 ? theme.palette.info.light
                 : theme.palette.info.dark,
           }}

@@ -1,16 +1,13 @@
 import { useMemo } from "react";
-import Button from "@mui/material/Button";
-import Grid from "@mui/material/GridLegacy";
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
-import { useTheme } from "@mui/material/styles";
+import { Button, Grid, Paper, Typography } from "@material-ui/core";
+import { useTheme } from "@material-ui/core/styles";
 import CodeMirror from "@uiw/react-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import type {
   ScaffolderTaskOutput,
   TaskStep,
 } from "@backstage/plugin-scaffolder-common";
-import type { TemplateParametersValue } from "../../../nodes/types";
+import type { TemplateParametersValue } from "../../Nodes/types";
 import App from "../../DesignerFlow/DesignerFlow";
 
 type TemplateWorkspaceProps = {
@@ -59,10 +56,14 @@ export const TemplateWorkspace = ({
   isSaving,
 }: TemplateWorkspaceProps) => {
   const theme = useTheme();
+  const paletteMode =
+    (theme.palette as { mode?: "light" | "dark" }).mode ??
+    theme.palette.type ??
+    "light";
   const yamlExtensions = useMemo(() => [yaml()], []);
   const codeMirrorTheme = useMemo(
-    () => (theme.palette.mode === "dark" ? "dark" : "light"),
-    [theme.palette.mode]
+    () => (paletteMode === "dark" ? "dark" : "light"),
+    [paletteMode]
   );
 
   return (
@@ -186,7 +187,7 @@ export const TemplateWorkspace = ({
                       color: theme.palette.error.main,
                       fontSize: "0.75rem",
                       background:
-                        theme.palette.mode === "dark"
+                        paletteMode === "dark"
                           ? "rgba(255, 82, 82, 0.1)"
                           : "rgba(244, 67, 54, 0.08)",
                     }}

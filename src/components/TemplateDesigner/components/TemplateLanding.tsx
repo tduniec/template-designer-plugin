@@ -1,9 +1,5 @@
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Grid from "@mui/material/GridLegacy";
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
-import { useTheme } from "@mui/material/styles";
+import { Box, Button, Grid, Paper, Typography } from "@material-ui/core";
+import { useTheme } from "@material-ui/core/styles";
 
 type TemplateLandingProps = {
   loadError?: string;
