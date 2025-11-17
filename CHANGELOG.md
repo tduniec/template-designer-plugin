@@ -1,3 +1,10 @@
+## [0.1.7](https://github.com/tduniec/template-designer-plugin/compare/v0.1.6...v0.1.7) (2025-11-17)
+
+
+### Bug Fixes
+
+* node layout fixes ([e011101](https://github.com/tduniec/template-designer-plugin/commit/e01110143a254e1c0ad9a270fb348298f0774920))
+
 ## [0.1.6](https://github.com/tduniec/template-designer-plugin/compare/v0.1.5...v0.1.6) (2025-11-13)
 
 
