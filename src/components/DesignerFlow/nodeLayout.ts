@@ -12,12 +12,6 @@ import { NODE_VERTICAL_SPACING } from "../Nodes/types";
 const DEFAULT_NODE_HEIGHT = 320;
 const MIN_VERTICAL_GAP = 48;
 
-const TYPE_SPACING_BUFFER: Record<DesignerNodeType, number> = {
-  parametersNode: 120,
-  actionNode: 120,
-  outputNode: 120,
-};
-
 const parseNumericHeight = (value: unknown): number | null => {
   if (typeof value === "number" && Number.isFinite(value) && value > 0) {
     return value;
@@ -66,11 +60,15 @@ const estimateActionNodeHeight = (node: Node): number | null => {
   if (!data) {
     return null;
   }
-  const base = 520;
+  const base =
+    NODE_VERTICAL_SPACING.actionNode && NODE_VERTICAL_SPACING.actionNode > 0
+      ? NODE_VERTICAL_SPACING.actionNode
+      : MIN_VERTICAL_GAP;
   const rowHeight = 84;
   const inputCount = Object.keys(data.step?.input ?? {}).length;
-  const hasInputs = inputCount > 0 ? inputCount : 1;
-  return base + hasInputs * rowHeight;
+  const displayedRows = Math.max(inputCount, 1);
+  const extraRows = Math.max(displayedRows - 1, 0);
+  return base + extraRows * rowHeight;
 };
 
 const BUILTIN_OUTPUT_KEYS = new Set(["links", "text"]);
@@ -153,7 +151,7 @@ const getSpacingBufferForNode = (node: Node): number => {
   if (!type) {
     return MIN_VERTICAL_GAP;
   }
-  const buffer = TYPE_SPACING_BUFFER[type] ?? MIN_VERTICAL_GAP;
+  const buffer = NODE_VERTICAL_SPACING[type] ?? MIN_VERTICAL_GAP;
   return buffer > MIN_VERTICAL_GAP ? buffer : MIN_VERTICAL_GAP;
 };
 
