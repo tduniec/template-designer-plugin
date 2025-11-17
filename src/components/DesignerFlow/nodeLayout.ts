@@ -13,8 +13,8 @@ const DEFAULT_NODE_HEIGHT = 320;
 const MIN_VERTICAL_GAP = 48;
 
 const TYPE_SPACING_BUFFER: Record<DesignerNodeType, number> = {
-  parametersNode: 160,
-  actionNode: 96,
+  parametersNode: 120,
+  actionNode: 120,
   outputNode: 120,
 };
 
