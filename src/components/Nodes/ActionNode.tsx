@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ChangeEvent } from "react";
 import { Handle, Position, NodeToolbar } from "@xyflow/react";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme } from "@material-ui/core/styles";
 import {
   Box,
   Typography,
@@ -11,10 +11,9 @@ import {
   Divider,
   Chip,
 } from "@material-ui/core";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import AddIcon from "@mui/icons-material/Add";
+import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
+import AddIcon from "@material-ui/icons/Add";
 import type { TaskStep } from "@backstage/plugin-scaffolder-common";
-import { useTheme } from "@mui/material/styles";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import type { ActionNodeData } from "./types";
 import type { JsonSchemaProperty } from "./action/schema";
@@ -392,7 +391,10 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
             onPointerDown={stopAll.onPointerDown}
             onKeyDown={stopAll.onKeyDown}
             className={stopAll.className}
-            getOptionSelected={(option, value) => option.key === value?.key}
+            getOptionSelected={(
+              option: { key: string },
+              value: { key?: string } | null
+            ) => option.key === value?.key}
             getOptionLabel={(option) =>
               typeof option === "string" ? option : option.label
             }

@@ -1,71 +1,85 @@
 import { Handle, NodeToolbar, Position } from "@xyflow/react";
-import { alpha, styled, useTheme } from "@mui/material/styles";
+import { alpha, styled, useTheme } from "@material-ui/core/styles";
 import { Box, Button, Chip, Typography } from "@material-ui/core";
-import SettingsIcon from "@mui/icons-material/Settings";
-import AddIcon from "@mui/icons-material/Add";
+import SettingsIcon from "@material-ui/icons/Settings";
+import AddIcon from "@material-ui/icons/Add";
 import type { ParametersNodeData } from "./types";
 import { ParameterTitlesNode } from "./ParameterTitlesNode";
 import { createStopNodeInteraction } from "./common/nodeInteraction";
 import { useParameterSectionsController } from "./parameters/useParameterSections";
 
-const Card = styled(Box)(({ theme }) => ({
-  position: "relative",
-  background: alpha(
-    theme.palette.warning.main,
-    theme.palette.mode === "dark" ? 0.18 : 0.12
-  ),
-  border: `1px solid ${alpha(theme.palette.warning.main, 0.35)}`,
-  borderRadius: 12,
-  width: 700,
-  padding: theme.spacing(1.5),
-  boxShadow: theme.shadows[2],
-  color: theme.palette.text.primary,
-  overflow: "hidden",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    inset: 0,
-    background: `linear-gradient(135deg, ${alpha(
-      theme.palette.warning.light,
-      theme.palette.mode === "dark" ? 0.28 : 0.18
-    )}, transparent 65%)`,
-    pointerEvents: "none",
-    zIndex: 0,
-  },
-  "& > *": {
+const resolvePaletteMode = (theme: { palette: { type?: string } }) =>
+  (theme.palette as { mode?: "light" | "dark" }).mode ??
+  theme.palette.type ??
+  "light";
+
+const Card = styled(Box)(({ theme }) => {
+  const paletteMode = resolvePaletteMode(theme);
+  return {
     position: "relative",
-    zIndex: 1,
-  },
-}));
+    background: alpha(
+      theme.palette.warning.main,
+      paletteMode === "dark" ? 0.18 : 0.12
+    ),
+    border: `1px solid ${alpha(theme.palette.warning.main, 0.35)}`,
+    borderRadius: 12,
+    width: 700,
+    padding: theme.spacing(1.5),
+    boxShadow: theme.shadows[2],
+    color: theme.palette.text.primary,
+    overflow: "hidden",
+    "&::before": {
+      content: '""',
+      position: "absolute",
+      inset: 0,
+      background: `linear-gradient(135deg, ${alpha(
+        theme.palette.warning.light,
+        paletteMode === "dark" ? 0.28 : 0.18
+      )}, transparent 65%)`,
+      pointerEvents: "none",
+      zIndex: 0,
+    },
+    "& > *": {
+      position: "relative",
+      zIndex: 1,
+    },
+  };
+});
 
-const Header = styled(Box)(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: theme.spacing(1),
-  marginBottom: theme.spacing(1),
-  borderRadius: 8,
-  backgroundColor: alpha(
-    theme.palette.warning.main,
-    theme.palette.mode === "dark" ? 0.24 : 0.14
-  ),
-  border: `1px solid ${alpha(theme.palette.warning.main, 0.4)}`,
-}));
+const Header = styled(Box)(({ theme }) => {
+  const paletteMode = resolvePaletteMode(theme);
+  return {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    borderRadius: 8,
+    backgroundColor: alpha(
+      theme.palette.warning.main,
+      paletteMode === "dark" ? 0.24 : 0.14
+    ),
+    border: `1px solid ${alpha(theme.palette.warning.main, 0.4)}`,
+  };
+});
 
-const Placeholder = styled(Box)(({ theme }) => ({
-  minHeight: 200,
-  border: `2px dashed ${alpha(theme.palette.warning.main, 0.6)}`,
-  borderRadius: 16,
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "center",
-  padding: theme.spacing(3),
-  gap: theme.spacing(1.25),
-  backgroundColor: alpha(
-    theme.palette.warning.light,
-    theme.palette.mode === "dark" ? 0.08 : 0.04
-  ),
-}));
+const Placeholder = styled(Box)(({ theme }) => {
+  const paletteMode = resolvePaletteMode(theme);
+  return {
+    minHeight: 200,
+    border: `2px dashed ${alpha(theme.palette.warning.main, 0.6)}`,
+    borderRadius: 16,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    padding: theme.spacing(3),
+    gap: theme.spacing(1.25),
+    backgroundColor: alpha(
+      theme.palette.warning.light,
+      paletteMode === "dark" ? 0.08 : 0.04
+    ),
+  };
+});
 
 const PlaceholderHint = styled(Typography)(({ theme }) => ({
   fontSize: "0.9rem",
@@ -76,6 +90,7 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
   data,
 }) => {
   const theme = useTheme();
+  const paletteMode = resolvePaletteMode(theme);
   const {
     sections,
     handleSectionUpdate,
@@ -111,7 +126,7 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
           style={{
             borderColor: theme.palette.warning.dark,
             color:
-              theme.palette.mode === "dark"
+              paletteMode === "dark"
                 ? theme.palette.warning.light
                 : theme.palette.warning.dark,
             textTransform: "uppercase",

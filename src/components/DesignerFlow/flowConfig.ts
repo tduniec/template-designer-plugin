@@ -1,7 +1,7 @@
 import { Position } from "@xyflow/react";
-import { ActionNode } from "../../nodes/ActionNode";
-import { ParametersNode } from "../../nodes/ParametersNode";
-import { OutputNode } from "../../nodes/OutputNode";
+import { ActionNode } from "../Nodes/ActionNode";
+import { ParametersNode } from "../Nodes/ParametersNode";
+import { OutputNode } from "../Nodes/OutputNode";
 
 // Centralized flow layout + node type definitions consumed across DesignerFlow.
 

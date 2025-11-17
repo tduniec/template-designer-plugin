@@ -4,7 +4,7 @@ import type {
   ScaffolderTaskOutput,
   TaskStep,
 } from "@backstage/plugin-scaffolder-common";
-import type { TemplateParametersValue } from "../../nodes/types";
+import type { TemplateParametersValue } from "../Nodes/types";
 import {
   convertJsonToYaml,
   convertYamlToJson,

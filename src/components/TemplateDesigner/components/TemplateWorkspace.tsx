@@ -7,7 +7,7 @@ import type {
   ScaffolderTaskOutput,
   TaskStep,
 } from "@backstage/plugin-scaffolder-common";
-import type { TemplateParametersValue } from "../../../nodes/types";
+import type { TemplateParametersValue } from "../../Nodes/types";
 import App from "../../DesignerFlow/DesignerFlow";
 
 type TemplateWorkspaceProps = {
@@ -56,15 +56,19 @@ export const TemplateWorkspace = ({
   isSaving,
 }: TemplateWorkspaceProps) => {
   const theme = useTheme();
+  const paletteMode =
+    (theme.palette as { mode?: "light" | "dark" }).mode ??
+    theme.palette.type ??
+    "light";
   const yamlExtensions = useMemo(() => [yaml()], []);
   const codeMirrorTheme = useMemo(
-    () => (theme.palette.type === "dark" ? "dark" : "light"),
-    [theme.palette.type]
+    () => (paletteMode === "dark" ? "dark" : "light"),
+    [paletteMode]
   );
 
   return (
     <Grid container spacing={3} direction="column">
-      <Grid style={{ height: 800 }} item>
+      <Grid item style={{ height: 800 }}>
         <div
           style={{
             height: "100%",
@@ -183,7 +187,7 @@ export const TemplateWorkspace = ({
                       color: theme.palette.error.main,
                       fontSize: "0.75rem",
                       background:
-                        theme.palette.type === "dark"
+                        paletteMode === "dark"
                           ? "rgba(255, 82, 82, 0.1)"
                           : "rgba(244, 67, 54, 0.08)",
                     }}

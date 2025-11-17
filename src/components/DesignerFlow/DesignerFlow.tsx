@@ -22,7 +22,7 @@ import type {
   OutputNodeData,
   ParametersNodeData,
   TemplateParametersValue,
-} from "../../nodes/types";
+} from "../Nodes/types";
 import { createSequentialEdges } from "../../utils/createSequentialEdges";
 import {
   collectStepOutputReferences,
@@ -45,7 +45,7 @@ import {
 } from "./model";
 import { alignNodes } from "./nodeLayout";
 import { FLOW_LAYOUT, nodeDefaults, nodeTypes } from "./flowConfig";
-import { useScaffolderActions } from "./scaffolderActions";
+import { useScaffolderActions } from "../../api/scaffolderActions";
 
 // Main orchestration component that renders and synchronizes the Designer flow.
 

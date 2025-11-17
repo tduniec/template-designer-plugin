@@ -6,7 +6,7 @@ import type {
   ParameterFieldDisplay,
   ParameterSectionDisplay,
   TemplateParametersValue,
-} from "../../nodes/types";
+} from "../Nodes/types";
 
 type ParameterPropertySchema = Record<string, unknown>;
 
