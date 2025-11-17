@@ -102,6 +102,9 @@ This runs a local Backstage app with hot reload support for your plugin.
 
 ## ❤️ Contributing
 
+Template Designer is still fresh out of the oven, so rough edges and open questions are expected—and that’s part of the fun.  
+If you spot a bug, have an idea, or simply want to riff on better tooling for templates, please open an issue or PR.
+
 Help us push forward the Democratization of Templates in Backstage!
 Ideas, feedback, and PRs are all welcome.
 
