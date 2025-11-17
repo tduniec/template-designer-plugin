@@ -26,6 +26,7 @@ import {
 } from "./action/schema";
 import { useActionInputs } from "./action/useActionInputs";
 import { createStopNodeInteraction } from "./common/nodeInteraction";
+import { AutoWidthPopper } from "./common/AutoWidthPopper";
 
 const Card = styled(Box)(({ theme }) => ({
   background: theme.palette.background.paper,
@@ -131,6 +132,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
         <Autocomplete
           size="small"
           options={actionOptions}
+          PopperComponent={AutoWidthPopper}
           freeSolo
           value={typeof step?.action === "string" ? step.action : ""}
           inputValue={typeof step?.action === "string" ? step.action : ""}
@@ -318,6 +320,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
                     size="small"
                     freeSolo
                     options={options}
+                    PopperComponent={AutoWidthPopper}
                     value={displayValue}
                     inputValue={displayValue}
                     fullWidth
@@ -363,6 +366,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
             size="small"
             freeSolo
             options={availableInputOptions}
+            PopperComponent={AutoWidthPopper}
             value={selectedNewKeyOption}
             inputValue={newKey}
             onChange={(_, value) => {
@@ -450,6 +454,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
                 size="small"
                 freeSolo
                 options={newValueOptions}
+                PopperComponent={AutoWidthPopper}
                 value={newVal}
                 inputValue={newVal}
                 fullWidth

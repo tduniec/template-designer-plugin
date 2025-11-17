@@ -18,6 +18,7 @@ import MoveToInboxIcon from "@material-ui/icons/MoveToInbox";
 import type { OutputNodeData } from "./types";
 import { createStopNodeInteraction } from "./common/nodeInteraction";
 import { useOutputController } from "./output/useOutputController";
+import { AutoWidthPopper } from "./common/AutoWidthPopper";
 
 const resolvePaletteMode = (theme: { palette: { type?: string } }) =>
   (theme.palette as { mode?: "light" | "dark" }).mode ??
@@ -216,6 +217,7 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
             size="small"
             freeSolo
             options={referenceOptions}
+            PopperComponent={AutoWidthPopper}
             value={
               link.url === undefined || link.url === null
                 ? ""
@@ -313,6 +315,7 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
               size="small"
               freeSolo
               options={referenceOptions}
+              PopperComponent={AutoWidthPopper}
               value={
                 entry.content === undefined || entry.content === null
                   ? ""
