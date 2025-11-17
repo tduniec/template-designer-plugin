@@ -80,7 +80,7 @@ export type ParametersNodeData = BaseNodeData & {
 };
 
 export const NODE_VERTICAL_SPACING: Record<DesignerNodeType, number> = {
-  parametersNode: 520,
-  actionNode: 420,
-  outputNode: 480,
+  parametersNode: 120,
+  actionNode: 120,
+  outputNode: 120,
 };

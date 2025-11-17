@@ -11,7 +11,7 @@ import type {
   ParametersNodeData,
   ParameterSectionDisplay,
   TemplateParametersValue,
-} from "../../nodes/types";
+} from "../Nodes/types";
 import { createSequentialEdges } from "../../utils/createSequentialEdges";
 import {
   normalizeParametersToSections,

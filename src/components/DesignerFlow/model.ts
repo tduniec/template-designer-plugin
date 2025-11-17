@@ -10,7 +10,7 @@ import type {
   OutputNodeData,
   ParametersNodeData,
   TemplateParametersValue,
-} from "../../nodes/types";
+} from "../Nodes/types";
 import { alignNodes } from "./nodeLayout";
 import { normalizeParametersToSections } from "./parameterTransforms";
 import { FLOW_LAYOUT, nodeDefaults } from "./flowConfig";

@@ -1,5 +1,6 @@
 import { Handle, NodeToolbar, Position } from "@xyflow/react";
-import { alpha, styled, useTheme } from "@mui/material/styles";
+import { alpha, styled, useTheme } from "@material-ui/core/styles";
+import Autocomplete from "@material-ui/lab/Autocomplete";
 import {
   Box,
   Button,
@@ -11,71 +12,85 @@ import {
   Typography,
   Chip,
 } from "@material-ui/core";
-import Autocomplete from "@material-ui/lab/Autocomplete";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import OutboxIcon from "@mui/icons-material/Outbox";
+import AddIcon from "@material-ui/icons/Add";
+import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
+import MoveToInboxIcon from "@material-ui/icons/MoveToInbox";
 import type { OutputNodeData } from "./types";
 import { createStopNodeInteraction } from "./common/nodeInteraction";
 import { useOutputController } from "./output/useOutputController";
+import { AutoWidthPopper } from "./common/AutoWidthPopper";
 
-const Card = styled(Box)(({ theme }) => ({
-  position: "relative",
-  background: alpha(
-    theme.palette.info.main,
-    theme.palette.mode === "dark" ? 0.16 : 0.09
-  ),
-  border: `1px solid ${alpha(theme.palette.info.main, 0.3)}`,
-  borderRadius: 12,
-  width: 700,
-  padding: theme.spacing(1.5),
-  boxShadow: theme.shadows[2],
-  color: theme.palette.text.primary,
-  overflow: "hidden",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    inset: 0,
-    background: `linear-gradient(135deg, ${alpha(
-      theme.palette.info.light,
-      theme.palette.mode === "dark" ? 0.28 : 0.16
-    )}, transparent 65%)`,
-    pointerEvents: "none",
-    zIndex: 0,
-  },
-  "& > *": {
+const resolvePaletteMode = (theme: { palette: { type?: string } }) =>
+  (theme.palette as { mode?: "light" | "dark" }).mode ??
+  theme.palette.type ??
+  "light";
+
+const Card = styled(Box)(({ theme }) => {
+  const paletteMode = resolvePaletteMode(theme);
+  return {
     position: "relative",
-    zIndex: 1,
-  },
-}));
+    background: alpha(
+      theme.palette.info.main,
+      paletteMode === "dark" ? 0.16 : 0.09
+    ),
+    border: `1px solid ${alpha(theme.palette.info.main, 0.3)}`,
+    borderRadius: 12,
+    width: 700,
+    padding: theme.spacing(1.5),
+    boxShadow: theme.shadows[2],
+    color: theme.palette.text.primary,
+    overflow: "hidden",
+    "&::before": {
+      content: '""',
+      position: "absolute",
+      inset: 0,
+      background: `linear-gradient(135deg, ${alpha(
+        theme.palette.info.light,
+        paletteMode === "dark" ? 0.28 : 0.16
+      )}, transparent 65%)`,
+      pointerEvents: "none",
+      zIndex: 0,
+    },
+    "& > *": {
+      position: "relative",
+      zIndex: 1,
+    },
+  };
+});
 
-const Header = styled(Box)(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: theme.spacing(1),
-  marginBottom: theme.spacing(1),
-  borderRadius: 8,
-  backgroundColor: alpha(
-    theme.palette.info.main,
-    theme.palette.mode === "dark" ? 0.24 : 0.14
-  ),
-  border: `1px solid ${alpha(theme.palette.info.main, 0.4)}`,
-}));
+const Header = styled(Box)(({ theme }) => {
+  const paletteMode = resolvePaletteMode(theme);
+  return {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    borderRadius: 8,
+    backgroundColor: alpha(
+      theme.palette.info.main,
+      paletteMode === "dark" ? 0.24 : 0.14
+    ),
+    border: `1px solid ${alpha(theme.palette.info.main, 0.4)}`,
+  };
+});
 
-const SectionHeader = styled(Box)(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  marginTop: theme.spacing(1.5),
-  marginBottom: theme.spacing(0.5),
-  padding: theme.spacing(0.75, 1),
-  borderRadius: 8,
-  backgroundColor: alpha(
-    theme.palette.info.main,
-    theme.palette.mode === "dark" ? 0.18 : 0.1
-  ),
-}));
+const SectionHeader = styled(Box)(({ theme }) => {
+  const paletteMode = resolvePaletteMode(theme);
+  return {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: theme.spacing(1.5),
+    marginBottom: theme.spacing(0.5),
+    padding: theme.spacing(0.75, 1),
+    borderRadius: 8,
+    backgroundColor: alpha(
+      theme.palette.info.main,
+      paletteMode === "dark" ? 0.18 : 0.1
+    ),
+  };
+});
 
 const Row = styled(Box)(({ theme }) => ({
   display: "grid",
@@ -93,30 +108,15 @@ const TextRow = styled(Box)(({ theme }) => ({
   alignItems: "flex-start",
 }));
 
-const CustomRow = styled(Box)(({ theme }) => ({
-  display: "grid",
-  gridTemplateColumns: "160px 1fr auto",
-  gap: theme.spacing(1),
-  alignItems: "center",
-  marginBottom: theme.spacing(1),
-}));
-
 export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
   const theme = useTheme();
+  const paletteMode = resolvePaletteMode(theme);
   const stopAll = createStopNodeInteraction();
   const {
     stepOutputReferences,
     referenceOptions,
     links,
     textEntries,
-    customEntries,
-    newCustomKey,
-    setNewCustomKey,
-    newCustomValue,
-    setNewCustomValue,
-    handleAddCustom,
-    handleCustomValueChange,
-    handleRemoveCustom,
     setLinkFieldValue,
     handleLinkChange,
     handleAddLink,
@@ -130,9 +130,13 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
 
   return (
     <Card>
+      <Handle type="target" position={Position.Top} />
       <Header>
         <Box display="flex" alignItems="center">
-          <OutboxIcon fontSize="small" htmlColor={theme.palette.info.main} />
+          <MoveToInboxIcon
+            fontSize="small"
+            htmlColor={theme.palette.info.main}
+          />
           <Typography variant="subtitle2" noWrap>
             Template Output
           </Typography>
@@ -144,7 +148,7 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
           style={{
             borderColor: theme.palette.info.main,
             color:
-              theme.palette.mode === "dark"
+              paletteMode === "dark"
                 ? theme.palette.info.light
                 : theme.palette.info.dark,
           }}
@@ -197,6 +201,7 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
             size="small"
             freeSolo
             options={referenceOptions}
+            PopperComponent={AutoWidthPopper}
             value={
               link.url === undefined || link.url === null
                 ? ""
@@ -294,6 +299,7 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
               size="small"
               freeSolo
               options={referenceOptions}
+              PopperComponent={AutoWidthPopper}
               value={
                 entry.content === undefined || entry.content === null
                   ? ""
@@ -356,70 +362,6 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
         </Box>
       ))}
 
-      <SectionHeader>
-        <Typography variant="caption" color="textSecondary">
-          Custom Output Keys
-        </Typography>
-      </SectionHeader>
-
-      {customEntries.length === 0 && (
-        <Typography variant="body2" color="textSecondary">
-          No custom output keys
-        </Typography>
-      )}
-
-      {customEntries.map(([key, value]) => (
-        <CustomRow key={key}>
-          <Typography variant="body2" noWrap title={key}>
-            {key}
-          </Typography>
-          <TextField
-            {...stopAll}
-            size="small"
-            placeholder="Value"
-            value={value === undefined || value === null ? "" : String(value)}
-            onChange={handleCustomValueChange(key)}
-          />
-          <IconButton
-            size="small"
-            onPointerDown={stopAll.onPointerDown}
-            onClick={() => handleRemoveCustom(key)}
-          >
-            <DeleteOutlineIcon fontSize="small" />
-          </IconButton>
-        </CustomRow>
-      ))}
-
-      <Box
-        sx={{ mt: 1, display: "grid", gridTemplateColumns: "160px 1fr auto" }}
-      >
-        <TextField
-          {...stopAll}
-          size="small"
-          label="Key"
-          value={newCustomKey}
-          onChange={(event) => setNewCustomKey(event.target.value)}
-        />
-        <TextField
-          {...stopAll}
-          size="small"
-          label="Value"
-          value={newCustomValue}
-          onChange={(event) => setNewCustomValue(event.target.value)}
-          placeholder="e.g. ${{ steps.stepId.output.value }}"
-        />
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={handleAddCustom}
-          onPointerDown={stopAll.onPointerDown}
-          onKeyDown={stopAll.onKeyDown}
-          className={stopAll.className}
-        >
-          Add Key
-        </Button>
-      </Box>
-
       {stepOutputReferences.length > 0 && (
         <Box sx={{ mt: 2 }}>
           <Typography variant="caption" color="textSecondary">
@@ -456,8 +398,6 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
           Add Action Above
         </Button>
       </NodeToolbar>
-
-      <Handle type="target" position={Position.Top} />
     </Card>
   );
 };

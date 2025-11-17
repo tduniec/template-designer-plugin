@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ChangeEvent } from "react";
 import { Handle, Position, NodeToolbar } from "@xyflow/react";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme } from "@material-ui/core/styles";
 import {
   Box,
   Typography,
@@ -11,10 +11,9 @@ import {
   Divider,
   Chip,
 } from "@material-ui/core";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import AddIcon from "@mui/icons-material/Add";
+import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
+import AddIcon from "@material-ui/icons/Add";
 import type { TaskStep } from "@backstage/plugin-scaffolder-common";
-import { useTheme } from "@mui/material/styles";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import type { ActionNodeData } from "./types";
 import type { JsonSchemaProperty } from "./action/schema";
@@ -27,6 +26,7 @@ import {
 } from "./action/schema";
 import { useActionInputs } from "./action/useActionInputs";
 import { createStopNodeInteraction } from "./common/nodeInteraction";
+import { AutoWidthPopper } from "./common/AutoWidthPopper";
 
 const Card = styled(Box)(({ theme }) => ({
   background: theme.palette.background.paper,
@@ -57,13 +57,6 @@ const KvRow = styled(Box)(({ theme }) => ({
   gridTemplateColumns: "200px 140px 1fr auto",
   gap: theme.spacing(1),
   alignItems: "center",
-}));
-
-const ToolbarBtn = styled(Button)(({ theme }) => ({
-  textTransform: "none",
-  borderRadius: 8,
-  paddingInline: theme.spacing(1),
-  paddingBlock: 4,
 }));
 
 const DEFAULT_ACTION_OPTIONS = [
@@ -139,6 +132,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
         <Autocomplete
           size="small"
           options={actionOptions}
+          PopperComponent={AutoWidthPopper}
           freeSolo
           value={typeof step?.action === "string" ? step.action : ""}
           inputValue={typeof step?.action === "string" ? step.action : ""}
@@ -168,8 +162,9 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
       </Header>
 
       <NodeToolbar position={Position.Bottom}>
-        <ToolbarBtn
+        <Button
           variant="outlined"
+          size="small"
           startIcon={<AddIcon fontSize="small" />}
           onClick={() =>
             data.onAddNode?.({
@@ -181,7 +176,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
           className="nodrag nowheel"
         >
           Add Action
-        </ToolbarBtn>
+        </Button>
       </NodeToolbar>
 
       <Divider />
@@ -325,6 +320,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
                     size="small"
                     freeSolo
                     options={options}
+                    PopperComponent={AutoWidthPopper}
                     value={displayValue}
                     inputValue={displayValue}
                     fullWidth
@@ -370,6 +366,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
             size="small"
             freeSolo
             options={availableInputOptions}
+            PopperComponent={AutoWidthPopper}
             value={selectedNewKeyOption}
             inputValue={newKey}
             onChange={(_, value) => {
@@ -392,7 +389,10 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
             onPointerDown={stopAll.onPointerDown}
             onKeyDown={stopAll.onKeyDown}
             className={stopAll.className}
-            getOptionSelected={(option, value) => option.key === value?.key}
+            getOptionSelected={(
+              option: { key: string },
+              value: { key?: string } | null
+            ) => option.key === value?.key}
             getOptionLabel={(option) =>
               typeof option === "string" ? option : option.label
             }
@@ -454,6 +454,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
                 size="small"
                 freeSolo
                 options={newValueOptions}
+                PopperComponent={AutoWidthPopper}
                 value={newVal}
                 inputValue={newVal}
                 fullWidth

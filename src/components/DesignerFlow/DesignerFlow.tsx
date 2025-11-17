@@ -22,7 +22,7 @@ import type {
   OutputNodeData,
   ParametersNodeData,
   TemplateParametersValue,
-} from "../../nodes/types";
+} from "../Nodes/types";
 import { createSequentialEdges } from "../../utils/createSequentialEdges";
 import {
   collectStepOutputReferences,
@@ -45,7 +45,7 @@ import {
 } from "./model";
 import { alignNodes } from "./nodeLayout";
 import { FLOW_LAYOUT, nodeDefaults, nodeTypes } from "./flowConfig";
-import { useScaffolderActions } from "./scaffolderActions";
+import { useScaffolderActions } from "../../api/scaffolderActions";
 
 // Main orchestration component that renders and synchronizes the Designer flow.
 
@@ -136,6 +136,7 @@ export default function App({
   const skipNextModelHashRef = useRef<string | null>(null);
   const lastCacheFingerprintRef = useRef<string | null>(null);
   const nodeHeightsRef = useRef<Record<string, number>>({});
+  const shouldAutoFitViewRef = useRef(true);
 
   useEffect(() => {
     const isCacheChanged = cacheFingerprint !== lastCacheFingerprintRef.current;
@@ -170,6 +171,7 @@ export default function App({
 
     setNodes(nextNodes);
     setEdges(createSequentialEdges(nextNodes));
+    shouldAutoFitViewRef.current = true;
   }, [
     steps,
     normalizedParametersProp,
@@ -436,8 +438,15 @@ export default function App({
   }, [fitViewOptions, reactFlowInstance]);
 
   useEffect(() => {
+    if (!reactFlowInstance) {
+      return;
+    }
+    if (!shouldAutoFitViewRef.current) {
+      return;
+    }
+    shouldAutoFitViewRef.current = false;
     fitFlowToView();
-  }, [fitFlowToView, nodes, edges]);
+  }, [fitFlowToView, nodes, edges, reactFlowInstance]);
 
   useEffect(() => {
     if (!reactFlowInstance) {
