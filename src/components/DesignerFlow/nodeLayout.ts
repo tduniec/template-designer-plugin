@@ -4,13 +4,19 @@ import type {
   DesignerNodeType,
   OutputNodeData,
   ParametersNodeData,
-} from "../../nodes/types";
-import { NODE_VERTICAL_SPACING } from "../../nodes/types";
+} from "../Nodes/types";
+import { NODE_VERTICAL_SPACING } from "../Nodes/types";
 
 // Shared helpers for computing consistent node alignment/spacing in the flow.
 
 const DEFAULT_NODE_HEIGHT = 320;
 const MIN_VERTICAL_GAP = 48;
+
+const TYPE_SPACING_BUFFER: Record<DesignerNodeType, number> = {
+  parametersNode: 120,
+  actionNode: 72,
+  outputNode: 96,
+};
 
 const parseNumericHeight = (value: unknown): number | null => {
   if (typeof value === "number" && Number.isFinite(value) && value > 0) {
@@ -141,6 +147,15 @@ const getNodeHeight = (node: Node): number => {
   return DEFAULT_NODE_HEIGHT;
 };
 
+const getSpacingBufferForNode = (node: Node): number => {
+  const type = node.type as DesignerNodeType | undefined;
+  if (!type) {
+    return MIN_VERTICAL_GAP;
+  }
+  const buffer = TYPE_SPACING_BUFFER[type] ?? MIN_VERTICAL_GAP;
+  return buffer > MIN_VERTICAL_GAP ? buffer : MIN_VERTICAL_GAP;
+};
+
 export const alignNodes = (
   nodes: Node[],
   fixedXPosition: number,
@@ -158,10 +173,9 @@ export const alignNodes = (
     };
 
     const nodeHeight = getNodeHeight(node);
-    const distanceToNext = Math.max(
-      nodeHeight + MIN_VERTICAL_GAP,
-      verticalSpacing
-    );
+    const spacingBuffer = getSpacingBufferForNode(node);
+    const minDistance = nodeHeight + spacingBuffer;
+    const distanceToNext = Math.max(minDistance, verticalSpacing);
     currentY += distanceToNext;
 
     return alignedNode;
