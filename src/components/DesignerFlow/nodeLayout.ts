@@ -13,9 +13,9 @@ const DEFAULT_NODE_HEIGHT = 320;
 const MIN_VERTICAL_GAP = 48;
 
 const TYPE_SPACING_BUFFER: Record<DesignerNodeType, number> = {
-  parametersNode: 120,
-  actionNode: 72,
-  outputNode: 96,
+  parametersNode: 160,
+  actionNode: 96,
+  outputNode: 120,
 };
 
 const parseNumericHeight = (value: unknown): number | null => {
@@ -41,10 +41,10 @@ const estimateParametersNodeHeight = (node: Node): number | null => {
   }
 
   const sections = data.sections ?? [];
-  const PARAMETER_SHELL_HEIGHT = 320;
-  const PARAMETER_CARD_BASE = 160;
-  const SECTION_BASE = 140;
-  const FIELD_HEIGHT = 68;
+  const PARAMETER_SHELL_HEIGHT = 360;
+  const PARAMETER_CARD_BASE = 220;
+  const SECTION_BASE = 180;
+  const FIELD_HEIGHT = 86;
 
   if (!sections.length) {
     return PARAMETER_SHELL_HEIGHT + PARAMETER_CARD_BASE + SECTION_BASE;
@@ -66,10 +66,11 @@ const estimateActionNodeHeight = (node: Node): number | null => {
   if (!data) {
     return null;
   }
-  const base = 420;
-  const rowHeight = 72;
+  const base = 520;
+  const rowHeight = 84;
   const inputCount = Object.keys(data.step?.input ?? {}).length;
-  return base + inputCount * rowHeight;
+  const hasInputs = inputCount > 0 ? inputCount : 1;
+  return base + hasInputs * rowHeight;
 };
 
 const BUILTIN_OUTPUT_KEYS = new Set(["links", "text"]);
