@@ -1,6 +1,6 @@
 # Backstage Template Designer Plugin
 
-**From YAML to Canvas — simplifying Backstage scaffolding **
+**From YAML to Canvas — simplifying Backstage scaffolding**
 
 Empowering the **Democratization of Templates** in Backstage 🚀  
 Visually **design, connect, and manage** your Backstage scaffolder templates through an **intuitive drag-and-drop interface** — all inside your Backstage instance.  
@@ -107,7 +107,7 @@ Ideas, feedback, and PRs are all welcome.
 
 ## 📄 License
 
-MIT © 2025 — Created by [Your Name or Org]
+Apache-2.0 © 2025 — Created by [tduniec](https://github.com/tduniec)
 
 ## 🌐 Roadmap
 
