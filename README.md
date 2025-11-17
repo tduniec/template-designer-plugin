@@ -1,10 +1,10 @@
 # Backstage Template Designer Plugin
 
-**From YAML to Canvas — bringing the Democratization of Templates to Backstage.**
+**From YAML to Canvas — simplifying Backstage scaffolding **
 
 Empowering the **Democratization of Templates** in Backstage 🚀  
 Visually **design, connect, and manage** your Backstage scaffolder templates through an **intuitive drag-and-drop interface** — all inside your Backstage instance.  
-No YAML complexity. No coding required. Just creativity.
+No YAML complexity. No coding required. Just creativity. **We are breaking the glass!** templating in Backstage made easy! 🚀
 
 ---
 

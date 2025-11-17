@@ -2,6 +2,14 @@
   "name": "@tduniec/plugin-template-designer",
   "version": "0.1.7",
   "license": "Apache-2.0",
+  "keywords": [
+    "backstage",
+    "scaffolder",
+    "template-designer",
+    "no-code",
+    "yaml",
+    "canvas"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tduniec/template-designer-plugin.git",
