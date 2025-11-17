@@ -1,3 +1,10 @@
+## [0.1.6](https://github.com/tduniec/template-designer-plugin/compare/v0.1.5...v0.1.6) (2025-11-13)
+
+
+### Bug Fixes
+
+* major refactor of core components for readability and maintainability ([024d15e](https://github.com/tduniec/template-designer-plugin/commit/024d15e5d09820689504b6a3415457df32781cc7))
+
 ## [0.1.5](https://github.com/tduniec/template-designer-plugin/compare/v0.1.4...v0.1.5) (2025-11-08)
 
 
