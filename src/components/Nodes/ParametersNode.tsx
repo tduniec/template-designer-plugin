@@ -63,29 +63,6 @@ const Header = styled(Box)(({ theme }) => {
   };
 });
 
-const Placeholder = styled(Box)(({ theme }) => {
-  const paletteMode = resolvePaletteMode(theme);
-  return {
-    minHeight: 200,
-    border: `2px dashed ${alpha(theme.palette.warning.main, 0.6)}`,
-    borderRadius: 16,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    padding: theme.spacing(3),
-    gap: theme.spacing(1.25),
-    backgroundColor: alpha(
-      theme.palette.warning.light,
-      paletteMode === "dark" ? 0.08 : 0.04
-    ),
-  };
-});
-
-const PlaceholderHint = styled(Typography)(({ theme }) => ({
-  fontSize: "0.9rem",
-  color: alpha(theme.palette.text.primary, 0.8),
-}));
-
 export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
   data,
 }) => {
@@ -116,7 +93,7 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
             htmlColor={theme.palette.warning.dark}
           />
           <Typography variant="subtitle2" noWrap>
-            Parameters Placeholder
+            Parameters
           </Typography>
         </Box>
         <Chip
@@ -134,20 +111,7 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
         />
       </Header>
 
-      <Placeholder>
-        <Typography variant="h6" gutterBottom>
-          Ready for parameter structure
-        </Typography>
-        <PlaceholderHint>
-          This node pins the start of your template inputs. The cards below show
-          every parameter section and the individual fields that belong to it.
-        </PlaceholderHint>
-        <PlaceholderHint>
-          Customize styling later — for now it simply reserves space for the
-          advanced parameter flow.
-        </PlaceholderHint>
-      </Placeholder>
-
+  
       <Box mt={2}>
         <ParameterTitlesNode
           sections={sections}

@@ -58,13 +58,6 @@ const KvRow = styled(Box)(({ theme }) => ({
   alignItems: "center",
 }));
 
-const ToolbarBtn = styled(Button)(({ theme }) => ({
-  textTransform: "none",
-  borderRadius: 8,
-  paddingInline: theme.spacing(1),
-  paddingBlock: 4,
-}));
-
 const DEFAULT_ACTION_OPTIONS = [
   "fetch:template", // TODO to be fixed later to not uses default actions
 ];
@@ -167,8 +160,9 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
       </Header>
 
       <NodeToolbar position={Position.Bottom}>
-        <ToolbarBtn
+        <Button
           variant="outlined"
+          size = "small"
           startIcon={<AddIcon fontSize="small" />}
           onClick={() =>
             data.onAddNode?.({
@@ -180,7 +174,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
           className="nodrag nowheel"
         >
           Add Action
-        </ToolbarBtn>
+        </Button>
       </NodeToolbar>
 
       <Divider />

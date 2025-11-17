@@ -41,7 +41,7 @@ const estimateParametersNodeHeight = (node: Node): number | null => {
   }
 
   const sections = data.sections ?? [];
-  const PARAMETER_SHELL_HEIGHT = 360;
+  const PARAMETER_SHELL_HEIGHT = 300;
   const PARAMETER_CARD_BASE = 220;
   const SECTION_BASE = 180;
   const FIELD_HEIGHT = 86;
@@ -83,7 +83,7 @@ const estimateOutputNodeHeight = (node: Node): number | null => {
   if (!data) {
     return null;
   }
-  const base = 440;
+  const base = 240;
   const linkHeight = 68;
   const textHeight = 68;
   const customHeight = 56;

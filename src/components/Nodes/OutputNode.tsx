@@ -145,6 +145,7 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
 
   return (
     <Card>
+      <Handle type="target" position={Position.Top} />      
       <Header>
         <Box display="flex" alignItems="center">
           <MoveToInboxIcon
@@ -374,70 +375,6 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
         </Box>
       ))}
 
-      <SectionHeader>
-        <Typography variant="caption" color="textSecondary">
-          Custom Output Keys
-        </Typography>
-      </SectionHeader>
-
-      {customEntries.length === 0 && (
-        <Typography variant="body2" color="textSecondary">
-          No custom output keys
-        </Typography>
-      )}
-
-      {customEntries.map(([key, value]) => (
-        <CustomRow key={key}>
-          <Typography variant="body2" noWrap title={key}>
-            {key}
-          </Typography>
-          <TextField
-            {...stopAll}
-            size="small"
-            placeholder="Value"
-            value={value === undefined || value === null ? "" : String(value)}
-            onChange={handleCustomValueChange(key)}
-          />
-          <IconButton
-            size="small"
-            onPointerDown={stopAll.onPointerDown}
-            onClick={() => handleRemoveCustom(key)}
-          >
-            <DeleteOutlineIcon fontSize="small" />
-          </IconButton>
-        </CustomRow>
-      ))}
-
-      <Box
-        sx={{ mt: 1, display: "grid", gridTemplateColumns: "160px 1fr auto" }}
-      >
-        <TextField
-          {...stopAll}
-          size="small"
-          label="Key"
-          value={newCustomKey}
-          onChange={(event) => setNewCustomKey(event.target.value)}
-        />
-        <TextField
-          {...stopAll}
-          size="small"
-          label="Value"
-          value={newCustomValue}
-          onChange={(event) => setNewCustomValue(event.target.value)}
-          placeholder="e.g. ${{ steps.stepId.output.value }}"
-        />
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={handleAddCustom}
-          onPointerDown={stopAll.onPointerDown}
-          onKeyDown={stopAll.onKeyDown}
-          className={stopAll.className}
-        >
-          Add Key
-        </Button>
-      </Box>
-
       {stepOutputReferences.length > 0 && (
         <Box sx={{ mt: 2 }}>
           <Typography variant="caption" color="textSecondary">
@@ -475,7 +412,6 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
         </Button>
       </NodeToolbar>
 
-      <Handle type="target" position={Position.Top} />
     </Card>
   );
 };
