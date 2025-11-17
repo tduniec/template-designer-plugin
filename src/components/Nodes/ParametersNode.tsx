@@ -111,7 +111,6 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
         />
       </Header>
 
-  
       <Box mt={2}>
         <ParameterTitlesNode
           sections={sections}

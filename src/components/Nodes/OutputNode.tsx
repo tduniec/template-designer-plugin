@@ -108,14 +108,6 @@ const TextRow = styled(Box)(({ theme }) => ({
   alignItems: "flex-start",
 }));
 
-const CustomRow = styled(Box)(({ theme }) => ({
-  display: "grid",
-  gridTemplateColumns: "160px 1fr auto",
-  gap: theme.spacing(1),
-  alignItems: "center",
-  marginBottom: theme.spacing(1),
-}));
-
 export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
   const theme = useTheme();
   const paletteMode = resolvePaletteMode(theme);
@@ -125,14 +117,6 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
     referenceOptions,
     links,
     textEntries,
-    customEntries,
-    newCustomKey,
-    setNewCustomKey,
-    newCustomValue,
-    setNewCustomValue,
-    handleAddCustom,
-    handleCustomValueChange,
-    handleRemoveCustom,
     setLinkFieldValue,
     handleLinkChange,
     handleAddLink,
@@ -146,7 +130,7 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
 
   return (
     <Card>
-      <Handle type="target" position={Position.Top} />      
+      <Handle type="target" position={Position.Top} />
       <Header>
         <Box display="flex" alignItems="center">
           <MoveToInboxIcon
@@ -414,7 +398,6 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
           Add Action Above
         </Button>
       </NodeToolbar>
-
     </Card>
   );
 };

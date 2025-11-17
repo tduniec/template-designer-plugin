@@ -164,7 +164,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
       <NodeToolbar position={Position.Bottom}>
         <Button
           variant="outlined"
-          size = "small"
+          size="small"
           startIcon={<AddIcon fontSize="small" />}
           onClick={() =>
             data.onAddNode?.({
