@@ -136,6 +136,7 @@ export default function App({
   const skipNextModelHashRef = useRef<string | null>(null);
   const lastCacheFingerprintRef = useRef<string | null>(null);
   const nodeHeightsRef = useRef<Record<string, number>>({});
+  const shouldAutoFitViewRef = useRef(true);
 
   useEffect(() => {
     const isCacheChanged = cacheFingerprint !== lastCacheFingerprintRef.current;
@@ -170,6 +171,7 @@ export default function App({
 
     setNodes(nextNodes);
     setEdges(createSequentialEdges(nextNodes));
+    shouldAutoFitViewRef.current = true;
   }, [
     steps,
     normalizedParametersProp,
@@ -436,8 +438,15 @@ export default function App({
   }, [fitViewOptions, reactFlowInstance]);
 
   useEffect(() => {
+    if (!reactFlowInstance) {
+      return;
+    }
+    if (!shouldAutoFitViewRef.current) {
+      return;
+    }
+    shouldAutoFitViewRef.current = false;
     fitFlowToView();
-  }, [fitFlowToView, nodes, edges]);
+  }, [fitFlowToView, nodes, edges, reactFlowInstance]);
 
   useEffect(() => {
     if (!reactFlowInstance) {
