@@ -33,6 +33,3 @@ coverage/
 commitlint.config.js
 tsconfig.json
 yarn.lock
-
-# others
-docs/
