@@ -1,10 +1,10 @@
 # Backstage Template Designer Plugin
 
-**From YAML to Canvas — bringing the Democratization of Templates to Backstage.**
+**From YAML to Canvas — simplifying Backstage scaffolding**
 
 Empowering the **Democratization of Templates** in Backstage 🚀  
 Visually **design, connect, and manage** your Backstage scaffolder templates through an **intuitive drag-and-drop interface** — all inside your Backstage instance.  
-No YAML complexity. No coding required. Just creativity.
+No YAML complexity. No coding required. Just creativity. **We are breaking the glass!** templating in Backstage made easy! 🚀
 
 ---
 
@@ -30,7 +30,9 @@ The Template Designer makes **template creation accessible to everyone** — fro
 
 ## 🖼️ Preview
 
-TODO screen
+Checkout the video!
+
+<video src="https://github.com/tduniec/template-designer-plugin/blob/main/docs/video/template_designer_preview.mp4" controls width="600"></video>
 
 ## ⚙️ Installation
 
@@ -102,12 +104,15 @@ This runs a local Backstage app with hot reload support for your plugin.
 
 ## ❤️ Contributing
 
+Template Designer is still fresh out of the oven, so rough edges and open questions are expected—and that’s part of the fun.  
+If you spot a bug, have an idea, or simply want to riff on better tooling for templates, please open an issue or PR.
+
 Help us push forward the Democratization of Templates in Backstage!
 Ideas, feedback, and PRs are all welcome.
 
 ## 📄 License
 
-MIT © 2025 — Created by [Your Name or Org]
+Apache-2.0 © 2025 — Created by [tduniec](https://github.com/tduniec)
 
 ## 🌐 Roadmap
 
