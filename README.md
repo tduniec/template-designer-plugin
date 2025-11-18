@@ -30,7 +30,9 @@ The Template Designer makes **template creation accessible to everyone** — fro
 
 ## 🖼️ Preview
 
-TODO screen
+Checkout the video!
+
+<video src="https://github.com/tduniec/template-designer-plugin/blob/main/docs/video/template_designer_preview.mp4" controls width="600"></video>
 
 ## ⚙️ Installation
 
