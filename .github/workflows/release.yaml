@@ -52,12 +52,21 @@ jobs:
         run: |
           yarn install --immutable
 
+      - name: Build the plugin package
+        if: github.event_name == 'push'
+        run: |
+          yarn clean
+          yarn tsc
+          yarn build
+          yarn prepack
+
       # DRY RUN on PRs
       - name: Semantic Release (Dry Run)
         if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HEAD_REF: ${{ github.head_ref }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           # Pretend we're not in CI so semantic-release doesn't see refs/pull/.../merge
           unset GITHUB_ACTIONS
@@ -71,4 +80,5 @@ jobs:
         if: github.event_name == 'push'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
