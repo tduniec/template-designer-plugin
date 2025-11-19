@@ -67,13 +67,6 @@ jobs:
           app-id: ${{ vars.REPO_APP_ID }}
           private-key: ${{ secrets.REPO_APP_PRIVATE_KEY }}
 
-      # 2) Checkout using the app token (not the default GITHUB_TOKEN)
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          persist-credentials: false
-
       # DRY RUN on PRs
       - name: Semantic Release (Dry Run)
         if: github.event_name == 'pull_request'
