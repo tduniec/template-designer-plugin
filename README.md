@@ -116,4 +116,5 @@ Apache-2.0 © 2025 — Created by [tduniec](https://github.com/tduniec)
 
 ## 🌐 Roadmap
 
-TODO
+TODO -> please help me gather your **[feedback](https://forms.gle/wqBtpNA3SrDoofgM8)** first!
+Take 2 minutes to fill up the **[survey](https://forms.gle/wqBtpNA3SrDoofgM8)**!
