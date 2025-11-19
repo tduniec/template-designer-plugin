@@ -39,13 +39,13 @@ Checkout the video!
 From your Backstage root directory
 
 ```bash
-yarn add --cwd packages/app @your-org/plugin-template-designer
+yarn add --cwd packages/app @tduniec/plugin-template-designer
 ```
 
 In packages/app/src/App.tsx:
 
 ```tsx
-import { TemplateDesignerPage } from "@your-org/plugin-template-designer";
+import { TemplateDesignerPage } from "@tduniec/plugin-template-designer";
 
 const routes = (
   <FlatRoutes>
@@ -72,7 +72,7 @@ import { SidebarItem } from "@backstage/core-components";
 
 Visit your local Backstage instance:
 
-http://localhost:7007/template-designer
+http://localhost:3000/template-designer
 
 Create and connect nodes, adjust properties, and export your flow as a JSON file.
 You can also open an existing template file, modify it visually, and save your changes.
