@@ -39,7 +39,7 @@ Checkout the video!
 From your Backstage root directory
 
 ```bash
-yarn add --cwd packages/app @tduniec/plugin-template-designer
+yarn --cwd packages/app add @tduniec/plugin-template-designer
 ```
 
 In packages/app/src/App.tsx:
