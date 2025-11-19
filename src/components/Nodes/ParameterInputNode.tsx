@@ -30,7 +30,7 @@ const Card = styled(Box)(({ theme }) => {
     ),
     border: `1px solid ${alpha(theme.palette.success.main, 0.45)}`,
     borderRadius: 12,
-    width: 520,
+    width: 580,
     padding: theme.spacing(1.5),
     boxShadow: theme.shadows[2],
     color: theme.palette.text.primary,

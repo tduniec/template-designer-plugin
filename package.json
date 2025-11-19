@@ -16,8 +16,8 @@
     "url": "git+https://github.com/tduniec/template-designer-plugin.git",
     "directory": "."
   },
-  "main": "dist/index.esm.js",
-  "types": "dist/index.d.ts",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
   "publishConfig": {
     "access": "public",
     "main": "dist/index.esm.js",
@@ -104,13 +104,5 @@
   "files": [
     "dist"
   ],
-  "packageManager": "yarn@4.10.3",
-  "typesVersions": {
-    "*": {
-      "package.json": [
-        "package.json"
-      ]
-    }
-  },
-  "module": "./dist/index.esm.js"
+  "packageManager": "yarn@4.10.3"
 }
