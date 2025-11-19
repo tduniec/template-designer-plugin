@@ -60,13 +60,28 @@ jobs:
           yarn build
           yarn prepack
 
+      - name: Get GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.REPO_APP_ID }}
+          private-key: ${{ secrets.REPO_APP_PRIVATE_KEY }}
+
+      # 2) Checkout using the app token (not the default GITHUB_TOKEN)
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
+
       # DRY RUN on PRs
       - name: Semantic Release (Dry Run)
         if: github.event_name == 'pull_request'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           HEAD_REF: ${{ github.head_ref }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          persist-credentials: false
         run: |
           # Pretend we're not in CI so semantic-release doesn't see refs/pull/.../merge
           unset GITHUB_ACTIONS
@@ -79,6 +94,7 @@ jobs:
       - name: Semantic Release
         if: github.event_name == 'push'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          persist-credentials: false
         run: npx semantic-release
