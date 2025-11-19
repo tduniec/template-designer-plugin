@@ -67,7 +67,11 @@ export const TemplateDesigner = () => {
         <Content>
           <ContentHeader title="Template Designer">
             <SupportButton>
-              Template Designer turns blank Backstage YAML into a storyboard-like canvas, guiding anyone through drag-and-drop scaffolder authoring before ever touching code. Rally non-experts, broadcast best practices, and accelerate template launches directly inside Backstage.
+              Template Designer turns blank Backstage YAML into a
+              storyboard-like canvas, guiding anyone through drag-and-drop
+              scaffolder authoring before ever touching code. Rally non-experts,
+              broadcast best practices, and accelerate template launches
+              directly inside Backstage.
             </SupportButton>
           </ContentHeader>
 
