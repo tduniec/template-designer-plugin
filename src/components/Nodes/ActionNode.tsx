@@ -32,7 +32,7 @@ const Card = styled(Box)(({ theme }) => ({
   background: theme.palette.background.paper,
   border: `1px solid ${theme.palette.divider}`,
   borderRadius: 12,
-  width: 700, // card width
+  width: 760, // card width
   padding: theme.spacing(1.5),
   boxShadow: theme.shadows[2],
   color: theme.palette.text.primary,
