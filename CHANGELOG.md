@@ -1,3 +1,10 @@
+# [0.2.0](https://github.com/tduniec/template-designer-plugin/compare/v0.1.7...v0.2.0) (2025-11-19)
+
+
+### Features
+
+* initial public release ([72f9a9c](https://github.com/tduniec/template-designer-plugin/commit/72f9a9c9b976721560fb025362ae6d2bd2ad8f1c))
+
 ## [0.1.7](https://github.com/tduniec/template-designer-plugin/compare/v0.1.6...v0.1.7) (2025-11-17)
 
 
