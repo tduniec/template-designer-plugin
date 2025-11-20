@@ -53,6 +53,7 @@
     "*.{json,md}": "prettier --write"
   },
   "dependencies": {
+    "@codemirror/lang-yaml": "^6.1.2",
     "@backstage/core-components": "^0.18.2",
     "@backstage/core-plugin-api": "^1.11.1",
     "@backstage/plugin-scaffolder-common": "^1.7.2",
