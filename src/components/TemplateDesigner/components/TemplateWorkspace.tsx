@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Button, Grid, Paper, Typography } from "@material-ui/core";
 import { useTheme } from "@material-ui/core/styles";
 import CodeMirror from "@uiw/react-codemirror";
@@ -60,10 +60,55 @@ export const TemplateWorkspace = ({
     (theme.palette as { mode?: "light" | "dark" }).mode ??
     theme.palette.type ??
     "light";
+  const yamlDraftRef = useRef(templateYaml);
+  const templateYamlRef = useRef(templateYaml);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const yamlExtensions = useMemo(() => [yaml()], []);
   const codeMirrorTheme = useMemo(
     () => (paletteMode === "dark" ? "dark" : "light"),
     [paletteMode]
+  );
+
+  // implementation releated to yaml rendering -> onBlue and onDebounce
+  const flushYamlDraft = useCallback(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+    if (yamlDraftRef.current !== templateYamlRef.current) {
+      onYamlChange(yamlDraftRef.current);
+    }
+  }, [onYamlChange]);
+  const handleYamlChange = useCallback(
+    (value: string) => {
+      yamlDraftRef.current = value;
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+      debounceRef.current = setTimeout(() => {
+        if (yamlDraftRef.current !== templateYamlRef.current) {
+          onYamlChange(yamlDraftRef.current);
+        }
+        debounceRef.current = null;
+      }, 600);
+    },
+    [onYamlChange]
+  );
+  const handleYamlBlur = useCallback(() => {
+    flushYamlDraft();
+  }, [flushYamlDraft]);
+
+  useEffect(() => {
+    yamlDraftRef.current = templateYaml;
+    templateYamlRef.current = templateYaml;
+  }, [templateYaml]);
+  useEffect(
+    () => () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    },
+    []
   );
 
   return (
@@ -201,7 +246,8 @@ export const TemplateWorkspace = ({
                     extensions={yamlExtensions}
                     theme={codeMirrorTheme}
                     height="100%"
-                    onChange={(value) => onYamlChange(value)}
+                    onChange={handleYamlChange}
+                    onBlur={handleYamlBlur}
                   />
                 </div>
               </Paper>
