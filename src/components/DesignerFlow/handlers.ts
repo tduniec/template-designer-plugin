@@ -32,6 +32,11 @@ interface CreateHandleAddNodeOptions {
   scaffolderActionOutputsById: Record<string, Record<string, unknown>>;
 }
 
+interface CreateHandleRemoveNodeOptions {
+  fixedXPosition: number;
+  verticalSpacing: number;
+}
+
 const orderNodes = (
   parameterNodes: Node[],
   actionNodes: Node[],
@@ -191,6 +196,32 @@ export const createHandleAddNode = (
       ];
 
       return composeAndAlign(parameterNodes, nextActionNodes, outputNodes);
+    });
+  };
+};
+
+export const createHandleRemoveNode = (
+  setNodes: SetNodes,
+  setEdges: SetEdges,
+  options: CreateHandleRemoveNodeOptions
+) => {
+  const { fixedXPosition, verticalSpacing } = options;
+
+  return (rfId: string) => {
+    setNodes((nodes) => {
+      const targetNode = nodes.find((node) => node.id === rfId);
+      if (!targetNode || targetNode.type !== "actionNode") {
+        return nodes;
+      }
+
+      const remainingNodes = nodes.filter((node) => node.id !== rfId);
+      const alignedNodes = alignNodes(
+        remainingNodes,
+        fixedXPosition,
+        verticalSpacing
+      );
+      setEdges(createSequentialEdges(alignedNodes));
+      return alignedNodes;
     });
   };
 };
