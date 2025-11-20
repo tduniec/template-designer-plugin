@@ -1,3 +1,10 @@
+## [0.2.1](https://github.com/tduniec/template-designer-plugin/compare/v0.2.0...v0.2.1) (2025-11-19)
+
+
+### Bug Fixes
+
+* peerDependencies for react and codemirror ([bcb20f0](https://github.com/tduniec/template-designer-plugin/commit/bcb20f002eca7ebf8f9fb15a419c220c851035ff))
+
 # [0.2.0](https://github.com/tduniec/template-designer-plugin/compare/v0.1.7...v0.2.0) (2025-11-19)
 
 
