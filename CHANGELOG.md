@@ -1,3 +1,13 @@
+## [0.2.3](https://github.com/tduniec/template-designer-plugin/compare/v0.2.2...v0.2.3) (2025-11-20)
+
+
+### Bug Fixes
+
+* actionNode automcomplete options ([f94e905](https://github.com/tduniec/template-designer-plugin/commit/f94e9053e9e9041034b7b02bd4f348eca0ca8d4f))
+* adding delete actioNode option ([b23f3d3](https://github.com/tduniec/template-designer-plugin/commit/b23f3d34158c7ff6f1fd5e43a1384530dbf97e78))
+* adding required fields validation on the actionNode ([b0eb801](https://github.com/tduniec/template-designer-plugin/commit/b0eb8010cb62285822c70fbed44dcd31545f71c5))
+* improved yaml renders in codemirror ([7ea98a4](https://github.com/tduniec/template-designer-plugin/commit/7ea98a4ffada1156e81aab8134abf08d8ac78f65))
+
 ## [0.2.2](https://github.com/tduniec/template-designer-plugin/compare/v0.2.1...v0.2.2) (2025-11-20)
 
 
