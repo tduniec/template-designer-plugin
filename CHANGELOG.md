@@ -1,3 +1,10 @@
+## [0.2.2](https://github.com/tduniec/template-designer-plugin/compare/v0.2.1...v0.2.2) (2025-11-20)
+
+
+### Bug Fixes
+
+* codemirror-lang missing dependency ([4b1375e](https://github.com/tduniec/template-designer-plugin/commit/4b1375eee9527a73ddbfaae83106894259e3f7b4))
+
 ## [0.2.1](https://github.com/tduniec/template-designer-plugin/compare/v0.2.0...v0.2.1) (2025-11-19)
 
 
