@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ChangeEvent } from "react";
 import { Handle, Position, NodeToolbar } from "@xyflow/react";
 import { styled, useTheme } from "@material-ui/core/styles";
@@ -81,6 +81,12 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
       data.onUpdateField?.(rfId, field, e.target.value);
 
   const actionId = typeof step?.action === "string" ? step.action : "";
+  const [actionInputValue, setActionInputValue] = useState(actionId);
+
+  useEffect(() => {
+    setActionInputValue(actionId);
+  }, [actionId]);
+
   const {
     actionInputSchema,
     inputEntries,
@@ -134,14 +140,29 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
           options={actionOptions}
           PopperComponent={AutoWidthPopper}
           freeSolo
-          value={typeof step?.action === "string" ? step.action : ""}
-          inputValue={typeof step?.action === "string" ? step.action : ""}
-          onChange={(_, newValue) =>
-            data.onUpdateField?.(rfId, "action", newValue ?? "")
-          }
-          onInputChange={(_, newInputValue) =>
-            data.onUpdateField?.(rfId, "action", newInputValue ?? "")
-          }
+          autoHighlight
+          value={actionId}
+          inputValue={actionInputValue}
+          filterOptions={(options) => {
+            const needle = actionInputValue.trim().toLowerCase();
+            if (!needle) {
+              return options;
+            }
+            return options.filter((opt) => opt.toLowerCase().includes(needle));
+          }}
+          onChange={(_, newValue) => {
+            const nextValue = newValue ?? "";
+            setActionInputValue(nextValue);
+            data.onUpdateField?.(rfId, "action", nextValue);
+          }}
+          onInputChange={(_, newInputValue, reason) => {
+            if (reason === "reset") {
+              return;
+            }
+            const nextValue = newInputValue ?? "";
+            setActionInputValue(nextValue);
+            data.onUpdateField?.(rfId, "action", nextValue);
+          }}
           onPointerDown={stopAll.onPointerDown}
           onKeyDown={stopAll.onKeyDown}
           className={stopAll.className}
@@ -369,6 +390,17 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
             PopperComponent={AutoWidthPopper}
             value={selectedNewKeyOption}
             inputValue={newKey}
+            filterOptions={(options) => {
+              const needle = newKey.trim().toLowerCase();
+              if (!needle) {
+                return options;
+              }
+              return options.filter((option) =>
+                (typeof option === "string" ? option : option.label)
+                  .toLowerCase()
+                  .includes(needle)
+              );
+            }}
             onChange={(_, value) => {
               if (!value) {
                 setNewKey("");
@@ -458,6 +490,25 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
                 value={newVal}
                 inputValue={newVal}
                 fullWidth
+                filterOptions={(options) => {
+                  const needle = newVal.trim().toLowerCase();
+                  if (!needle) {
+                    return options;
+                  }
+                  return options.filter((option) => {
+                    const raw = String(option);
+                    const normalized = raw
+                      .replace(/^\s*\$\{\{\s*/, "")
+                      .replace(/\s*\}\}\s*$/, "");
+                    const haystacks = [
+                      raw.toLowerCase(),
+                      normalized.toLowerCase(),
+                    ];
+                    return haystacks.some((haystack) =>
+                      haystack.includes(needle)
+                    );
+                  });
+                }}
                 onChange={(_, value) => setNewVal(value ?? "")}
                 onInputChange={(_, value, reason) => {
                   if (reason === "reset") {
