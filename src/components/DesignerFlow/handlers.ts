@@ -29,6 +29,7 @@ interface CreateHandleAddNodeOptions {
   nodeDefaults: Partial<Node>;
   scaffolderActionIds: string[];
   scaffolderActionInputsById: Record<string, Record<string, unknown>>;
+  scaffolderActionInputRequiredById: Record<string, string[]>;
   scaffolderActionOutputsById: Record<string, Record<string, unknown>>;
 }
 
@@ -54,6 +55,7 @@ export const createHandleAddNode = (
     nodeDefaults,
     scaffolderActionIds,
     scaffolderActionInputsById,
+    scaffolderActionInputRequiredById,
     scaffolderActionOutputsById,
   } = options;
 
@@ -106,6 +108,7 @@ export const createHandleAddNode = (
             sections: [],
             scaffolderActionIds,
             scaffolderActionInputsById,
+            scaffolderActionInputRequiredById,
             scaffolderActionOutputsById,
           } satisfies ParametersNodeData,
           ...nodeDefaults,
@@ -137,6 +140,7 @@ export const createHandleAddNode = (
             output: initialOutput,
             scaffolderActionIds,
             scaffolderActionInputsById,
+            scaffolderActionInputRequiredById,
             scaffolderActionOutputsById,
           },
           ...nodeDefaults,
@@ -184,6 +188,7 @@ export const createHandleAddNode = (
           step: newStep,
           scaffolderActionIds,
           scaffolderActionInputsById,
+          scaffolderActionInputRequiredById,
           scaffolderActionOutputsById,
         },
         ...nodeDefaults,

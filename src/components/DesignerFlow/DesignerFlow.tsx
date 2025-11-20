@@ -76,6 +76,7 @@ export default function App({
     ids: scaffolderActionIds,
     inputsById: scaffolderActionInputsById,
     outputsById: scaffolderActionOutputsById,
+    inputRequiredById: scaffolderActionInputRequiredById,
   } = scaffolderActionsCache;
 
   const normalizedParametersProp = parameters ?? undefined;
@@ -91,6 +92,7 @@ export default function App({
           scaffolderActionIds,
           scaffolderActionInputsById,
           scaffolderActionOutputsById,
+          scaffolderActionInputRequiredById,
         }
       ),
     [
@@ -100,6 +102,7 @@ export default function App({
       scaffolderActionIds,
       scaffolderActionInputsById,
       scaffolderActionOutputsById,
+      scaffolderActionInputRequiredById,
     ]
   );
 
@@ -124,11 +127,13 @@ export default function App({
         ids: scaffolderActionIds,
         inputs: scaffolderActionInputsById,
         outputs: scaffolderActionOutputsById,
+        inputRequired: scaffolderActionInputRequiredById,
       }),
     [
       scaffolderActionIds,
       scaffolderActionInputsById,
       scaffolderActionOutputsById,
+      scaffolderActionInputRequiredById,
     ]
   );
 
@@ -163,6 +168,7 @@ export default function App({
         scaffolderActionIds,
         scaffolderActionInputsById,
         scaffolderActionOutputsById,
+        scaffolderActionInputRequiredById,
       }
     );
 
@@ -182,6 +188,7 @@ export default function App({
     scaffolderActionIds,
     scaffolderActionInputsById,
     scaffolderActionOutputsById,
+    scaffolderActionInputRequiredById,
     setNodes,
     setEdges,
   ]);
@@ -318,12 +325,14 @@ export default function App({
         nodeDefaults,
         scaffolderActionIds,
         scaffolderActionInputsById,
+        scaffolderActionInputRequiredById,
         scaffolderActionOutputsById,
       }),
     [
       scaffolderActionIds,
       scaffolderActionInputsById,
       scaffolderActionOutputsById,
+      scaffolderActionInputRequiredById,
       setNodes,
       setEdges,
     ]

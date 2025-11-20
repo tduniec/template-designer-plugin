@@ -95,6 +95,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
     actionInputSchema,
     inputEntries,
     usedInputKeys,
+    missingRequiredInputKeys,
     availableInputOptions,
     trimmedNewKey,
     selectedNewKeyOption,
@@ -102,6 +103,7 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
     newKeyTypeLabel,
     newKeyEnumOptions,
   } = useActionInputs({ data, step, actionId, newKey });
+  const hasMissingRequiredInputs = missingRequiredInputKeys.length > 0;
   const isAddDisabled = !trimmedNewKey || usedInputKeys.has(trimmedNewKey);
   const newValueOptions = Array.from(
     new Set([
@@ -110,6 +112,14 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
       ...stepOutputReferences,
     ])
   );
+  const paletteMode =
+    (theme.palette as { mode?: "light" | "dark" }).mode ??
+    theme.palette.type ??
+    "light";
+  const requiredInputsBackground =
+    paletteMode === "dark"
+      ? "rgba(244, 67, 54, 0.2)"
+      : "rgba(244, 67, 54, 0.08)";
 
   const addPair = () => {
     const k = trimmedNewKey;
@@ -615,6 +625,43 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
           </Button>
         </KvRow>
       </Box>
+
+      {hasMissingRequiredInputs && (
+        <Box
+          sx={{
+            mt: 1.5,
+            p: 1,
+            borderRadius: 1,
+            border: `1px solid ${theme.palette.error.main}`,
+          }}
+          style={{ backgroundColor: requiredInputsBackground }}
+        >
+          <Typography variant="caption" color="error">
+            Missing required inputs
+          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              mt: 0.75,
+            }}
+            style={{ gap: theme.spacing(0.5) }}
+          >
+            {missingRequiredInputKeys.map((key) => (
+              <Chip
+                key={key}
+                size="small"
+                variant="outlined"
+                label={key}
+                style={{
+                  borderColor: theme.palette.error.main,
+                  color: theme.palette.error.main,
+                }}
+              />
+            ))}
+          </Box>
+        </Box>
+      )}
 
       {/* ReactFlow handles */}
       <Handle type="target" position={Position.Top} />

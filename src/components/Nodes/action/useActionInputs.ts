@@ -37,6 +37,17 @@ export const useActionInputs = ({
     return inputs;
   }, [actionId, data.scaffolderActionInputsById]);
 
+  const requiredInputKeys = useMemo(() => {
+    if (!actionId) {
+      return [] as string[];
+    }
+    const rawKeys = data.scaffolderActionInputRequiredById?.[actionId];
+    if (!Array.isArray(rawKeys)) {
+      return [];
+    }
+    return rawKeys;
+  }, [actionId, data.scaffolderActionInputRequiredById]);
+
   const actionInputOptions = useMemo<ActionInputOption[]>(() => {
     return Object.entries(actionInputSchema).map(([key, schema]) => {
       const normalized = normalizeSchemaType(schema);
@@ -77,11 +88,21 @@ export const useActionInputs = ({
   const newKeyTypeLabel = buildTypeLabel(newKeySchema) || "String";
   const newKeyEnumOptions = extractEnumOptions(newKeySchema);
 
+  const missingRequiredInputKeys = useMemo(
+    () =>
+      requiredInputKeys.filter(
+        (key) => typeof key === "string" && !usedInputKeys.has(key)
+      ),
+    [requiredInputKeys, usedInputKeys]
+  );
+
   return {
     actionInputSchema,
     actionInputOptions,
     inputEntries,
     usedInputKeys,
+    requiredInputKeys,
+    missingRequiredInputKeys,
     availableInputOptions,
     trimmedNewKey,
     selectedNewKeyOption,

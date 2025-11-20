@@ -10,6 +10,7 @@ type ScaffolderAction = {
   schema?: {
     input?: {
       properties?: Record<string, unknown>;
+      required?: unknown;
     };
     output?: {
       properties?: Record<string, unknown>;
@@ -21,25 +22,35 @@ export type ScaffolderActionsCache = {
   ids: string[];
   inputsById: Record<string, Record<string, unknown>>;
   outputsById: Record<string, Record<string, unknown>>;
+  inputRequiredById: Record<string, string[]>;
 };
 
 const buildCache = (list: ScaffolderAction[]): ScaffolderActionsCache => {
-  const { inputsById, outputsById } = list.reduce<{
+  const { inputsById, outputsById, inputRequiredById } = list.reduce<{
     inputsById: Record<string, Record<string, unknown>>;
     outputsById: Record<string, Record<string, unknown>>;
+    inputRequiredById: Record<string, string[]>;
   }>(
     (acc, action) => {
       acc.inputsById[action.id] = action.schema?.input?.properties ?? {};
       acc.outputsById[action.id] = action.schema?.output?.properties ?? {};
+      const required = Array.isArray(action.schema?.input?.required)
+        ? action.schema?.input?.required.filter(
+            (key): key is string =>
+              typeof key === "string" && key.trim().length > 0
+          )
+        : [];
+      acc.inputRequiredById[action.id] = required;
       return acc;
     },
-    { inputsById: {}, outputsById: {} }
+    { inputsById: {}, outputsById: {}, inputRequiredById: {} }
   );
 
   return {
     ids: list.map((action) => action.id),
     inputsById,
     outputsById,
+    inputRequiredById,
   };
 };
 
