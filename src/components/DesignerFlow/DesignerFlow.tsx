@@ -27,6 +27,7 @@ import { createSequentialEdges } from "../../utils/createSequentialEdges";
 import {
   collectStepOutputReferences,
   createHandleAddNode,
+  createHandleRemoveNode,
   createHandleRemoveInputKey,
   createHandleReorderAndAlignNodes,
   createHandleUpdateField,
@@ -328,6 +329,15 @@ export default function App({
     ]
   );
 
+  const handleRemoveNode = useMemo(
+    () =>
+      createHandleRemoveNode(setNodes, setEdges, {
+        fixedXPosition: FIXED_X_POSITION,
+        verticalSpacing: VERTICAL_SPACING,
+      }),
+    [setNodes, setEdges]
+  );
+
   const nodesWithHandlers = useMemo(
     () =>
       nodes.map((node) => {
@@ -363,6 +373,7 @@ export default function App({
           data: {
             ...data,
             onAddNode: handleAddNode,
+            onRemoveNode: handleRemoveNode,
             onUpdateField,
             onUpdateInput,
             onRemoveInputKey,
@@ -373,6 +384,7 @@ export default function App({
     [
       nodes,
       handleAddNode,
+      handleRemoveNode,
       onUpdateField,
       onUpdateInput,
       onRemoveInputKey,

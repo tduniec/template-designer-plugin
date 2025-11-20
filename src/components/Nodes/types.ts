@@ -34,6 +34,7 @@ type BaseNodeData = {
   /** Suggestions for referencing previous step outputs */
   stepOutputReferences?: string[];
   onAddNode?: (config: AddNodeConfig) => void;
+  onRemoveNode?: (rfId: string) => void;
 };
 
 export type ActionNodeData = BaseNodeData & {

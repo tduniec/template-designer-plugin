@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { Handle, Position, NodeToolbar } from "@xyflow/react";
 import { styled, useTheme } from "@material-ui/core/styles";
@@ -68,6 +68,10 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
   const [newKey, setNewKey] = useState("");
   const [newVal, setNewVal] = useState("");
   const stepOutputReferences = data.stepOutputReferences ?? [];
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const deleteConfirmationTimeoutRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
 
   const theme = useTheme();
   const actionOptions =
@@ -125,12 +129,79 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
   // Make inputs editable inside ReactFlow
   const stopAll = createStopNodeInteraction();
 
+  useEffect(() => {
+    if (!isConfirmingDelete) {
+      if (deleteConfirmationTimeoutRef.current) {
+        clearTimeout(deleteConfirmationTimeoutRef.current);
+        deleteConfirmationTimeoutRef.current = null;
+      }
+      return undefined;
+    }
+    deleteConfirmationTimeoutRef.current = setTimeout(() => {
+      setIsConfirmingDelete(false);
+      deleteConfirmationTimeoutRef.current = null;
+    }, 3500);
+    return () => {
+      if (deleteConfirmationTimeoutRef.current) {
+        clearTimeout(deleteConfirmationTimeoutRef.current);
+        deleteConfirmationTimeoutRef.current = null;
+      }
+    };
+  }, [isConfirmingDelete]);
+
+  const handleDeleteNode = () => {
+    if (!data.onRemoveNode) {
+      return;
+    }
+    if (!isConfirmingDelete) {
+      setIsConfirmingDelete(true);
+      return;
+    }
+    data.onRemoveNode(rfId);
+    setIsConfirmingDelete(false);
+  };
+
   return (
     <Card>
       <Header title={step?.name || "Unnamed Step"}>
-        <Typography variant="subtitle2" noWrap>
-          {step?.name || "Unnamed Step"}
-        </Typography>
+        <Box
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: theme.spacing(1),
+          }}
+        >
+          <Typography variant="subtitle2" noWrap>
+            {step?.name || "Unnamed Step"}
+          </Typography>
+          {data.onRemoveNode && (
+            <Box
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: theme.spacing(0.5),
+                color: theme.palette.text.secondary,
+              }}
+            >
+              {isConfirmingDelete && (
+                <Typography variant="caption" color="error">
+                  Click again to delete
+                </Typography>
+              )}
+              <IconButton
+                size="small"
+                onClick={handleDeleteNode}
+                onPointerDown={(e) => e.stopPropagation()}
+                aria-label="Remove action"
+                color={isConfirmingDelete ? "secondary" : "default"}
+                className="nodrag nowheel"
+              >
+                <DeleteOutlineIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          )}
+        </Box>
 
         <Typography variant="caption" color="textSecondary">
           Action
