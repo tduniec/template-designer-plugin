@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useApi } from "@backstage/core-plugin-api";
+import { useApiHolder } from "@backstage/core-plugin-api";
 import { scaffolderApiRef } from "@backstage/plugin-scaffolder-react";
+import { MOCK_SCAFFOLDER_ACTIONS } from "./mockScaffolderActions";
 
 // Encapsulated hook for loading/caching scaffolder action metadata.
 
@@ -42,14 +43,22 @@ const buildCache = (list: ScaffolderAction[]): ScaffolderActionsCache => {
   };
 };
 
+const fallbackCache = buildCache(MOCK_SCAFFOLDER_ACTIONS);
+
 export const useScaffolderActions = () => {
-  const scaffolderApi = useApi(scaffolderApiRef);
-  const [cache, setCache] = useState<ScaffolderActionsCache>(() =>
-    buildCache([])
-  );
+  const apiHolder = useApiHolder();
+  const scaffolderApi = apiHolder.get(scaffolderApiRef);
+  const [cache, setCache] = useState<ScaffolderActionsCache>(fallbackCache);
 
   useEffect(() => {
     let cancelled = false;
+
+    if (!scaffolderApi) {
+      setCache(fallbackCache);
+      return () => {
+        cancelled = true;
+      };
+    }
 
     scaffolderApi
       .listActions()
@@ -59,7 +68,11 @@ export const useScaffolderActions = () => {
         }
         setCache(buildCache(remoteActions));
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) {
+          setCache(fallbackCache);
+        }
+      });
 
     return () => {
       cancelled = true;

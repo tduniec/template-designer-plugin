@@ -1,0 +1,11 @@
+app:
+  title: Template Designer Dev
+  baseUrl: http://localhost:3000
+
+organization:
+  name: Template Designer
+
+backend:
+  baseUrl: http://localhost:7007
+  listen:
+    port: 7007
