@@ -44,6 +44,7 @@ export type BuildNodesFromModelOptions = {
   scaffolderActionIds: string[];
   scaffolderActionInputsById: Record<string, Record<string, unknown>>;
   scaffolderActionOutputsById: Record<string, Record<string, unknown>>;
+  scaffolderActionInputRequiredById: Record<string, string[]>;
 };
 
 export const buildNodesFromModel = (
@@ -56,6 +57,7 @@ export const buildNodesFromModel = (
     scaffolderActionIds,
     scaffolderActionInputsById,
     scaffolderActionOutputsById,
+    scaffolderActionInputRequiredById,
   } = options;
 
   const parameterSections = normalizeParametersToSections(parameters);
@@ -72,6 +74,7 @@ export const buildNodesFromModel = (
       sections: parameterSections,
       scaffolderActionIds,
       scaffolderActionInputsById,
+      scaffolderActionInputRequiredById,
       scaffolderActionOutputsById,
     },
     ...nodeDefaults,
@@ -88,6 +91,7 @@ export const buildNodesFromModel = (
         step: cloneStep(step),
         scaffolderActionIds,
         scaffolderActionInputsById,
+        scaffolderActionInputRequiredById,
         scaffolderActionOutputsById,
       },
       ...nodeDefaults,
@@ -107,6 +111,7 @@ export const buildNodesFromModel = (
         output: cloneOutput(output),
         scaffolderActionIds,
         scaffolderActionInputsById,
+        scaffolderActionInputRequiredById,
         scaffolderActionOutputsById,
       },
       ...nodeDefaults,

@@ -29,6 +29,8 @@ type BaseNodeData = {
   scaffolderActionIds?: string[];
   /** Cached action input schemas keyed by action id */
   scaffolderActionInputsById?: Record<string, Record<string, unknown>>;
+  /** Cached action required input keys keyed by action id */
+  scaffolderActionInputRequiredById?: Record<string, string[]>;
   /** Cached action output schemas keyed by action id */
   scaffolderActionOutputsById?: Record<string, Record<string, unknown>>;
   /** Suggestions for referencing previous step outputs */
