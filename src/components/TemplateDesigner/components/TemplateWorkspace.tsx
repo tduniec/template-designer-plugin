@@ -3,7 +3,10 @@ import { Button, Grid, Paper, Typography } from "@material-ui/core";
 import { useTheme } from "@material-ui/core/styles";
 import CodeMirror from "@uiw/react-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
-import type { ScaffolderTaskOutput, TaskStep } from "@backstage/plugin-scaffolder-common";
+import type {
+  ScaffolderTaskOutput,
+  TaskStep,
+} from "@backstage/plugin-scaffolder-common";
 import type { TemplateParametersValue } from "../../Nodes/types";
 import App from "../../DesignerFlow/DesignerFlow";
 
