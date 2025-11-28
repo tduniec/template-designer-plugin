@@ -1,7 +1,7 @@
 {
   "name": "@tduniec/plugin-template-designer",
   "description": "Template Designer turns blank Backstage YAML into a storyboard-like canvas, guiding anyone through drag-and-drop scaffolder authoring before ever touching code. Rally non-experts, broadcast best practices, and accelerate template launches directly inside Backstage.",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "license": "Apache-2.0",
   "keywords": [
     "backstage",

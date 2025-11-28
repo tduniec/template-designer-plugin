@@ -1,3 +1,10 @@
+## [0.3.2](https://github.com/tduniec/template-designer-plugin/compare/v0.3.1...v0.3.2) (2025-11-28)
+
+
+### Bug Fixes
+
+* visual improvements and logo ([6da7314](https://github.com/tduniec/template-designer-plugin/commit/6da73148c1b066272d760c4b49587cc7f02dad07))
+
 ## [0.3.1](https://github.com/tduniec/template-designer-plugin/compare/v0.3.0...v0.3.1) (2025-11-28)
 
 
