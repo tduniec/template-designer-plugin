@@ -9,6 +9,7 @@ import {
 import { useTheme } from "@material-ui/core/styles";
 import CodeMirror from "@uiw/react-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
+import { createCodeMirrorTheme } from "./codemirrorTheme";
 import type {
   ScaffolderTaskOutput,
   TaskStep,
@@ -73,8 +74,8 @@ export const TemplateWorkspace = ({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const yamlExtensions = useMemo(() => [yaml()], []);
   const codeMirrorTheme = useMemo(
-    () => (paletteMode === "dark" ? "dark" : "light"),
-    [paletteMode]
+    () => createCodeMirrorTheme(theme, paletteMode),
+    [paletteMode, theme]
   );
 
   // implementation releated to yaml rendering -> onBlue and onDebounce
