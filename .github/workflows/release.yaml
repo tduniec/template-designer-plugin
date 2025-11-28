@@ -21,8 +21,10 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: actions/checkout@v4
         with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
-          ref: ${{ github.head_ref }}
+          persist-credentials: false
 
       - name: Checkout main
         if: github.event_name == 'push'
@@ -62,6 +64,7 @@ jobs:
           yarn prepack
 
       - name: Get GitHub App token
+        if: github.event_name == 'push'
         id: app-token
         uses: actions/create-github-app-token@v2
         with:
@@ -72,7 +75,7 @@ jobs:
       - name: Semantic Release (Dry Run)
         if: github.event_name == 'pull_request'
         env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          GITHUB_TOKEN: ${{ github.token }}
           HEAD_REF: ${{ github.head_ref }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           persist-credentials: false
