@@ -62,7 +62,6 @@ jobs:
           yarn clean
           yarn tsc
           yarn build
-          yarn prepack
 
       - name: Get GitHub App token
         if: github.event_name == 'push'

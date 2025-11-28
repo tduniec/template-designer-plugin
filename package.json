@@ -17,17 +17,8 @@
     "directory": "."
   },
   "exports": {
-    ".": {
-      "import": "./dist/index.esm.js",
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.esm.js"
-    },
-    "./alpha": {
-      "backstage": "@backstage/FrontendPlugin",
-      "import": "./dist/alpha.esm.js",
-      "types": "./dist/alpha.d.ts",
-      "default": "./dist/alpha.esm.js"
-    },
+    ".": "./src/index.ts",
+    "./alpha": "./src/alpha.tsx",
     "./package.json": "./package.json"
   },
   "main": "dist/index.esm.js",
@@ -74,7 +65,6 @@
     "@backstage/core-components": "backstage:^",
     "@backstage/core-plugin-api": "backstage:^",
     "@backstage/frontend-plugin-api": "backstage:^",
-    "@backstage/plugin-catalog-react": "backstage:^",
     "@backstage/plugin-scaffolder-common": "backstage:^",
     "@backstage/plugin-scaffolder-react": "backstage:^",
     "@backstage/theme": "backstage:^",
@@ -95,12 +85,9 @@
     "react-use": "^17.2.4"
   },
   "devDependencies": {
-    "@backstage/catalog-client": "backstage:^",
-    "@backstage/catalog-model": "backstage:^",
     "@backstage/cli": "backstage:^",
     "@backstage/core-app-api": "backstage:^",
     "@backstage/dev-utils": "backstage:^",
-    "@backstage/plugin-catalog-common": "backstage:^",
     "@backstage/test-utils": "backstage:^",
     "@codemirror/lang-yaml": "6.1.2",
     "@codemirror/state": "6.5.2",

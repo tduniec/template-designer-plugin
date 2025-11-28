@@ -13,4 +13,4 @@ plugins:
         - package.json
         - yarn.lock
         - CHANGELOG.md
-      message: "chore(release): v${nextRelease.version}\n\n${nextRelease.notes}"
+      message: "chore(release): v${nextRelease.version}\n\n${nextRelease.notes} [skip ci]"
