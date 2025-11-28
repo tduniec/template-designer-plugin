@@ -144,10 +144,9 @@ export default function App({
   const nodeHeightsRef = useRef<Record<string, number>>({});
   const shouldAutoFitViewRef = useRef(true);
   const emitDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hasDraggingNodes = useMemo(
-    () => nodes.some((node) => node.dragging),
-    [nodes]
-  );
+  const isDraggingRef = useRef(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const emitAfterDragRef = useRef(false);
 
   useEffect(() => {
     const isCacheChanged = cacheFingerprint !== lastCacheFingerprintRef.current;
@@ -266,7 +265,25 @@ export default function App({
 
   const onNodesChange = useCallback(
     (changes: NodeChange<Node>[]) =>
-      setNodes((ns) => applyNodeChanges(changes, ns)),
+      setNodes((ns) => {
+        if (
+          changes.some(
+            (change) => change.type === "position" && change.dragging
+          )
+        ) {
+          isDraggingRef.current = true;
+          setIsDragging(true);
+        } else if (
+          changes.some(
+            (change) => change.type === "position" && change.dragging === false
+          )
+        ) {
+          const stillDragging = ns.some((node) => node.dragging);
+          isDraggingRef.current = stillDragging;
+          setIsDragging(stillDragging);
+        }
+        return applyNodeChanges(changes, ns);
+      }),
     [setNodes]
   );
 
@@ -292,6 +309,8 @@ export default function App({
 
   const onNodeDragStop = useCallback(
     (_: ReactMouseEvent, node: Node) => {
+      isDraggingRef.current = false;
+      setIsDragging(false);
       reorderAndAlignNodes(node);
     },
     [reorderAndAlignNodes]
@@ -352,61 +371,74 @@ export default function App({
     [setNodes, setEdges]
   );
 
-  const nodesWithHandlers = useMemo(
-    () =>
-      nodes.map((node) => {
-        const stepOutputReferences = stepOutputReferencesByNode[node.id] ?? [];
-        if (node.type === "parametersNode") {
-          const data = node.data as ParametersNodeData;
-          return {
-            ...node,
-            data: {
-              ...data,
-              onAddNode: handleAddNode,
-              onUpdateSections,
-              stepOutputReferences,
-            },
-          };
-        }
-        if (node.type === "outputNode") {
-          const data = node.data as OutputNodeData;
-          return {
-            ...node,
-            data: {
-              ...data,
-              onAddNode: handleAddNode,
-              onUpdateOutput,
-              stepOutputReferences,
-            },
-          };
-        }
+  const nodesWithHandlers = useMemo(() => {
+    if (!nodes.length) {
+      return nodes;
+    }
+    return nodes.map((node) => {
+      const stepOutputReferences = stepOutputReferencesByNode[node.id] ?? [];
+      if (node.type === "parametersNode") {
+        const data = node.data as ParametersNodeData;
+        const nextData =
+          data.onAddNode === handleAddNode &&
+          data.onUpdateSections === onUpdateSections &&
+          data.stepOutputReferences === stepOutputReferences
+            ? data
+            : {
+                ...data,
+                onAddNode: handleAddNode,
+                onUpdateSections,
+                stepOutputReferences,
+              };
+        return data === nextData ? node : { ...node, data: nextData };
+      }
+      if (node.type === "outputNode") {
+        const data = node.data as OutputNodeData;
+        const nextData =
+          data.onAddNode === handleAddNode &&
+          data.onUpdateOutput === onUpdateOutput &&
+          data.stepOutputReferences === stepOutputReferences
+            ? data
+            : {
+                ...data,
+                onAddNode: handleAddNode,
+                onUpdateOutput,
+                stepOutputReferences,
+              };
+        return data === nextData ? node : { ...node, data: nextData };
+      }
 
-        const data = node.data as ActionNodeData;
-        return {
-          ...node,
-          data: {
-            ...data,
-            onAddNode: handleAddNode,
-            onRemoveNode: handleRemoveNode,
-            onUpdateField,
-            onUpdateInput,
-            onRemoveInputKey,
-            stepOutputReferences,
-          },
-        };
-      }),
-    [
-      nodes,
-      handleAddNode,
-      handleRemoveNode,
-      onUpdateField,
-      onUpdateInput,
-      onRemoveInputKey,
-      onUpdateOutput,
-      onUpdateSections,
-      stepOutputReferencesByNode,
-    ]
-  );
+      const data = node.data as ActionNodeData;
+      const nextData =
+        data.onAddNode === handleAddNode &&
+        data.onRemoveNode === handleRemoveNode &&
+        data.onUpdateField === onUpdateField &&
+        data.onUpdateInput === onUpdateInput &&
+        data.onRemoveInputKey === onRemoveInputKey &&
+        data.stepOutputReferences === stepOutputReferences
+          ? data
+          : {
+              ...data,
+              onAddNode: handleAddNode,
+              onRemoveNode: handleRemoveNode,
+              onUpdateField,
+              onUpdateInput,
+              onRemoveInputKey,
+              stepOutputReferences,
+            };
+      return data === nextData ? node : { ...node, data: nextData };
+    });
+  }, [
+    nodes,
+    handleAddNode,
+    handleRemoveNode,
+    onUpdateField,
+    onUpdateInput,
+    onRemoveInputKey,
+    onUpdateOutput,
+    onUpdateSections,
+    stepOutputReferencesByNode,
+  ]);
 
   const stepsFromNodes = useMemo(() => extractStepsFromNodes(nodes), [nodes]);
 
@@ -423,7 +455,8 @@ export default function App({
     if (!onStepsChange && !onParametersChange && !onOutputChange) {
       return;
     }
-    if (hasDraggingNodes) {
+    if (isDragging) {
+      emitAfterDragRef.current = true;
       return;
     }
     const serialized = stableStringify({
@@ -458,7 +491,7 @@ export default function App({
     onStepsChange,
     onParametersChange,
     onOutputChange,
-    hasDraggingNodes,
+    isDragging,
   ]);
 
   useEffect(
@@ -501,6 +534,17 @@ export default function App({
       window.removeEventListener("resize", fitFlowToView);
     };
   }, [fitFlowToView, reactFlowInstance]);
+
+  useEffect(() => {
+    if (!isDragging) {
+      if (emitAfterDragRef.current) {
+        emitAfterDragRef.current = false;
+        lastEmittedModelHashRef.current = null;
+      }
+      // Trigger emit cycle after drag ends so external state is up to date.
+      lastEmittedModelHashRef.current = null;
+    }
+  }, [isDragging]);
 
   return (
     <div style={{ width: "100%", height: "100%", minHeight: "70vh" }}>

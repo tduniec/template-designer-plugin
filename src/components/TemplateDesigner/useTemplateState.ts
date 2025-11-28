@@ -340,6 +340,8 @@ export const useTemplateState = (): TemplateState => {
         yamlSerializeCompletionRef.current();
         yamlSerializeCompletionRef.current = null;
       }
+      syncingCounterRef.current = 0;
+      setIsSyncing(false);
     };
   }, []);
 
