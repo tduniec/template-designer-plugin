@@ -1,7 +1,7 @@
 {
   "name": "@tduniec/plugin-template-designer",
   "description": "Template Designer turns blank Backstage YAML into a storyboard-like canvas, guiding anyone through drag-and-drop scaffolder authoring before ever touching code. Rally non-experts, broadcast best practices, and accelerate template launches directly inside Backstage.",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "license": "Apache-2.0",
   "keywords": [
     "backstage",
@@ -17,8 +17,17 @@
     "directory": "."
   },
   "exports": {
-    ".": "./src/index.ts",
-    "./alpha": "./src/alpha.tsx",
+    ".": {
+      "import": "./dist/index.esm.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.esm.js"
+    },
+    "./alpha": {
+      "backstage": "@backstage/FrontendPlugin",
+      "import": "./dist/alpha.esm.js",
+      "types": "./dist/alpha.d.ts",
+      "default": "./dist/alpha.esm.js"
+    },
     "./package.json": "./package.json"
   },
   "main": "dist/index.esm.js",
@@ -33,7 +42,10 @@
     "pluginId": "template-designer",
     "pluginPackages": [
       "@tduniec/plugin-template-designer"
-    ]
+    ],
+    "features": {
+      "./alpha": "@backstage/FrontendPlugin"
+    }
   },
   "sideEffects": false,
   "scripts": {
@@ -127,7 +139,7 @@
   "typesVersions": {
     "*": {
       "alpha": [
-        "src/alpha.tsx"
+        "dist/alpha.d.ts"
       ],
       "package.json": [
         "package.json"
