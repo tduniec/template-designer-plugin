@@ -75,7 +75,8 @@ export type FileSystemFileHandleLike = {
 
 export type TemplateSource =
   | { type: "sample"; label: string }
-  | { type: "file"; label: string; handle?: FileSystemFileHandleLike };
+  | { type: "file"; label: string; handle?: FileSystemFileHandleLike }
+  | { type: "catalog"; label: string };
 
 export type FileSystemWindow = Window &
   Partial<{

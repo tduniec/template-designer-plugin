@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
 import {
-  Page,
   Content,
   ContentHeader,
+  Page,
   SupportButton,
 } from "@backstage/core-components";
 import { FieldEditorDialog } from "./components/FieldEditorDialog";
@@ -34,6 +34,8 @@ export const TemplateDesigner = () => {
     handleOutputChange,
     handleReloadFromFile,
     handleSaveTemplate,
+    availableTemplates,
+    selectCatalogTemplate,
   } = useTemplateState();
   const {
     editorState,
@@ -53,6 +55,8 @@ export const TemplateDesigner = () => {
   let reloadButtonLabel = "Reset sample";
   if (templateSource?.type === "file") {
     reloadButtonLabel = isReloading ? "Reloading..." : "Reload file";
+  } else if (templateSource?.type === "catalog") {
+    reloadButtonLabel = "Reload template";
   }
 
   let saveButtonLabel =
@@ -88,6 +92,8 @@ export const TemplateDesigner = () => {
               loadError={loadError}
               onStartSampleTemplate={handleStartSampleTemplate}
               onOpenTemplatePicker={handleOpenTemplatePicker}
+              availableTemplates={availableTemplates}
+              selectCatalogTemplate={selectCatalogTemplate}
             />
           ) : (
             <TemplateWorkspace

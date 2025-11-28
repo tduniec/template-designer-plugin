@@ -5,6 +5,24 @@
 
 * add support for nfs ([#36](https://github.com/tduniec/template-designer-plugin/issues/36)) ([8fa3464](https://github.com/tduniec/template-designer-plugin/commit/8fa34648c0e0b85b7bb553b562eb8cb63404258a)), closes [#38](https://github.com/tduniec/template-designer-plugin/issues/38)
 
+## [0.2.5](https://github.com/tduniec/template-designer-plugin/compare/v0.2.3...v0.2.5) (2025-11-28)
+
+### Bug Fixes
+
+* add support for nfs ([#36](https://github.com/tduniec/template-designer-plugin/issues/36)) ([8fa3464](https://github.com/tduniec/template-designer-plugin/commit/8fa34648c0e0b85b7bb553b562eb8cb63404258a)), closes [#38](https://github.com/tduniec/template-designer-plugin/issues/38)
+
+## [0.2.4](https://github.com/tduniec/template-designer-plugin/compare/v0.2.3...v0.2.4) (2025-11-28)
+
+### Bug Fixes
+
+* add support for nfs ([#36](https://github.com/tduniec/template-designer-plugin/issues/36)) ([8fa3464](https://github.com/tduniec/template-designer-plugin/commit/8fa34648c0e0b85b7bb553b562eb8cb63404258a)), closes [#38](https://github.com/tduniec/template-designer-plugin/issues/38)
+
+## [0.2.3](https://github.com/tduniec/template-designer-plugin/compare/v0.2.3...v0.2.3) (2025-11-20)
+
+### Bug Fixes
+
+* add support for nfs ([#36](https://github.com/tduniec/template-designer-plugin/issues/36)) ([8fa3464](https://github.com/tduniec/template-designer-plugin/commit/8fa34648c0e0b85b7bb553b562eb8cb63404258a)), closes [#38](https://github.com/tduniec/template-designer-plugin/issues/38)
+
 ### Bug Fixes
 
 * actionNode automcomplete options ([f94e905](https://github.com/tduniec/template-designer-plugin/commit/f94e9053e9e9041034b7b02bd4f348eca0ca8d4f))
