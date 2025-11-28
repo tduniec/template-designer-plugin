@@ -85,7 +85,7 @@ jobs:
           unset CI
 
           # Treat the PR branch as the release branch for this dry-run
-          npx semantic-release --no-ci --dry-run --branches "*"
+          npx semantic-release --no-ci --dry-run --branches "$HEAD_REF"
 
       # REAL RELEASE on push to main
       - name: Semantic Release
