@@ -112,8 +112,13 @@ export const TemplateWorkspace = ({
   );
 
   return (
-    <Grid container spacing={3} direction="column">
-      <Grid item style={{ height: 800 }}>
+    <Grid
+      container
+      spacing={3}
+      direction="column"
+      style={{ height: "calc(100% - 15px)" }}
+    >
+      <Grid item style={{ height: "100%" }}>
         <div
           style={{
             height: "100%",
