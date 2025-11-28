@@ -1,4 +1,5 @@
 import { Handle, NodeToolbar, Position } from "@xyflow/react";
+import { memo } from "react";
 import { alpha, styled, useTheme } from "@material-ui/core/styles";
 import { Box, Button, Chip, Typography } from "@material-ui/core";
 import SettingsIcon from "@material-ui/icons/Settings";
@@ -63,7 +64,7 @@ const Header = styled(Box)(({ theme }) => {
   };
 });
 
-export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
+const ParametersNodeComponent: React.FC<{ data: ParametersNodeData }> = ({
   data,
 }) => {
   const theme = useTheme();
@@ -146,3 +147,5 @@ export const ParametersNode: React.FC<{ data: ParametersNodeData }> = ({
     </Card>
   );
 };
+
+export const ParametersNode = memo(ParametersNodeComponent);

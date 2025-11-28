@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { Handle, Position, NodeToolbar } from "@xyflow/react";
 import { styled, useTheme } from "@material-ui/core/styles";
@@ -63,7 +63,7 @@ const DEFAULT_ACTION_OPTIONS = [
   "fetch:template", // TODO to be fixed later to not uses default actions
 ];
 
-export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
+const ActionNodeComponent: React.FC<{ data: ActionNodeData }> = ({ data }) => {
   const { rfId, step } = data;
   const [newKey, setNewKey] = useState("");
   const [newVal, setNewVal] = useState("");
@@ -669,3 +669,5 @@ export const ActionNode: React.FC<{ data: ActionNodeData }> = ({ data }) => {
     </Card>
   );
 };
+
+export const ActionNode = memo(ActionNodeComponent);

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Content,
   ContentHeader,
@@ -24,6 +24,7 @@ export const TemplateDesigner = () => {
     templateSource,
     isReloading,
     isSaving,
+    isSyncing,
     fileInputRef,
     handleStartSampleTemplate,
     handleTemplateFileSelected,
@@ -37,14 +38,8 @@ export const TemplateDesigner = () => {
     availableTemplates,
     selectCatalogTemplate,
   } = useTemplateState();
-  const {
-    editorState,
-    editorValue,
-    setEditorValue,
-    interactionRootRef,
-    closeEditor,
-    applyEditorValue,
-  } = useFieldEditor();
+  const { editorState, interactionRootRef, closeEditor, applyEditorValue } =
+    useFieldEditor();
 
   const handleToggleYaml = useCallback(() => {
     setShowYaml((prev) => !prev);
@@ -64,6 +59,70 @@ export const TemplateDesigner = () => {
   if (isSaving) {
     saveButtonLabel = "Saving...";
   }
+
+  const workspace = useMemo(
+    () =>
+      templateObject ? (
+        <TemplateWorkspace
+          templateSteps={templateSteps}
+          templateParameters={templateParameters}
+          templateOutput={templateOutput}
+          templateYaml={templateYaml}
+          yamlError={yamlError}
+          loadError={loadError}
+          showYaml={showYaml}
+          onToggleYaml={handleToggleYaml}
+          onYamlChange={handleYamlChange}
+          onStepsChange={handleStepsChange}
+          onParametersChange={handleParametersChange}
+          onOutputChange={handleOutputChange}
+          onReload={handleReloadFromFile}
+          onSave={handleSaveTemplate}
+          onOpenTemplatePicker={handleOpenTemplatePicker}
+          activeTemplateLabel={activeTemplateLabel}
+          reloadButtonLabel={reloadButtonLabel}
+          saveButtonLabel={saveButtonLabel}
+          isReloading={isReloading}
+          isSaving={isSaving}
+          isSyncing={isSyncing}
+        />
+      ) : (
+        <TemplateLanding
+          loadError={loadError}
+          onStartSampleTemplate={handleStartSampleTemplate}
+          onOpenTemplatePicker={handleOpenTemplatePicker}
+          availableTemplates={availableTemplates}
+          selectCatalogTemplate={selectCatalogTemplate}
+        />
+      ),
+    [
+      templateObject,
+      templateSteps,
+      templateParameters,
+      templateOutput,
+      templateYaml,
+      yamlError,
+      loadError,
+      showYaml,
+      handleToggleYaml,
+      handleYamlChange,
+      handleStepsChange,
+      handleParametersChange,
+      handleOutputChange,
+      handleReloadFromFile,
+      handleSaveTemplate,
+      handleOpenTemplatePicker,
+      activeTemplateLabel,
+      reloadButtonLabel,
+      saveButtonLabel,
+      isReloading,
+      isSaving,
+      isSyncing,
+      handleStartSampleTemplate,
+      availableTemplates,
+      selectCatalogTemplate,
+    ]
+  );
 
   return (
     <div ref={interactionRootRef} style={{ height: "100%" }}>
@@ -87,45 +146,13 @@ export const TemplateDesigner = () => {
             onChange={handleTemplateFileSelected}
           />
 
-          {!templateObject ? (
-            <TemplateLanding
-              loadError={loadError}
-              onStartSampleTemplate={handleStartSampleTemplate}
-              onOpenTemplatePicker={handleOpenTemplatePicker}
-              availableTemplates={availableTemplates}
-              selectCatalogTemplate={selectCatalogTemplate}
-            />
-          ) : (
-            <TemplateWorkspace
-              templateSteps={templateSteps}
-              templateParameters={templateParameters}
-              templateOutput={templateOutput}
-              templateYaml={templateYaml}
-              yamlError={yamlError}
-              loadError={loadError}
-              showYaml={showYaml}
-              onToggleYaml={handleToggleYaml}
-              onYamlChange={handleYamlChange}
-              onStepsChange={handleStepsChange}
-              onParametersChange={handleParametersChange}
-              onOutputChange={handleOutputChange}
-              onReload={handleReloadFromFile}
-              onSave={handleSaveTemplate}
-              onOpenTemplatePicker={handleOpenTemplatePicker}
-              activeTemplateLabel={activeTemplateLabel}
-              reloadButtonLabel={reloadButtonLabel}
-              saveButtonLabel={saveButtonLabel}
-              isReloading={isReloading}
-              isSaving={isSaving}
-            />
-          )}
+          {workspace}
         </Content>
       </Page>
       <FieldEditorDialog
         open={Boolean(editorState)}
         label={editorState?.label}
-        value={editorValue}
-        onChange={setEditorValue}
+        value={editorState?.initialValue ?? ""}
         onClose={closeEditor}
         onApply={applyEditorValue}
       />

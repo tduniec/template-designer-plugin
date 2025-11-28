@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 type EditorState = null | {
   target: HTMLInputElement | HTMLTextAreaElement;
   label: string;
+  initialValue: string;
 };
 
 const resolveLabel = (element: HTMLInputElement | HTMLTextAreaElement) =>
@@ -17,56 +18,57 @@ const resolveLabel = (element: HTMLInputElement | HTMLTextAreaElement) =>
  */
 export const useFieldEditor = () => {
   const [editorState, setEditorState] = useState<EditorState>(null);
-  const [editorValue, setEditorValue] = useState("");
   const interactionRootRef = useRef<HTMLDivElement | null>(null);
 
   const closeEditor = useCallback(() => {
     setEditorState(null);
-    setEditorValue("");
   }, []);
 
-  const applyEditorValue = useCallback(() => {
-    const current = editorState;
-    if (!current) {
-      return;
-    }
-
-    const setNativeValue = (
-      element: HTMLInputElement | HTMLTextAreaElement,
-      value: string
-    ) => {
-      const valueSetter = Object.getOwnPropertyDescriptor(
-        element,
-        "value"
-      )?.set;
-      const prototype = Object.getPrototypeOf(element);
-      const prototypeValueSetter = Object.getOwnPropertyDescriptor(
-        prototype,
-        "value"
-      )?.set;
-
-      if (valueSetter && valueSetter !== prototypeValueSetter) {
-        prototypeValueSetter?.call(element, value);
-      } else if (valueSetter) {
-        valueSetter.call(element, value);
-      } else {
-        // eslint-disable-next-line no-param-reassign
-        element.value = value;
+  const applyEditorValue = useCallback(
+    (value: string) => {
+      const current = editorState;
+      if (!current) {
+        return;
       }
-    };
 
-    setNativeValue(current.target, editorValue);
-    current.target.dispatchEvent(new Event("input", { bubbles: true }));
-    closeEditor();
-  }, [closeEditor, editorState, editorValue]);
+      const setNativeValue = (
+        element: HTMLInputElement | HTMLTextAreaElement,
+        nextValue: string
+      ) => {
+        const valueSetter = Object.getOwnPropertyDescriptor(
+          element,
+          "value"
+        )?.set;
+        const prototype = Object.getPrototypeOf(element);
+        const prototypeValueSetter = Object.getOwnPropertyDescriptor(
+          prototype,
+          "value"
+        )?.set;
+
+        if (valueSetter && valueSetter !== prototypeValueSetter) {
+          prototypeValueSetter?.call(element, nextValue);
+        } else if (valueSetter) {
+          valueSetter.call(element, nextValue);
+        } else {
+          // eslint-disable-next-line no-param-reassign
+          element.value = nextValue;
+        }
+      };
+
+      setNativeValue(current.target, value);
+      current.target.dispatchEvent(new Event("input", { bubbles: true }));
+      closeEditor();
+    },
+    [closeEditor, editorState]
+  );
 
   const openEditor = useCallback(
     (target: HTMLInputElement | HTMLTextAreaElement) => {
       setEditorState({
         target,
         label: resolveLabel(target),
+        initialValue: target.value,
       });
-      setEditorValue(target.value);
     },
     []
   );
@@ -121,8 +123,6 @@ export const useFieldEditor = () => {
 
   return {
     editorState,
-    editorValue,
-    setEditorValue,
     interactionRootRef,
     closeEditor,
     applyEditorValue,

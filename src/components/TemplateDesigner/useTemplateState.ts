@@ -42,6 +42,7 @@ type TemplateState = {
   templateSource?: TemplateSource;
   isReloading: boolean;
   isSaving: boolean;
+  isSyncing: boolean;
   templateSteps: TaskStep[];
   templateParameters: TemplateParametersValue;
   templateOutput?: ScaffolderTaskOutput;
@@ -85,6 +86,19 @@ export const useTemplateState = (): TemplateState => {
   >();
   const [isReloading, setIsReloading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const templateObjectRef = useRef<Record<string, unknown> | null>(null);
+  const yamlParseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+  const yamlSerializeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+  const yamlParseIdleCancelRef = useRef<(() => void) | null>(null);
+  const yamlSerializeIdleCancelRef = useRef<(() => void) | null>(null);
+  const yamlParseCompletionRef = useRef<(() => void) | null>(null);
+  const yamlSerializeCompletionRef = useRef<(() => void) | null>(null);
+  const syncingCounterRef = useRef(0);
   const catalogApi = useApi(catalogApiRef);
   const [selectedTemplate, setSelectedTemplate] = useState<
     TemplateEntityV1beta3 | undefined
@@ -118,6 +132,7 @@ export const useTemplateState = (): TemplateState => {
     (template: Record<string, unknown>, source: TemplateSource) => {
       const nextTemplate = cloneDeep(template);
       const nextYaml = convertJsonToYaml(nextTemplate);
+      templateObjectRef.current = nextTemplate;
       setTemplateObject(nextTemplate);
       setTemplateYaml(nextYaml);
       setYamlError(undefined);
@@ -142,6 +157,197 @@ export const useTemplateState = (): TemplateState => {
       "This will discard the changes you have made. Continue?"
     );
   }, [isDirty, templateObject]);
+
+  const startSyncTask = useCallback(() => {
+    syncingCounterRef.current += 1;
+    if (syncingCounterRef.current === 1) {
+      setIsSyncing(true);
+    }
+    return () => {
+      syncingCounterRef.current = Math.max(syncingCounterRef.current - 1, 0);
+      if (syncingCounterRef.current === 0) {
+        setIsSyncing(false);
+      }
+    };
+  }, []);
+
+  const scheduleYamlParse = useCallback(
+    (nextYaml: string) => {
+      if (yamlParseTimeoutRef.current) {
+        clearTimeout(yamlParseTimeoutRef.current);
+      }
+      if (yamlParseIdleCancelRef.current) {
+        yamlParseIdleCancelRef.current();
+        yamlParseIdleCancelRef.current = null;
+      }
+      if (yamlParseCompletionRef.current) {
+        yamlParseCompletionRef.current();
+        yamlParseCompletionRef.current = null;
+      }
+      yamlParseCompletionRef.current = startSyncTask();
+      yamlParseTimeoutRef.current = setTimeout(() => {
+        yamlParseTimeoutRef.current = null;
+        const runParse = () => {
+          try {
+            const parsed = parseTemplateYaml(nextYaml);
+            templateObjectRef.current = parsed;
+            setTemplateObject(parsed);
+            setYamlError(undefined);
+          } catch (error) {
+            const message =
+              error instanceof Error
+                ? error.message
+                : "Unknown error parsing YAML";
+            setYamlError(message);
+          }
+          if (yamlParseCompletionRef.current) {
+            yamlParseCompletionRef.current();
+            yamlParseCompletionRef.current = null;
+          }
+        };
+        const idle =
+          typeof window !== "undefined" &&
+          typeof (window as any).requestIdleCallback === "function";
+        if (idle) {
+          const handle = (window as any).requestIdleCallback(runParse, {
+            timeout: 800,
+          });
+          yamlParseIdleCancelRef.current = () => {
+            (window as any).cancelIdleCallback?.(handle);
+            if (yamlParseCompletionRef.current) {
+              yamlParseCompletionRef.current();
+              yamlParseCompletionRef.current = null;
+            }
+          };
+          return;
+        }
+        runParse();
+      }, 450);
+    },
+    [startSyncTask]
+  );
+
+  const scheduleYamlSerialization = useCallback(
+    (nextTemplate: Record<string, unknown> | null | undefined) => {
+      if (yamlSerializeTimeoutRef.current) {
+        clearTimeout(yamlSerializeTimeoutRef.current);
+      }
+      if (yamlSerializeIdleCancelRef.current) {
+        yamlSerializeIdleCancelRef.current();
+        yamlSerializeIdleCancelRef.current = null;
+      }
+      if (yamlSerializeCompletionRef.current) {
+        yamlSerializeCompletionRef.current();
+        yamlSerializeCompletionRef.current = null;
+      }
+      yamlSerializeCompletionRef.current = startSyncTask();
+      yamlSerializeTimeoutRef.current = setTimeout(() => {
+        yamlSerializeTimeoutRef.current = null;
+        if (!nextTemplate) {
+          setTemplateYaml("");
+          if (yamlSerializeCompletionRef.current) {
+            yamlSerializeCompletionRef.current();
+            yamlSerializeCompletionRef.current = null;
+          }
+          return;
+        }
+        const runSerialize = () => {
+          try {
+            setTemplateYaml(convertJsonToYaml(nextTemplate));
+          } catch (error) {
+            const message =
+              error instanceof Error
+                ? error.message
+                : "Unknown error updating YAML";
+            setLoadError(message);
+          }
+          if (yamlSerializeCompletionRef.current) {
+            yamlSerializeCompletionRef.current();
+            yamlSerializeCompletionRef.current = null;
+          }
+        };
+        const idle =
+          typeof window !== "undefined" &&
+          typeof (window as any).requestIdleCallback === "function";
+        if (idle) {
+          const handle = (window as any).requestIdleCallback(runSerialize, {
+            timeout: 800,
+          });
+          yamlSerializeIdleCancelRef.current = () => {
+            (window as any).cancelIdleCallback?.(handle);
+            if (yamlSerializeCompletionRef.current) {
+              yamlSerializeCompletionRef.current();
+              yamlSerializeCompletionRef.current = null;
+            }
+          };
+          return;
+        }
+        runSerialize();
+      }, 250);
+    },
+    [startSyncTask]
+  );
+
+  const flushPendingYamlSerialization = useCallback((): string => {
+    if (yamlSerializeTimeoutRef.current) {
+      clearTimeout(yamlSerializeTimeoutRef.current);
+      yamlSerializeTimeoutRef.current = null;
+    }
+    if (yamlSerializeIdleCancelRef.current) {
+      yamlSerializeIdleCancelRef.current();
+      yamlSerializeIdleCancelRef.current = null;
+    }
+    if (yamlSerializeCompletionRef.current) {
+      yamlSerializeCompletionRef.current();
+      yamlSerializeCompletionRef.current = null;
+    }
+    const latest = templateObjectRef.current;
+    if (!latest) {
+      setTemplateYaml("");
+      return "";
+    }
+    try {
+      const serialized = convertJsonToYaml(latest);
+      setTemplateYaml(serialized);
+      return serialized;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unknown error updating YAML";
+      setLoadError(message);
+      return templateYaml;
+    }
+  }, [templateYaml]);
+
+  useEffect(() => {
+    return () => {
+      if (yamlParseTimeoutRef.current) {
+        clearTimeout(yamlParseTimeoutRef.current);
+      }
+      if (yamlParseIdleCancelRef.current) {
+        yamlParseIdleCancelRef.current();
+      }
+      if (yamlParseCompletionRef.current) {
+        yamlParseCompletionRef.current();
+        yamlParseCompletionRef.current = null;
+      }
+      if (yamlSerializeTimeoutRef.current) {
+        clearTimeout(yamlSerializeTimeoutRef.current);
+      }
+      if (yamlSerializeIdleCancelRef.current) {
+        yamlSerializeIdleCancelRef.current();
+      }
+      if (yamlSerializeCompletionRef.current) {
+        yamlSerializeCompletionRef.current();
+        yamlSerializeCompletionRef.current = null;
+      }
+      syncingCounterRef.current = 0;
+      setIsSyncing(false);
+    };
+  }, []);
+
+  useEffect(() => {
+    templateObjectRef.current = templateObject;
+  }, [templateObject]);
 
   const handleStartSampleTemplate = useCallback(() => {
     if (!confirmDiscardChanges()) {
@@ -310,43 +516,42 @@ export const useTemplateState = (): TemplateState => {
     return cloneDeep(rawOutput as ScaffolderTaskOutput);
   }, [templateObject]);
 
-  const handleYamlChange = useCallback((value: string) => {
-    setTemplateYaml(value);
-    setIsDirty(true);
-    try {
-      const parsed = parseTemplateYaml(value);
-      setTemplateObject(parsed);
-      setYamlError(undefined);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unknown error parsing YAML";
-      setYamlError(message);
-    }
-  }, []);
+  const handleYamlChange = useCallback(
+    (value: string) => {
+      setTemplateYaml(value);
+      setIsDirty(true);
+      scheduleYamlParse(value);
+    },
+    [scheduleYamlParse]
+  );
 
-  const handleStepsChange = useCallback((steps: TaskStep[]) => {
-    setIsDirty(true);
-    setTemplateObject((prevTemplate) => {
-      const base =
-        prevTemplate && typeof prevTemplate === "object"
-          ? (cloneDeep(prevTemplate) as Record<string, unknown>)
-          : ({} as Record<string, unknown>);
+  const handleStepsChange = useCallback(
+    (steps: TaskStep[]) => {
+      setIsDirty(true);
+      setTemplateObject((prevTemplate) => {
+        const base =
+          prevTemplate && typeof prevTemplate === "object"
+            ? (cloneDeep(prevTemplate) as Record<string, unknown>)
+            : ({} as Record<string, unknown>);
 
-      const spec = asRecord(base.spec) ?? {};
-      const nextSteps = cloneSteps(steps);
+        const spec = asRecord(base.spec) ?? {};
+        const nextSteps = cloneSteps(steps);
 
-      const nextTemplate: Record<string, unknown> = {
-        ...base,
-        spec: {
-          ...spec,
-          steps: nextSteps,
-        },
-      };
+        const nextTemplate: Record<string, unknown> = {
+          ...base,
+          spec: {
+            ...spec,
+            steps: nextSteps,
+          },
+        };
 
-      setTemplateYaml(convertJsonToYaml(nextTemplate));
-      return nextTemplate;
-    });
-  }, []);
+        templateObjectRef.current = nextTemplate;
+        scheduleYamlSerialization(nextTemplate);
+        return nextTemplate;
+      });
+    },
+    [scheduleYamlSerialization]
+  );
 
   const handleParametersChange = useCallback(
     (parameters: TemplateParametersValue) => {
@@ -366,34 +571,39 @@ export const useTemplateState = (): TemplateState => {
           },
         };
 
-        setTemplateYaml(convertJsonToYaml(nextTemplate));
+        templateObjectRef.current = nextTemplate;
+        scheduleYamlSerialization(nextTemplate);
         return nextTemplate;
       });
     },
-    []
+    [scheduleYamlSerialization]
   );
 
-  const handleOutputChange = useCallback((output?: ScaffolderTaskOutput) => {
-    setIsDirty(true);
-    setTemplateObject((prevTemplate) => {
-      const base =
-        prevTemplate && typeof prevTemplate === "object"
-          ? (cloneDeep(prevTemplate) as Record<string, unknown>)
-          : ({} as Record<string, unknown>);
+  const handleOutputChange = useCallback(
+    (output?: ScaffolderTaskOutput) => {
+      setIsDirty(true);
+      setTemplateObject((prevTemplate) => {
+        const base =
+          prevTemplate && typeof prevTemplate === "object"
+            ? (cloneDeep(prevTemplate) as Record<string, unknown>)
+            : ({} as Record<string, unknown>);
 
-      const spec = asRecord(base.spec) ?? {};
-      const nextTemplate: Record<string, unknown> = {
-        ...base,
-        spec: {
-          ...spec,
-          output: cloneDeep(output),
-        },
-      };
+        const spec = asRecord(base.spec) ?? {};
+        const nextTemplate: Record<string, unknown> = {
+          ...base,
+          spec: {
+            ...spec,
+            output: cloneDeep(output),
+          },
+        };
 
-      setTemplateYaml(convertJsonToYaml(nextTemplate));
-      return nextTemplate;
-    });
-  }, []);
+        templateObjectRef.current = nextTemplate;
+        scheduleYamlSerialization(nextTemplate);
+        return nextTemplate;
+      });
+    },
+    [scheduleYamlSerialization]
+  );
 
   const handleReloadFromFile = useCallback(async () => {
     if (!templateSource) {
@@ -467,8 +677,10 @@ export const useTemplateState = (): TemplateState => {
       return;
     }
 
+    const yamlToPersist = flushPendingYamlSerialization();
+
     if (typeof window === "undefined") {
-      downloadString(templateYaml, DEFAULT_FILE_NAME);
+      downloadString(yamlToPersist, DEFAULT_FILE_NAME);
       setIsDirty(false);
       return;
     }
@@ -491,7 +703,7 @@ export const useTemplateState = (): TemplateState => {
         if (!writable) {
           throw new Error("Unable to open file for writing.");
         }
-        await writable.write(templateYaml);
+        await writable.write(yamlToPersist);
         await writable.close();
         setIsDirty(false);
         return;
@@ -506,7 +718,7 @@ export const useTemplateState = (): TemplateState => {
         if (!writable) {
           throw new Error("Unable to open file for writing.");
         }
-        await writable.write(templateYaml);
+        await writable.write(yamlToPersist);
         await writable.close();
         setTemplateSource({
           type: "file",
@@ -517,7 +729,7 @@ export const useTemplateState = (): TemplateState => {
         return;
       }
 
-      downloadString(templateYaml, templateSource?.label ?? DEFAULT_FILE_NAME);
+      downloadString(yamlToPersist, templateSource?.label ?? DEFAULT_FILE_NAME);
       setIsDirty(false);
     } catch (error) {
       const message =
@@ -528,7 +740,12 @@ export const useTemplateState = (): TemplateState => {
     } finally {
       setIsSaving(false);
     }
-  }, [ensureHandlePermission, templateObject, templateSource, templateYaml]);
+  }, [
+    ensureHandlePermission,
+    flushPendingYamlSerialization,
+    templateObject,
+    templateSource,
+  ]);
 
   useEffect(() => {
     catalogApi
@@ -563,6 +780,7 @@ export const useTemplateState = (): TemplateState => {
     templateSource,
     isReloading,
     isSaving,
+    isSyncing,
     templateSteps,
     templateParameters,
     templateOutput,
