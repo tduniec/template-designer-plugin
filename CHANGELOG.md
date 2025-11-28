@@ -1,3 +1,10 @@
+## [0.2.4](https://github.com/tduniec/template-designer-plugin/compare/v0.2.3...v0.2.4) (2025-11-28)
+
+
+### Bug Fixes
+
+* add support for nfs ([#36](https://github.com/tduniec/template-designer-plugin/issues/36)) ([9f8dcf8](https://github.com/tduniec/template-designer-plugin/commit/9f8dcf80a57b43e2e6ba5601a51b74ced1d6a0a3)), closes [#38](https://github.com/tduniec/template-designer-plugin/issues/38)
+
 ## [0.2.3](https://github.com/tduniec/template-designer-plugin/compare/v0.2.2...v0.2.3) (2025-11-20)
 
 
