@@ -4,13 +4,13 @@ import {
   PageBlueprint,
 } from "@backstage/frontend-plugin-api";
 import { rootRouteRef } from "./routes";
-import BorderColorIcon from "@material-ui/icons/BorderColor";
+import { TemplateDesignerIcon } from "./components/TemplateDesignerIcon";
 
 const templateDesignerNavItem = NavItemBlueprint.make({
   params: {
     title: "Template designer",
     routeRef: rootRouteRef,
-    icon: BorderColorIcon,
+    icon: TemplateDesignerIcon,
   },
 });
 

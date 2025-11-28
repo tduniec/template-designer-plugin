@@ -58,11 +58,11 @@ const routes = (
 In `packages/app/src/components/Root/Root.tsx`:
 
 ```tsx
-import DesignServicesIcon from "@mui/icons-material/DesignServices";
 import { SidebarItem } from "@backstage/core-components";
+import { TemplateDesignerIcon } from "@tduniec/plugin-template-designer";
 
 <SidebarItem
-  icon={DesignServicesIcon}
+  icon={TemplateDesignerIcon}
   to="template-designer"
   text="Template Designer"
 />;
