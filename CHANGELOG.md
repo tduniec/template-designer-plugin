@@ -1,22 +1,11 @@
 # [0.3.0](https://github.com/tduniec/template-designer-plugin/compare/v0.2.3...v0.3.0) (2025-11-28)
 
 
-### Bug Fixes
-
-* add support for nfs ([#36](https://github.com/tduniec/template-designer-plugin/issues/36)) ([8fa3464](https://github.com/tduniec/template-designer-plugin/commit/8fa34648c0e0b85b7bb553b562eb8cb63404258a)), closes [#38](https://github.com/tduniec/template-designer-plugin/issues/38)
-
-
 ### Features
 
 * add support to select existing template ([#40](https://github.com/tduniec/template-designer-plugin/issues/40)) ([6100138](https://github.com/tduniec/template-designer-plugin/commit/610013862d7264d2631018c0188341e8302e86f0))
-
-## [0.2.4](https://github.com/tduniec/template-designer-plugin/compare/v0.2.3...v0.2.4) (2025-11-28)
-
-
-### Bug Fixes
-
 * add support for nfs ([#36](https://github.com/tduniec/template-designer-plugin/issues/36)) ([8fa3464](https://github.com/tduniec/template-designer-plugin/commit/8fa34648c0e0b85b7bb553b562eb8cb63404258a)), closes [#38](https://github.com/tduniec/template-designer-plugin/issues/38)
-* add support to select existing template ([#40](https://github.com/tduniec/template-designer-plugin/issues/40)) ([e788d52](https://github.com/tduniec/template-designer-plugin/commit/e788d52b19e9fb7666940e72beb8b09448a9335c))
+
 
 ## [0.2.5](https://github.com/tduniec/template-designer-plugin/compare/v0.2.3...v0.2.5) (2025-11-28)
 
@@ -30,11 +19,8 @@
 
 * add support for nfs ([#36](https://github.com/tduniec/template-designer-plugin/issues/36)) ([8fa3464](https://github.com/tduniec/template-designer-plugin/commit/8fa34648c0e0b85b7bb553b562eb8cb63404258a)), closes [#38](https://github.com/tduniec/template-designer-plugin/issues/38)
 
-## [0.2.3](https://github.com/tduniec/template-designer-plugin/compare/v0.2.3...v0.2.3) (2025-11-20)
+## [0.2.3](https://github.com/tduniec/template-designer-plugin/compare/v0.2.2...v0.2.3) (2025-11-20)
 
-### Bug Fixes
-
-* add support for nfs ([#36](https://github.com/tduniec/template-designer-plugin/issues/36)) ([8fa3464](https://github.com/tduniec/template-designer-plugin/commit/8fa34648c0e0b85b7bb553b562eb8cb63404258a)), closes [#38](https://github.com/tduniec/template-designer-plugin/issues/38)
 
 ### Bug Fixes
 
