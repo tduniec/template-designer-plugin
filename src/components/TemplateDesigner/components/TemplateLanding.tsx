@@ -135,6 +135,7 @@ export const TemplateLanding = ({
               >
                 <Autocomplete
                   style={{ width: "100%" }}
+                  size="small"
                   options={availableTemplates ?? []}
                   getOptionLabel={(option) =>
                     option.metadata.title ?? option.metadata.name

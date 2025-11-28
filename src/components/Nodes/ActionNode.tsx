@@ -353,8 +353,12 @@ const ActionNodeComponent: React.FC<{ data: ActionNodeData }> = ({ data }) => {
 
         {inputEntries.map(([k, v]) => {
           const schema = actionInputSchema?.[k];
-          const normalizedType = normalizeSchemaType(schema);
-          const typeLabel = buildTypeLabel(schema) || "String";
+          const normalizedType = normalizeSchemaType(schema, v);
+          const fallbackTypeLabel =
+            normalizedType === "unknown"
+              ? "Unknown"
+              : normalizedType[0].toUpperCase() + normalizedType.slice(1);
+          const typeLabel = buildTypeLabel(schema) || fallbackTypeLabel;
           const enumOptions = extractEnumOptions(schema);
           const baseOptions =
             normalizedType === "boolean" ? ["true", "false"] : [];

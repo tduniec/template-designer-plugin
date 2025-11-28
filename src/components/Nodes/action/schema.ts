@@ -18,31 +18,61 @@ const capitalize = (value: string) =>
 
 const getFirstType = (
   type: string | string[] | undefined
-): NormalizedSchemaType => {
+): NormalizedSchemaType | undefined => {
   if (!type) {
-    return "string";
+    return undefined;
   }
-  const value = Array.isArray(type) ? type[0] : type;
-  if (
-    value === "string" ||
-    value === "number" ||
-    value === "integer" ||
-    value === "boolean" ||
-    value === "array" ||
-    value === "object"
-  ) {
-    return value;
+  const values = Array.isArray(type) ? type : [type];
+  const match = values.find(
+    (value): value is NormalizedSchemaType =>
+      value === "string" ||
+      value === "number" ||
+      value === "integer" ||
+      value === "boolean" ||
+      value === "array" ||
+      value === "object"
+  );
+  return match;
+};
+
+const inferTypeFromValue = (
+  value: unknown
+): NormalizedSchemaType | undefined => {
+  if (value === null || value === undefined) {
+    return undefined;
   }
-  return "string";
+  if (Array.isArray(value)) {
+    return "array";
+  }
+  if (typeof value === "object") {
+    return "object";
+  }
+  if (typeof value === "boolean") {
+    return "boolean";
+  }
+  if (typeof value === "number") {
+    return Number.isInteger(value) ? "integer" : "number";
+  }
+  return undefined;
 };
 
 export const normalizeSchemaType = (
-  schema: JsonSchemaProperty | undefined
+  schema: JsonSchemaProperty | undefined,
+  value?: unknown
 ): NormalizedSchemaType => {
   if (!schema || typeof schema !== "object") {
-    return "string";
+    const inferred = inferTypeFromValue(value);
+    return inferred ?? "string";
   }
-  return getFirstType(schema.type);
+  const schemaType = getFirstType(schema.type);
+  if (schemaType) {
+    return schemaType;
+  }
+  const inferred = inferTypeFromValue(value);
+  if (inferred) {
+    return inferred;
+  }
+  return "string";
 };
 
 const getArrayItemTypeLabel = (schema: JsonSchemaProperty | undefined) => {
@@ -86,7 +116,12 @@ export const stringifyValueForDisplay = (
     return "";
   }
 
-  if (type === "array" || type === "object") {
+  if (
+    type === "array" ||
+    type === "object" ||
+    Array.isArray(value) ||
+    typeof value === "object"
+  ) {
     if (typeof value === "string") {
       return value;
     }
