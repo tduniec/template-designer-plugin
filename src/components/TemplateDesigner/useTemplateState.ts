@@ -1,9 +1,17 @@
-import { useCallback, useMemo, useRef, useState } from "react";
-import type { ChangeEvent, RefObject } from "react";
+import {
+  ChangeEvent,
+  RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type {
   ScaffolderTaskOutput,
   TaskStep,
 } from "@backstage/plugin-scaffolder-common";
+import { TemplateEntityV1beta3 } from "@backstage/plugin-scaffolder-common";
 import type { TemplateParametersValue } from "../Nodes/types";
 import {
   convertJsonToYaml,
@@ -11,17 +19,19 @@ import {
 } from "../../utils/yamlJsonConversion";
 import { SAMPLE_TEMPLATE_BLUEPRINT } from "../../utils/sampleTemplate";
 import {
-  DEFAULT_FILE_NAME,
-  FILE_PICKER_TYPES,
-  FileSystemFileHandleLike,
-  FileSystemWindow,
-  TemplateSource,
   asRecord,
   cloneDeep,
   cloneSteps,
+  DEFAULT_FILE_NAME,
   downloadString,
+  FILE_PICKER_TYPES,
+  FileSystemFileHandleLike,
+  FileSystemWindow,
   isTaskStep,
+  TemplateSource,
 } from "./utils";
+import { useApi } from "@backstage/core-plugin-api";
+import { catalogApiRef } from "@backstage/plugin-catalog-react";
 
 type TemplateState = {
   templateObject: Record<string, unknown> | null;
@@ -45,6 +55,8 @@ type TemplateState = {
   handleOutputChange: (output?: ScaffolderTaskOutput) => void;
   handleReloadFromFile: () => void;
   handleSaveTemplate: () => void;
+  availableTemplates: TemplateEntityV1beta3[];
+  selectCatalogTemplate: (selected: TemplateEntityV1beta3) => void;
 };
 
 const parseTemplateYaml = (value: string) => {
@@ -73,6 +85,13 @@ export const useTemplateState = (): TemplateState => {
   >();
   const [isReloading, setIsReloading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const catalogApi = useApi(catalogApiRef);
+  const [selectedTemplate, setSelectedTemplate] = useState<
+    TemplateEntityV1beta3 | undefined
+  >(undefined);
+  const [availableTemplates, setAvailableTemplates] = useState<
+    TemplateEntityV1beta3[]
+  >([]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -381,6 +400,16 @@ export const useTemplateState = (): TemplateState => {
       return;
     }
 
+    if (templateSource.type === "catalog") {
+      if (selectedTemplate) {
+        applyTemplate(selectedTemplate as unknown as Record<string, unknown>, {
+          type: "catalog",
+          label:
+            selectedTemplate.metadata.title ?? selectedTemplate.metadata.name,
+        });
+      }
+      return;
+    }
     if (templateSource.type !== "file") {
       handleStartSampleTemplate();
       return;
@@ -429,6 +458,7 @@ export const useTemplateState = (): TemplateState => {
     ensureHandlePermission,
     handleOpenTemplatePicker,
     handleStartSampleTemplate,
+    selectedTemplate,
     templateSource,
   ]);
 
@@ -500,6 +530,30 @@ export const useTemplateState = (): TemplateState => {
     }
   }, [ensureHandlePermission, templateObject, templateSource, templateYaml]);
 
+  useEffect(() => {
+    catalogApi
+      .getEntities({
+        filter: {
+          kind: "Template",
+        },
+      })
+      .then((data) => {
+        setAvailableTemplates(data.items as TemplateEntityV1beta3[]);
+      })
+      .catch(() => setAvailableTemplates([]));
+  }, [catalogApi]);
+
+  const selectCatalogTemplate = useCallback(
+    (selected: TemplateEntityV1beta3) => {
+      setSelectedTemplate(selected);
+      applyTemplate(selected as unknown as Record<string, unknown>, {
+        type: "catalog",
+        label: selected.metadata.title ?? selected.metadata.name,
+      });
+    },
+    [applyTemplate]
+  );
+
   return {
     templateObject,
     templateYaml,
@@ -522,5 +576,7 @@ export const useTemplateState = (): TemplateState => {
     handleOutputChange,
     handleReloadFromFile,
     handleSaveTemplate,
+    availableTemplates,
+    selectCatalogTemplate,
   };
 };

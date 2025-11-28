@@ -1,16 +1,29 @@
-import { Box, Button, Grid, Paper, Typography } from "@material-ui/core";
+import {
+  Box,
+  Button,
+  Grid,
+  Paper,
+  TextField,
+  Typography,
+} from "@material-ui/core";
 import { useTheme } from "@material-ui/core/styles";
+import { TemplateEntityV1beta3 } from "@backstage/plugin-scaffolder-common";
+import Autocomplete from "@material-ui/lab/Autocomplete";
 
 type TemplateLandingProps = {
   loadError?: string;
   onStartSampleTemplate: () => void;
   onOpenTemplatePicker: () => void;
+  availableTemplates: TemplateEntityV1beta3[];
+  selectCatalogTemplate: (selected: TemplateEntityV1beta3) => void;
 };
 
 export const TemplateLanding = ({
   loadError,
   onStartSampleTemplate,
   onOpenTemplatePicker,
+  availableTemplates,
+  selectCatalogTemplate,
 }: TemplateLandingProps) => {
   const theme = useTheme();
 
@@ -23,7 +36,7 @@ export const TemplateLanding = ({
     >
       <Grid item xs={12} md={10} lg={8}>
         <Grid container spacing={4} alignItems="stretch">
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={4}>
             <Paper
               elevation={3}
               style={{
@@ -53,7 +66,7 @@ export const TemplateLanding = ({
               </Box>
             </Paper>
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={4}>
             <Paper
               elevation={3}
               style={{
@@ -93,6 +106,53 @@ export const TemplateLanding = ({
                     {loadError}
                   </Typography>
                 )}
+              </Box>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Paper
+              elevation={3}
+              style={{
+                padding: 32,
+                height: "100%",
+                minHeight: 320,
+                display: "flex",
+                flexDirection: "column",
+                gap: 16,
+              }}
+            >
+              <Box>
+                <Typography variant="h6">Select from catalog</Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Select existing template from catalog.
+                </Typography>
+              </Box>
+              <Box
+                mt="auto"
+                display="flex"
+                flexDirection="column"
+                style={{ gap: 8 }}
+              >
+                <Autocomplete
+                  style={{ width: "100%" }}
+                  options={availableTemplates ?? []}
+                  getOptionLabel={(option) =>
+                    option.metadata.title ?? option.metadata.name
+                  }
+                  onChange={(_e, value) => {
+                    if (value) {
+                      selectCatalogTemplate(value);
+                    }
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      autoComplete="off"
+                      label="Select template"
+                      variant="outlined"
+                    />
+                  )}
+                />
               </Box>
             </Paper>
           </Grid>
