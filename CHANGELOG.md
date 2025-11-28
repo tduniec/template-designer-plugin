@@ -1,6 +1,3 @@
-## [0.2.3](https://github.com/tduniec/template-designer-plugin/compare/v0.2.2...v0.2.3) (2025-11-20)
-
-
 ### Bug Fixes
 
 * actionNode automcomplete options ([f94e905](https://github.com/tduniec/template-designer-plugin/commit/f94e9053e9e9041034b7b02bd4f348eca0ca8d4f))
