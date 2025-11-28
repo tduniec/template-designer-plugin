@@ -3,14 +3,19 @@ import { rest } from "msw";
 import { setupServer } from "msw/node";
 import { screen } from "@testing-library/react";
 import {
-  TestApiProvider,
   registerMswTestHooks,
   renderInTestApp,
+  TestApiProvider,
 } from "@backstage/test-utils";
 import { scaffolderApiRef } from "@backstage/plugin-scaffolder-react";
+import { catalogApiRef } from "@backstage/plugin-catalog-react";
 
 const mockScaffolderApi = {
   listActions: async () => [],
+};
+
+const mockCatalogApi = {
+  getEntities: async () => ({ items: [] }),
 };
 
 const ResizeObserverMock = class {
@@ -37,7 +42,12 @@ describe("ExampleComponent", () => {
 
   it("should render", async () => {
     await renderInTestApp(
-      <TestApiProvider apis={[[scaffolderApiRef, mockScaffolderApi]]}>
+      <TestApiProvider
+        apis={[
+          [scaffolderApiRef, mockScaffolderApi],
+          [catalogApiRef, mockCatalogApi],
+        ]}
+      >
         <TemplateDesigner />
       </TestApiProvider>
     );

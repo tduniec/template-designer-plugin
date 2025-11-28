@@ -4,6 +4,22 @@
 ### Bug Fixes
 
 * add support for nfs ([#36](https://github.com/tduniec/template-designer-plugin/issues/36)) ([8fa3464](https://github.com/tduniec/template-designer-plugin/commit/8fa34648c0e0b85b7bb553b562eb8cb63404258a)), closes [#38](https://github.com/tduniec/template-designer-plugin/issues/38)
+* add support to select existing template ([#40](https://github.com/tduniec/template-designer-plugin/issues/40)) ([896a204](https://github.com/tduniec/template-designer-plugin/commit/896a204d3ec6b8da17859a9d2c3b97a2b62583a2))
+
+## [0.2.4](https://github.com/tduniec/template-designer-plugin/compare/v0.2.3...v0.2.4) (2025-11-28)
+
+
+### Bug Fixes
+
+* add support for nfs ([#36](https://github.com/tduniec/template-designer-plugin/issues/36)) ([8fa3464](https://github.com/tduniec/template-designer-plugin/commit/8fa34648c0e0b85b7bb553b562eb8cb63404258a)), closes [#38](https://github.com/tduniec/template-designer-plugin/issues/38)
+* add support to select existing template ([#40](https://github.com/tduniec/template-designer-plugin/issues/40)) ([35dd88c](https://github.com/tduniec/template-designer-plugin/commit/35dd88cda6e310f01a8b15ebc28721b3f476a7ce)), closes [#36](https://github.com/tduniec/template-designer-plugin/issues/36) [#38](https://github.com/tduniec/template-designer-plugin/issues/38)
+
+## [0.2.4](https://github.com/tduniec/template-designer-plugin/compare/v0.2.3...v0.2.4) (2025-11-28)
+
+
+### Bug Fixes
+
+* add support for nfs ([#36](https://github.com/tduniec/template-designer-plugin/issues/36)) ([8fa3464](https://github.com/tduniec/template-designer-plugin/commit/8fa34648c0e0b85b7bb553b562eb8cb63404258a)), closes [#38](https://github.com/tduniec/template-designer-plugin/issues/38)
 
 ### Bug Fixes
 
