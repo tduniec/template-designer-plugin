@@ -209,38 +209,38 @@ export const TemplateWorkspace = ({
                 </Button>
               </div>
               <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              {isSyncing && (
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "2px 6px",
-                    borderRadius: 6,
-                    background:
-                      paletteMode === "dark"
-                        ? "rgba(33,33,33,0.8)"
-                        : "rgba(255,255,255,0.9)",
-                    border: `1px solid ${theme.palette.divider}`,
-                  }}
-                >
-                  <CircularProgress size={14} thickness={5} color="primary" />
-                  <Typography variant="caption" color="textSecondary">
-                    Syncing...
-                  </Typography>
-                </div>
-              )}
-              <Button variant="outlined" size="small" onClick={onToggleYaml}>
-                {showYaml ? "Hide YAML" : "Show YAML"}
-              </Button>
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                {isSyncing && (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "2px 6px",
+                      borderRadius: 6,
+                      background:
+                        paletteMode === "dark"
+                          ? "rgba(33,33,33,0.8)"
+                          : "rgba(255,255,255,0.9)",
+                      border: `1px solid ${theme.palette.divider}`,
+                    }}
+                  >
+                    <CircularProgress size={14} thickness={5} color="primary" />
+                    <Typography variant="caption" color="textSecondary">
+                      Syncing...
+                    </Typography>
+                  </div>
+                )}
+                <Button variant="outlined" size="small" onClick={onToggleYaml}>
+                  {showYaml ? "Hide YAML" : "Show YAML"}
+                </Button>
+              </div>
             </div>
-          </div>
             {loadError && (
               <Typography
                 variant="body2"

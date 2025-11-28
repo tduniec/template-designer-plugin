@@ -1,4 +1,5 @@
-import { EditorView, type Extension } from "@codemirror/view";
+import { EditorView } from "@codemirror/view";
+import type { Extension } from "@codemirror/state";
 import type { Theme } from "@material-ui/core/styles";
 
 export const createCodeMirrorTheme = (
@@ -12,8 +13,7 @@ export const createCodeMirrorTheme = (
         color: materialTheme.palette.text.primary,
       },
       ".cm-content": {
-        fontFamily:
-          '"Roboto Mono", "SFMono-Regular", Consolas, monospace',
+        fontFamily: '"Roboto Mono", "SFMono-Regular", Consolas, monospace',
       },
       ".cm-scroller": {
         fontSize: 13,
