@@ -20,3 +20,5 @@ export const TemplateDesignerPage = templateDesignerPlugin.provide(
     mountPoint: rootRouteRef,
   })
 );
+
+export { TemplateDesignerIcon } from "./components/TemplateDesignerIcon";
