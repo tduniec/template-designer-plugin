@@ -1,4 +1,5 @@
 import { Handle, NodeToolbar, Position } from "@xyflow/react";
+import { memo } from "react";
 import { alpha, styled, useTheme } from "@material-ui/core/styles";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import {
@@ -108,7 +109,7 @@ const TextRow = styled(Box)(({ theme }) => ({
   alignItems: "flex-start",
 }));
 
-export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
+const OutputNodeComponent: React.FC<{ data: OutputNodeData }> = ({ data }) => {
   const theme = useTheme();
   const paletteMode = resolvePaletteMode(theme);
   const stopAll = createStopNodeInteraction();
@@ -401,3 +402,5 @@ export const OutputNode: React.FC<{ data: OutputNodeData }> = ({ data }) => {
     </Card>
   );
 };
+
+export const OutputNode = memo(OutputNodeComponent);

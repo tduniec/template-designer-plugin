@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { Button, Grid, Paper, Typography } from "@material-ui/core";
+import {
+  Button,
+  Grid,
+  Paper,
+  Typography,
+  CircularProgress,
+} from "@material-ui/core";
 import { useTheme } from "@material-ui/core/styles";
 import CodeMirror from "@uiw/react-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
@@ -31,6 +37,7 @@ type TemplateWorkspaceProps = {
   saveButtonLabel: string;
   isReloading: boolean;
   isSaving: boolean;
+  isSyncing?: boolean;
 };
 
 export const TemplateWorkspace = ({
@@ -54,6 +61,7 @@ export const TemplateWorkspace = ({
   saveButtonLabel,
   isReloading,
   isSaving,
+  isSyncing = false,
 }: TemplateWorkspaceProps) => {
   const theme = useTheme();
   const paletteMode =
@@ -176,9 +184,31 @@ export const TemplateWorkspace = ({
                 Load different file
               </Button>
             </div>
-            <Button variant="outlined" size="small" onClick={onToggleYaml}>
-              {showYaml ? "Hide YAML" : "Show YAML"}
-            </Button>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              {isSyncing && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  <CircularProgress size={16} thickness={5} />
+                  <Typography variant="caption" color="textSecondary">
+                    Syncing...
+                  </Typography>
+                </div>
+              )}
+              <Button variant="outlined" size="small" onClick={onToggleYaml}>
+                {showYaml ? "Hide YAML" : "Show YAML"}
+              </Button>
+            </div>
           </div>
           {loadError && (
             <Typography

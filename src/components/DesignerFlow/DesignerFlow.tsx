@@ -143,6 +143,11 @@ export default function App({
   const lastCacheFingerprintRef = useRef<string | null>(null);
   const nodeHeightsRef = useRef<Record<string, number>>({});
   const shouldAutoFitViewRef = useRef(true);
+  const emitDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasDraggingNodes = useMemo(
+    () => nodes.some((node) => node.dragging),
+    [nodes]
+  );
 
   useEffect(() => {
     const isCacheChanged = cacheFingerprint !== lastCacheFingerprintRef.current;
@@ -418,6 +423,9 @@ export default function App({
     if (!onStepsChange && !onParametersChange && !onOutputChange) {
       return;
     }
+    if (hasDraggingNodes) {
+      return;
+    }
     const serialized = stableStringify({
       steps: stepsFromNodes,
       parameters: parametersFromNodes ?? null,
@@ -426,17 +434,22 @@ export default function App({
     if (serialized === lastEmittedModelHashRef.current) {
       return;
     }
-    lastEmittedModelHashRef.current = serialized;
-    skipNextModelHashRef.current = serialized;
-    if (onStepsChange) {
-      onStepsChange(stepsFromNodes);
+    if (emitDebounceRef.current) {
+      clearTimeout(emitDebounceRef.current);
     }
-    if (onParametersChange) {
-      onParametersChange(parametersFromNodes ?? undefined);
-    }
-    if (onOutputChange) {
-      onOutputChange(outputFromNodes);
-    }
+    emitDebounceRef.current = setTimeout(() => {
+      lastEmittedModelHashRef.current = serialized;
+      skipNextModelHashRef.current = serialized;
+      if (onStepsChange) {
+        onStepsChange(stepsFromNodes);
+      }
+      if (onParametersChange) {
+        onParametersChange(parametersFromNodes ?? undefined);
+      }
+      if (onOutputChange) {
+        onOutputChange(outputFromNodes);
+      }
+    }, 120);
   }, [
     stepsFromNodes,
     parametersFromNodes,
@@ -445,7 +458,17 @@ export default function App({
     onStepsChange,
     onParametersChange,
     onOutputChange,
+    hasDraggingNodes,
   ]);
+
+  useEffect(
+    () => () => {
+      if (emitDebounceRef.current) {
+        clearTimeout(emitDebounceRef.current);
+      }
+    },
+    []
+  );
 
   const fitViewOptions = useMemo(() => ({ padding: 0.2, duration: 300 }), []);
   const [reactFlowInstance, setReactFlowInstance] =

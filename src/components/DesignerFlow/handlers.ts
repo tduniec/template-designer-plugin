@@ -44,6 +44,26 @@ const orderNodes = (
   outputNodes: Node[]
 ) => [...parameterNodes, ...actionNodes, ...outputNodes];
 
+const setSequentialEdgesIfChanged = (
+  setEdges: SetEdges,
+  alignedNodes: Node[]
+) => {
+  setEdges((prevEdges) => {
+    const nextEdges = createSequentialEdges(alignedNodes);
+    if (
+      prevEdges.length === nextEdges.length &&
+      prevEdges.every(
+        (edge, index) =>
+          edge.source === nextEdges[index]?.source &&
+          edge.target === nextEdges[index]?.target
+      )
+    ) {
+      return prevEdges;
+    }
+    return nextEdges;
+  });
+};
+
 export const createHandleAddNode = (
   setNodes: SetNodes,
   setEdges: SetEdges,
@@ -81,7 +101,7 @@ export const createHandleAddNode = (
       ) => {
         const ordered = orderNodes(nextParameters, nextActions, nextOutputs);
         const aligned = alignNodes(ordered, fixedXPosition, verticalSpacing);
-        setEdges(createSequentialEdges(aligned));
+        setSequentialEdgesIfChanged(setEdges, aligned);
         return aligned;
       };
 
@@ -225,7 +245,7 @@ export const createHandleRemoveNode = (
         fixedXPosition,
         verticalSpacing
       );
-      setEdges(createSequentialEdges(alignedNodes));
+      setSequentialEdgesIfChanged(setEdges, alignedNodes);
       return alignedNodes;
     });
   };
@@ -279,7 +299,7 @@ export const createHandleReorderAndAlignNodes = (
       const ordered = orderNodes(parameterNodes, actionNodes, outputNodes);
       const aligned = alignNodes(ordered, fixedXPosition, verticalSpacing);
 
-      setEdges(createSequentialEdges(aligned));
+      setSequentialEdgesIfChanged(setEdges, aligned);
       return aligned;
     });
   };
