@@ -16,6 +16,11 @@
     "url": "git+https://github.com/tduniec/template-designer-plugin.git",
     "directory": "."
   },
+  "exports": {
+    ".": "./src/index.ts",
+    "./alpha": "./src/alpha.tsx",
+    "./package.json": "./package.json"
+  },
   "main": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "publishConfig": {
@@ -53,11 +58,13 @@
     "*.{json,md}": "prettier --write"
   },
   "dependencies": {
-    "@backstage/core-components": "^0.18.2",
-    "@backstage/core-plugin-api": "^1.11.1",
-    "@backstage/plugin-scaffolder-common": "^1.7.2",
-    "@backstage/plugin-scaffolder-react": "^1.19.2",
-    "@backstage/theme": "^0.7.0",
+    "@backstage/core-compat-api": "backstage:^",
+    "@backstage/core-components": "backstage:^",
+    "@backstage/core-plugin-api": "backstage:^",
+    "@backstage/frontend-plugin-api": "backstage:^",
+    "@backstage/plugin-scaffolder-common": "backstage:^",
+    "@backstage/plugin-scaffolder-react": "backstage:^",
+    "@backstage/theme": "backstage:^",
     "@codemirror/lang-yaml": "^6.1.2",
     "@material-ui/core": "^4.12.4",
     "@material-ui/icons": "^4.11.3",
@@ -75,10 +82,10 @@
     "react-use": "^17.2.4"
   },
   "devDependencies": {
-    "@backstage/cli": "^0.34.4",
-    "@backstage/core-app-api": "^1.19.1",
-    "@backstage/dev-utils": "^1.1.15",
-    "@backstage/test-utils": "^1.7.12",
+    "@backstage/cli": "backstage:^",
+    "@backstage/core-app-api": "backstage:^",
+    "@backstage/dev-utils": "backstage:^",
+    "@backstage/test-utils": "backstage:^",
     "@codemirror/lang-yaml": "6.1.2",
     "@codemirror/state": "6.5.2",
     "@codemirror/view": "6.26.3",
@@ -115,6 +122,9 @@
   "packageManager": "yarn@4.10.3",
   "typesVersions": {
     "*": {
+      "alpha": [
+        "src/alpha.tsx"
+      ],
       "package.json": [
         "package.json"
       ]

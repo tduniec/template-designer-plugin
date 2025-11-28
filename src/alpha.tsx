@@ -1,0 +1,40 @@
+import {
+  createFrontendPlugin,
+  NavItemBlueprint,
+  PageBlueprint,
+} from "@backstage/frontend-plugin-api";
+import { rootRouteRef } from "./routes";
+import BorderColorIcon from "@material-ui/icons/BorderColor";
+
+const templateDesignerNavItem = NavItemBlueprint.make({
+  params: {
+    title: "Template designer",
+    routeRef: rootRouteRef,
+    icon: BorderColorIcon,
+  },
+});
+
+const templateDesignerPage = PageBlueprint.make({
+  params: {
+    path: "/template-designer",
+    routeRef: rootRouteRef,
+    loader: () =>
+      import("./components/TemplateDesigner").then((m) => (
+        <m.TemplateDesigner />
+      )),
+  },
+});
+
+/**
+ * Backstage frontend plugin.
+ *
+ * @alpha
+ */
+export default createFrontendPlugin({
+  pluginId: "template-designer",
+  info: { packageJson: () => import("../package.json") },
+  routes: {
+    root: rootRouteRef,
+  },
+  extensions: [templateDesignerPage, templateDesignerNavItem],
+});
