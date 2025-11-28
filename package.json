@@ -17,17 +17,8 @@
     "directory": "."
   },
   "exports": {
-    ".": {
-      "import": "./dist/index.esm.js",
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.esm.js"
-    },
-    "./alpha": {
-      "backstage": "@backstage/FrontendPlugin",
-      "import": "./dist/alpha.esm.js",
-      "types": "./dist/alpha.d.ts",
-      "default": "./dist/alpha.esm.js"
-    },
+    ".": "./src/index.ts",
+    "./alpha": "./src/alpha.tsx",
     "./package.json": "./package.json"
   },
   "main": "dist/index.esm.js",
