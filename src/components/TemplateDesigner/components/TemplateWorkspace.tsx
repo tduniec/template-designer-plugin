@@ -120,71 +120,94 @@ export const TemplateWorkspace = ({
   );
 
   return (
-    <Grid
-      container
-      spacing={3}
-      direction="column"
-      style={{ height: "calc(100% - 15px)" }}
-    >
-      <Grid item style={{ height: "100%" }}>
+    <div style={{ position: "relative", height: "calc(100% - 15px)" }}>
+      {isSyncing && (
         <div
           style={{
-            height: "100%",
+            position: "fixed",
+            left: "calc(72px + 160px)", // offset from Backstage left nav into page
+            bottom: 24,
             display: "flex",
-            flexDirection: "column",
-            gap: 16,
+            alignItems: "center",
+            gap: 8,
+            padding: "6px 10px",
+            borderRadius: 8,
+            background:
+              paletteMode === "dark"
+                ? "rgba(33,33,33,0.9)"
+                : "rgba(255,255,255,0.95)",
+            boxShadow: theme.shadows[3],
+            border: `1px solid ${theme.palette.divider}`,
+            zIndex: (theme.zIndex?.tooltip ?? 1500) + 1,
+            pointerEvents: "none",
           }}
         >
+          <CircularProgress size={16} thickness={5} color="primary" />
+          <Typography variant="caption" color="textSecondary">
+            Syncing...
+          </Typography>
+        </div>
+      )}
+      <Grid container spacing={3} direction="column" style={{ height: "100%" }}>
+        <Grid item style={{ height: "100%" }}>
           <div
             style={{
+              height: "100%",
               display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: 12,
+              flexDirection: "column",
+              gap: 16,
             }}
           >
             <div
               style={{
                 display: "flex",
+                justifyContent: "space-between",
                 alignItems: "center",
-                gap: 12,
                 flexWrap: "wrap",
+                gap: 12,
               }}
             >
-              {activeTemplateLabel && (
-                <Typography variant="body2" color="textSecondary">
-                  Active template: {activeTemplateLabel}
-                </Typography>
-              )}
-              <Button
-                color="primary"
-                variant="contained"
-                size="small"
-                onClick={onReload}
-                disabled={isReloading}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  flexWrap: "wrap",
+                }}
               >
-                {reloadButtonLabel}
-              </Button>
-              <Button
-                color="primary"
-                variant="outlined"
-                size="small"
-                onClick={onSave}
-                disabled={isSaving}
-              >
-                {saveButtonLabel}
-              </Button>
-              <Button
-                color="primary"
-                variant="outlined"
-                size="small"
-                onClick={onOpenTemplatePicker}
-              >
-                Load different file
-              </Button>
-            </div>
-            <div
+                {activeTemplateLabel && (
+                  <Typography variant="body2" color="textSecondary">
+                    Active template: {activeTemplateLabel}
+                  </Typography>
+                )}
+                <Button
+                  color="primary"
+                  variant="contained"
+                  size="small"
+                  onClick={onReload}
+                  disabled={isReloading}
+                >
+                  {reloadButtonLabel}
+                </Button>
+                <Button
+                  color="primary"
+                  variant="outlined"
+                  size="small"
+                  onClick={onSave}
+                  disabled={isSaving}
+                >
+                  {saveButtonLabel}
+                </Button>
+                <Button
+                  color="primary"
+                  variant="outlined"
+                  size="small"
+                  onClick={onOpenTemplatePicker}
+                >
+                  Load different file
+                </Button>
+              </div>
+              <div
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -197,9 +220,16 @@ export const TemplateWorkspace = ({
                     display: "flex",
                     alignItems: "center",
                     gap: 6,
+                    padding: "2px 6px",
+                    borderRadius: 6,
+                    background:
+                      paletteMode === "dark"
+                        ? "rgba(33,33,33,0.8)"
+                        : "rgba(255,255,255,0.9)",
+                    border: `1px solid ${theme.palette.divider}`,
                   }}
                 >
-                  <CircularProgress size={16} thickness={5} />
+                  <CircularProgress size={14} thickness={5} color="primary" />
                   <Typography variant="caption" color="textSecondary">
                     Syncing...
                   </Typography>
@@ -210,86 +240,87 @@ export const TemplateWorkspace = ({
               </Button>
             </div>
           </div>
-          {loadError && (
-            <Typography
-              variant="body2"
-              style={{ color: theme.palette.error.main }}
-            >
-              {loadError}
-            </Typography>
-          )}
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              gap: 16,
-              minHeight: 0,
-            }}
-          >
-            <div style={{ flex: showYaml ? 1.6 : 1, minWidth: 0 }}>
-              <div style={{ height: "100%" }}>
-                <App
-                  steps={templateSteps}
-                  parameters={templateParameters}
-                  output={templateOutput}
-                  onStepsChange={onStepsChange}
-                  onParametersChange={onParametersChange}
-                  onOutputChange={onOutputChange}
-                />
-              </div>
-            </div>
-            {showYaml && (
-              <Paper
-                elevation={2}
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  minWidth: 0,
-                  overflow: "hidden",
-                }}
+            {loadError && (
+              <Typography
+                variant="body2"
+                style={{ color: theme.palette.error.main }}
               >
-                <div
-                  style={{
-                    padding: "12px 16px",
-                    borderBottom: "1px solid rgba(0,0,0,0.12)",
-                    fontWeight: 600,
-                    fontSize: "0.875rem",
-                  }}
-                >
-                  YAML Preview
-                </div>
-                {yamlError && (
-                  <div
-                    style={{
-                      padding: "8px 16px",
-                      borderBottom: "1px solid rgba(0,0,0,0.08)",
-                      color: theme.palette.error.main,
-                      fontSize: "0.75rem",
-                      background:
-                        paletteMode === "dark"
-                          ? "rgba(255, 82, 82, 0.1)"
-                          : "rgba(244, 67, 54, 0.08)",
-                    }}
-                  >
-                    {yamlError}
-                  </div>
-                )}
-                <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
-                  <CodeMirror
-                    value={templateYaml}
-                    extensions={yamlExtensions}
-                    theme={codeMirrorTheme}
-                    height="100%"
-                    onChange={handleYamlChange}
-                    onBlur={handleYamlBlur}
+                {loadError}
+              </Typography>
+            )}
+            <div
+              style={{
+                flex: 1,
+                display: "flex",
+                gap: 16,
+                minHeight: 0,
+              }}
+            >
+              <div style={{ flex: showYaml ? 1.6 : 1, minWidth: 0 }}>
+                <div style={{ height: "100%" }}>
+                  <App
+                    steps={templateSteps}
+                    parameters={templateParameters}
+                    output={templateOutput}
+                    onStepsChange={onStepsChange}
+                    onParametersChange={onParametersChange}
+                    onOutputChange={onOutputChange}
                   />
                 </div>
-              </Paper>
-            )}
+              </div>
+              {showYaml && (
+                <Paper
+                  elevation={2}
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    minWidth: 0,
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: "12px 16px",
+                      borderBottom: "1px solid rgba(0,0,0,0.12)",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                    }}
+                  >
+                    YAML Preview
+                  </div>
+                  {yamlError && (
+                    <div
+                      style={{
+                        padding: "8px 16px",
+                        borderBottom: "1px solid rgba(0,0,0,0.08)",
+                        color: theme.palette.error.main,
+                        fontSize: "0.75rem",
+                        background:
+                          paletteMode === "dark"
+                            ? "rgba(255, 82, 82, 0.1)"
+                            : "rgba(244, 67, 54, 0.08)",
+                      }}
+                    >
+                      {yamlError}
+                    </div>
+                  )}
+                  <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+                    <CodeMirror
+                      value={templateYaml}
+                      extensions={yamlExtensions}
+                      theme={codeMirrorTheme}
+                      height="100%"
+                      onChange={handleYamlChange}
+                      onBlur={handleYamlBlur}
+                    />
+                  </div>
+                </Paper>
+              )}
+            </div>
           </div>
-        </div>
+        </Grid>
       </Grid>
-    </Grid>
+    </div>
   );
 };
