@@ -2,7 +2,11 @@ import { TemplateDesigner } from "./TemplateDesigner";
 import { rest } from "msw";
 import { setupServer } from "msw/node";
 import { screen } from "@testing-library/react";
-import { registerMswTestHooks, renderInTestApp, TestApiProvider } from "@backstage/test-utils";
+import {
+  registerMswTestHooks,
+  renderInTestApp,
+  TestApiProvider,
+} from "@backstage/test-utils";
 import { scaffolderApiRef } from "@backstage/plugin-scaffolder-react";
 import { catalogApiRef } from "@backstage/plugin-catalog-react";
 
