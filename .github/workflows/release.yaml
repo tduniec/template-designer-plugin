@@ -85,6 +85,13 @@ jobs:
           # Treat the PR branch as the release branch for this dry-run
           npx semantic-release --no-ci --dry-run --branches "$HEAD_REF"
 
+      - name: Prepare NPM release config
+        if: github.event_name == 'push'
+        run: |
+          echo "npmAuthToken: ${{ secrets.NPM_TOKEN }}" >> .yarnrc.yml
+          echo "npmAlwaysAuth: true" >> .yarnrc.yml
+          echo "npmPublishRegistry: https://registry.npmjs.org" >> .yarnrc.yml
+
       # REAL RELEASE on push to main
       - name: Semantic Release
         if: github.event_name == 'push'
