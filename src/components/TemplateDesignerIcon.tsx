@@ -5,16 +5,17 @@ export const TemplateDesignerIcon = (props: SvgIconProps) => (
     {...props}
     viewBox="0 0 96 96"
     stroke="currentColor"
-    fill="none"
+    // Explicitly clear the default Material-UI fill so the icon renders as an outline in Backstage.
+    style={{ ...props.style, fill: "none" }}
     strokeWidth={3.4}
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    <rect x={6} y={6} width={84} height={84} rx={22} />
-    <polygon points="28,18 42,32 28,46 14,32" />
-    <rect x={58} y={24} width={24} height={16} rx={3} />
-    <rect x={16} y={60} width={24} height={16} rx={3} />
-    <rect x={58} y={60} width={24} height={16} rx={3} />
+    <rect x={6} y={6} width={84} height={84} rx={22} fill="none" />
+    <polygon points="28,18 42,32 28,46 14,32" fill="none" />
+    <rect x={58} y={24} width={24} height={16} rx={3} fill="none" />
+    <rect x={16} y={60} width={24} height={16} rx={3} fill="none" />
+    <rect x={58} y={60} width={24} height={16} rx={3} fill="none" />
     <path d="M42 32 H58" />
     <path d="M58 32 l-4 -3.5 M58 32 l-4 3.5" />
     <path d="M28 46 V60" />
