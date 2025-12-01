@@ -1,3 +1,10 @@
+## [0.3.4](https://github.com/tduniec/template-designer-plugin/compare/v0.3.3...v0.3.4) (2025-12-01)
+
+
+### Bug Fixes
+
+* backstage pattern resolution during publishing ([#51](https://github.com/tduniec/template-designer-plugin/issues/51)) ([57328b7](https://github.com/tduniec/template-designer-plugin/commit/57328b7b7b5ea3328bf4fb03c1c7f6cb879204ae))
+
 ## [0.3.3](https://github.com/tduniec/template-designer-plugin/compare/v0.3.2...v0.3.3) (2025-11-28)
 
 
