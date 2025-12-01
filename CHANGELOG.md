@@ -1,3 +1,10 @@
+## [0.3.5](https://github.com/tduniec/template-designer-plugin/compare/v0.3.4...v0.3.5) (2025-12-01)
+
+
+### Bug Fixes
+
+* adjust npm release ([#52](https://github.com/tduniec/template-designer-plugin/issues/52)) ([924ae88](https://github.com/tduniec/template-designer-plugin/commit/924ae881c47488b636b37053c8141d4bee4c10b8))
+
 ## [0.3.4](https://github.com/tduniec/template-designer-plugin/compare/v0.3.3...v0.3.4) (2025-12-01)
 
 
