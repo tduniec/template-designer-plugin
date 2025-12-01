@@ -1,3 +1,10 @@
+## [0.3.6](https://github.com/tduniec/template-designer-plugin/compare/v0.3.5...v0.3.6) (2025-12-01)
+
+
+### Bug Fixes
+
+* making the templateDesigner icon outlined ([#53](https://github.com/tduniec/template-designer-plugin/issues/53)) ([6488a74](https://github.com/tduniec/template-designer-plugin/commit/6488a74ca1e4874febce8f178c41773a78a6a1f9))
+
 ## [0.3.5](https://github.com/tduniec/template-designer-plugin/compare/v0.3.4...v0.3.5) (2025-12-01)
 
 
