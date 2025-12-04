@@ -6,7 +6,29 @@ Empowering the **Democratization of Templates** in Backstage 🚀
 Visually **design, connect, and manage** your Backstage scaffolder templates through an **intuitive drag-and-drop interface** — all inside your Backstage instance.  
 No YAML complexity. No coding required. Just creativity. **We are breaking the glass!** templating in Backstage made easy! 🚀
 
+## 🖼️ Preview
+
+Checkout the video!
+
+[▶ Watch the PREVIEW on YouTube](https://youtu.be/Pwzlzvig4-c)
+
+## 🚀 Template Designer PRO (Early Access)
+
+A PRO version of this plugin is in development with an advanced editor, built-in actions documentation, validation rules and more.
+
+[<img src="./docs/templateDesignerProBadge.png" alt="Template Designer PRO Early Access" />](https://forms.gle/F3HrtyVm4tiuC8Zo7)
+
+Get early access to:
+- preview builds  
+- direct influence on the roadmap  
+
+👉 **Join Early Access:** **[here](https://forms.gle/F3HrtyVm4tiuC8Zo7)**
+(quick & free)
+
+You'll be notified as soon as the first preview is ready.
+
 ---
+
 
 ## 🌟 Why “Democratization of Templates”?
 
@@ -27,12 +49,6 @@ The Template Designer makes **template creation accessible to everyone** — fro
 - 💡 **Frontend-Only Plugin** — zero backend setup required.
 
 ---
-
-## 🖼️ Preview
-
-Checkout the video!
-
-[▶ Watch the PREVIEW on YouTube](https://youtu.be/Pwzlzvig4-c)
 
 ## ⚙️ Installation
 
