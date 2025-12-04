@@ -29,7 +29,6 @@ You'll be notified as soon as the first preview is ready.
 
 ---
 
-
 ## 🌟 Why “Democratization of Templates”?
 
 Backstage templates shouldn’t be just for developers.  
