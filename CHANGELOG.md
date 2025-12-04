@@ -1,3 +1,10 @@
+## [0.3.7](https://github.com/tduniec/template-designer-plugin/compare/v0.3.6...v0.3.7) (2025-12-04)
+
+
+### Bug Fixes
+
+* bump the version for readme update ([93b676b](https://github.com/tduniec/template-designer-plugin/commit/93b676bfdb0a23a88bddb2b732852a5cecbc28a9))
+
 ## [0.3.6](https://github.com/tduniec/template-designer-plugin/compare/v0.3.5...v0.3.6) (2025-12-01)
 
 
