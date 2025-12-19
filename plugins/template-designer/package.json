@@ -1,0 +1,96 @@
+{
+  "name": "@tduniec/plugin-template-designer",
+  "version": "0.3.7",
+  "license": "Apache-2.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./alpha": "./src/alpha.tsx",
+    "./package.json": "./package.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tduniec/template-designer-plugin.git",
+    "directory": "./plugins/temlplate-designer"
+  },
+  "publishConfig": {
+    "access": "public",
+    "main": "dist/index.esm.js",
+    "types": "dist/index.d.ts"
+  },
+  "backstage": {
+    "role": "frontend-plugin",
+    "pluginId": "template-designer"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "start": "backstage-cli package start",
+    "build": "backstage-cli package build",
+    "lint": "backstage-cli package lint",
+    "test": "backstage-cli package test",
+    "prettier:check": "prettier --check .",
+    "prettier:fix": "prettier -w .",
+    "tsc": "tsc",
+    "validate:fix": "yarn tsc && backstage-cli package lint --fix && prettier -w .",
+    "clean": "backstage-cli package clean",
+        "set-version": "node scripts/set-version.js",
+
+    "prepack": "backstage-cli package prepack",
+    "postpack": "backstage-cli package postpack"
+  },
+  "dependencies": {
+    "@backstage/core-compat-api": "backstage:^",
+    "@backstage/core-components": "backstage:^",
+    "@backstage/core-plugin-api": "backstage:^",
+    "@backstage/frontend-plugin-api": "backstage:^",
+    "@backstage/plugin-catalog-react": "backstage:^",
+    "@backstage/plugin-scaffolder-common": "backstage:^",
+    "@backstage/plugin-scaffolder-react": "backstage:^",
+    "@backstage/theme": "backstage:^",
+    "@codemirror/lang-yaml": "^6.1.2",
+    "@material-ui/core": "^4.12.4",
+    "@material-ui/icons": "^4.11.3",
+    "@material-ui/lab": "^4.0.0-alpha.61",
+    "@tduniec/plugin-template-designer-foundation": "workspace:^",
+    "@xyflow/react": "^12.8.6",
+    "react-router-dom": "^6.23.0",
+    "react-use": "^17.2.4"
+  },
+  "devDependencies": {
+    "@backstage/catalog-client": "backstage:^",
+    "@backstage/catalog-model": "backstage:^",
+    "@backstage/cli": "backstage:^",
+    "@backstage/core-app-api": "backstage:^",
+    "@backstage/core-compat-api": "backstage:^",
+    "@backstage/core-components": "backstage:^",
+    "@backstage/core-plugin-api": "backstage:^",
+    "@backstage/dev-utils": "backstage:^",
+    "@backstage/frontend-plugin-api": "backstage:^",
+    "@backstage/plugin-catalog-common": "backstage:^",
+    "@backstage/plugin-catalog-react": "backstage:^",
+    "@backstage/plugin-scaffolder-react": "backstage:^",
+    "@backstage/test-utils": "backstage:^",
+    "@backstage/theme": "backstage:^",
+    "@material-ui/core": "^4.12.4",
+    "@material-ui/icons": "^4.11.3",
+    "@material-ui/lab": "^4.0.0-alpha.61",
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.0.0",
+    "msw": "^1.0.0",
+    "prettier": "^2.3.2",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^6.23.0",
+    "react-use": "^17.2.4",
+    "typescript": "~5.8.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "files": [
+    "dist"
+  ]
+}
