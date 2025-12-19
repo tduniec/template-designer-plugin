@@ -150,8 +150,8 @@ export const TemplateWorkspace = ({
     <div
       style={{
         position: "relative",
-        height: "calc(100vh - 160px)",
-        minHeight: "70vh",
+        height: "100%",
+        minHeight: 0,
       }}
     >
       {isSyncing && (
