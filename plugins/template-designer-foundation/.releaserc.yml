@@ -12,7 +12,8 @@ plugins:
           release: patch
         - type: feat
           scope: template-designer-foundation
-          release: minor  - "@semantic-release/release-notes-generator"
+          release: minor
+  - "@semantic-release/release-notes-generator"
   - "@semantic-release/github"
   - - "@semantic-release/changelog"
     - changelogFile: CHANGELOG.md
