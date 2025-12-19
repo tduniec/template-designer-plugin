@@ -9,19 +9,31 @@
     "./alpha": "./src/alpha.tsx",
     "./package.json": "./package.json"
   },
+  "typesVersions": {
+    "*": {
+      "alpha": [
+        "src/alpha.tsx"
+      ],
+      "package.json": [
+        "package.json"
+      ]
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tduniec/template-designer-plugin.git",
     "directory": "./plugins/temlplate-designer"
   },
   "publishConfig": {
-    "access": "public",
-    "main": "dist/index.esm.js",
-    "types": "dist/index.d.ts"
+    "access": "public"
   },
   "backstage": {
     "role": "frontend-plugin",
-    "pluginId": "template-designer"
+    "pluginId": "template-designer",
+    "pluginPackages": [
+      "@tduniec/plugin-template-designer",
+      "@tduniec/plugin-template-designer-foundation"
+    ]
   },
   "sideEffects": false,
   "scripts": {

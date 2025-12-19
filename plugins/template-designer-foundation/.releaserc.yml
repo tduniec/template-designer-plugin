@@ -4,8 +4,15 @@ tagFormat: "template-designer-foundation-v${version}"
 repositoryUrl: "https://github.com/tduniec/template-designer-plugin.git"
 
 plugins:
-  - "@semantic-release/commit-analyzer"
-  - "@semantic-release/release-notes-generator"
+  - - "@semantic-release/commit-analyzer"
+    - preset: conventionalcommits
+      releaseRules:
+        - type: fix
+          scope: template-designer-foundation
+          release: patch
+        - type: feat
+          scope: template-designer-foundation
+          release: minor  - "@semantic-release/release-notes-generator"
   - "@semantic-release/github"
   - - "@semantic-release/changelog"
     - changelogFile: CHANGELOG.md

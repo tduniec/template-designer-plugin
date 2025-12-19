@@ -8,10 +8,15 @@
     ".": "./src/index.ts",
     "./package.json": "./package.json"
   },
+  "typesVersions": {
+    "*": {
+      "package.json": [
+        "package.json"
+      ]
+    }
+  },
   "publishConfig": {
-    "access": "public",
-    "main": "dist/index.esm.js",
-    "types": "dist/index.d.ts"
+    "access": "public"
   },
   "repository": {
     "type": "git",
@@ -20,7 +25,11 @@
   },
   "backstage": {
     "role": "web-library",
-    "pluginId": "template-designer"
+    "pluginId": "template-designer",
+    "pluginPackages": [
+      "@tduniec/plugin-template-designer",
+      "@tduniec/plugin-template-designer-foundation"
+    ]
   },
   "sideEffects": false,
   "scripts": {
@@ -58,16 +67,6 @@
     "@material-ui/lab": "^4.0.0-alpha.61",
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
-  },
-  "typesVersions": {
-    "*": {
-      "dev/mocks": [
-        "dist-types/plugins/template-designer-foundation/dev/mocks.d.ts"
-      ],
-      "package.json": [
-        "package.json"
-      ]
-    }
   },
   "devDependencies": {
     "@backstage/cli": "backstage:^",
