@@ -33,7 +33,7 @@
     "prettier:check": "prettier --check .",
     "prettier:fix": "prettier -w .",
     "clean": "backstage-cli package clean",
-        "set-version": "node scripts/set-version.js",
+    "set-version": "node scripts/set-version.js",
     "prepack": "backstage-cli package prepack",
     "postpack": "backstage-cli package postpack"
   },
