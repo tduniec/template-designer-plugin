@@ -185,12 +185,20 @@ export const createHandleAddNode = (
       } satisfies TaskStep;
 
       const nextActions = [...actionNodes];
-      const targetIndex = afterRfId
-        ? Math.max(
+      const insertAfterOutput = outputNodes.some(
+        (node) => node.id === afterRfId
+      );
+      let targetIndex = nextActions.length;
+      if (afterRfId) {
+        if (insertAfterOutput) {
+          targetIndex = nextActions.length; // When triggered from OutputNode "Add Action Above", append to preserve end position.
+        } else {
+          targetIndex = Math.max(
             nextActions.findIndex((node) => node.id === afterRfId) + 1,
             0
-          )
-        : nextActions.length;
+          );
+        }
+      }
       nextActions.splice(targetIndex, 0, {
         id: rfActionId,
         type: "actionNode",

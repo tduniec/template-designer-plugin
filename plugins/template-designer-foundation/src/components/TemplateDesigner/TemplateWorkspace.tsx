@@ -91,6 +91,25 @@ export const TemplateWorkspace = ({
   const yamlDraftRef = useRef(templateYaml);
   const templateYamlRef = useRef(templateYaml);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flowDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastGoodFlowModelRef = useRef<{
+    steps: TaskStep[];
+    parameters: TemplateParametersValue;
+    output?: ScaffolderTaskOutput;
+  }>({
+    steps: templateSteps,
+    parameters: templateParameters,
+    output: templateOutput,
+  });
+  const [debouncedFlowModel, setDebouncedFlowModel] = useState<{
+    steps: TaskStep[];
+    parameters: TemplateParametersValue;
+    output?: ScaffolderTaskOutput;
+  }>({
+    steps: templateSteps,
+    parameters: templateParameters,
+    output: templateOutput,
+  });
   const yamlExtensions = useMemo(() => [yaml()], []);
   const codeMirrorTheme = useMemo(
     () => createCodeMirrorTheme(theme, paletteMode),
@@ -118,14 +137,52 @@ export const TemplateWorkspace = ({
           onYamlChange(yamlDraftRef.current);
         }
         debounceRef.current = null;
-      }, 300);
+      }, 600); // Send YAML updates after user pauses; avoids live sync on every keystroke.
     },
     [onYamlChange]
   );
 
+  const flushFlowDebounce = useCallback(() => {
+    if (flowDebounceRef.current) {
+      clearTimeout(flowDebounceRef.current);
+      flowDebounceRef.current = null;
+    }
+    // Push latest parsable props immediately; used when user clicks out.
+    if (!yamlError) {
+      lastGoodFlowModelRef.current = {
+        steps: templateSteps,
+        parameters: templateParameters,
+        output: templateOutput,
+      };
+    }
+    setDebouncedFlowModel(lastGoodFlowModelRef.current);
+  }, [templateParameters, templateSteps, templateOutput, yamlError]);
+
   const handleYamlBlur = useCallback(() => {
     flushYamlDraft();
-  }, [flushYamlDraft]);
+    // Ensure pending graph updates flush when user leaves the editor.
+    flushFlowDebounce();
+  }, [flushFlowDebounce, flushYamlDraft]);
+
+  useEffect(() => {
+    // Keep the last good (parsable) model so YAML drafts with errors don't blank the canvas.
+    if (!yamlError) {
+      lastGoodFlowModelRef.current = {
+        steps: templateSteps,
+        parameters: templateParameters,
+        output: templateOutput,
+      };
+    }
+    if (flowDebounceRef.current) {
+      clearTimeout(flowDebounceRef.current);
+    }
+    // Debounce to avoid re-rendering the graph on every keystroke in YAML/editor.
+    flowDebounceRef.current = setTimeout(() => {
+      // If YAML is broken, keep showing the last good model instead of empty graph.
+      setDebouncedFlowModel(lastGoodFlowModelRef.current);
+      flowDebounceRef.current = null;
+    }, 400);
+  }, [templateParameters, templateSteps, templateOutput, yamlError]);
 
   useEffect(() => {
     yamlDraftRef.current = templateYaml;
@@ -142,6 +199,9 @@ export const TemplateWorkspace = ({
     () => () => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
+      }
+      if (flowDebounceRef.current) {
+        clearTimeout(flowDebounceRef.current);
       }
       flushYamlDraft();
     },
@@ -332,9 +392,9 @@ export const TemplateWorkspace = ({
                 <div style={{ flex: 1, minHeight: 0 }}>
                   {flowTopSlot}
                   <DesignerFlow
-                    steps={templateSteps}
-                    parameters={templateParameters}
-                    output={templateOutput}
+                    steps={debouncedFlowModel.steps}
+                    parameters={debouncedFlowModel.parameters}
+                    output={debouncedFlowModel.output}
                     onStepsChange={onStepsChange}
                     onParametersChange={onParametersChange}
                     onOutputChange={onOutputChange}

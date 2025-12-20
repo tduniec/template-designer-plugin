@@ -22,6 +22,7 @@ import {
   NodeProps,
   NodeTypes,
   Viewport,
+  OnMoveEnd,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import type {
@@ -68,6 +69,100 @@ import {
 import { useScaffolderActions } from "../api/useScaffolderActions";
 
 const EMPTY_EDGES: Edge[] = [];
+const EMIT_DEBOUNCE_MS = 1200; // Emit only after user pauses typing for a bit (more relaxed UX).
+
+// Prevent benign ResizeObserver loop errors from bubbling to the dev overlay.
+if (
+  typeof window !== "undefined" &&
+  !(window as any).__rfResizeObserverPatched
+) {
+  (window as any).__rfResizeObserverPatched = true;
+  // Wrap ResizeObserver callbacks in rAF to avoid sync measurement loops that trigger the warning.
+  if (typeof window.ResizeObserver === "function") {
+    const OriginalResizeObserver = window.ResizeObserver;
+    window.ResizeObserver = class extends OriginalResizeObserver {
+      constructor(callback: ResizeObserverCallback) {
+        super((entries, observer) => {
+          window.requestAnimationFrame(() => callback(entries, observer));
+        });
+      }
+    } as typeof ResizeObserver;
+  }
+  const shouldSwallow = (message: unknown) =>
+    typeof message === "string" &&
+    message.includes("ResizeObserver loop completed with undelivered");
+  const swallowResizeObserverError = (event: ErrorEvent) => {
+    const message =
+      event?.message || (event as any)?.error?.message || String(event);
+    if (shouldSwallow(message)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return true;
+    }
+    return undefined;
+  };
+  const swallowResizeObserverRejection = (event: PromiseRejectionEvent) => {
+    const message = (event.reason as any)?.message ?? String(event.reason);
+    if (shouldSwallow(message)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return true;
+    }
+    return undefined;
+  };
+  const swallowLoopEvent = (event: Event) => {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  };
+  const originalOnError = window.onerror;
+  window.onerror = function handleResizeObserverOnError(
+    message,
+    source,
+    lineno,
+    colno,
+    error
+  ): boolean | void {
+    if (
+      shouldSwallow(
+        typeof message === "string"
+          ? message
+          : (error as any)?.message ?? String(message)
+      )
+    ) {
+      return true;
+    }
+    if (typeof originalOnError === "function") {
+      return originalOnError(message, source, lineno, colno, error);
+    }
+    return undefined;
+  };
+  const originalOnUnhandledRejection = window.onunhandledrejection;
+  window.onunhandledrejection = function handleResizeObserverOnUnhandled(
+    event
+  ) {
+    const reason = (event as any)?.reason;
+    const message =
+      (reason as any)?.message ?? (typeof reason === "string" ? reason : "");
+    if (shouldSwallow(message)) {
+      return true;
+    }
+    if (typeof originalOnUnhandledRejection === "function") {
+      return (originalOnUnhandledRejection as any)(event);
+    }
+    return undefined;
+  };
+  window.addEventListener("error", swallowResizeObserverError, true);
+  window.addEventListener(
+    "unhandledrejection",
+    swallowResizeObserverRejection,
+    true
+  );
+  window.addEventListener(
+    "resizeobserverlooperror" as any,
+    swallowLoopEvent,
+    true
+  );
+}
 
 const shallowArrayEqual = (a?: string[], b?: string[]) => {
   if (a === b) {
@@ -205,6 +300,9 @@ export default function DesignerFlow({
   const [isDragging, setIsDragging] = useState(false);
   const emitAfterDragRef = useRef(false);
   const [viewport, setViewport] = useState<Viewport | null>(null);
+  const fitViewRafRef = useRef<number | null>(null);
+  const fitViewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const alignRafRef = useRef<number | null>(null);
 
   useEffect(() => {
     const isCacheChanged = cacheFingerprint !== lastCacheFingerprintRef.current;
@@ -302,24 +400,30 @@ export default function DesignerFlow({
       return;
     }
 
-    setNodes((currentNodes) => {
-      const alignedNodes = alignNodes(
-        currentNodes,
-        FIXED_X_POSITION,
-        VERTICAL_SPACING
-      );
-      const positionsChanged = alignedNodes.some((node, index) => {
-        const previousNode = currentNodes[index];
-        if (!previousNode) {
-          return true;
-        }
-        return (
-          node.position.x !== previousNode.position.x ||
-          node.position.y !== previousNode.position.y
+    if (alignRafRef.current !== null) {
+      cancelAnimationFrame(alignRafRef.current);
+    }
+    alignRafRef.current = window.requestAnimationFrame(() => {
+      alignRafRef.current = null;
+      setNodes((currentNodes) => {
+        const alignedNodes = alignNodes(
+          currentNodes,
+          FIXED_X_POSITION,
+          VERTICAL_SPACING
         );
-      });
+        const positionsChanged = alignedNodes.some((node, index) => {
+          const previousNode = currentNodes[index];
+          if (!previousNode) {
+            return true;
+          }
+          return (
+            node.position.x !== previousNode.position.x ||
+            node.position.y !== previousNode.position.y
+          );
+        });
 
-      return positionsChanged ? alignedNodes : currentNodes;
+        return positionsChanged ? alignedNodes : currentNodes;
+      });
     });
   }, [nodes, setNodes]);
 
@@ -497,7 +601,15 @@ export default function DesignerFlow({
     emitDebounceRef.current = setTimeout(() => {
       emitChanges();
       emitDebounceRef.current = null;
-    }, 25);
+    }, EMIT_DEBOUNCE_MS);
+  }, [emitChanges]);
+
+  const flushPendingEmit = useCallback(() => {
+    if (emitDebounceRef.current) {
+      clearTimeout(emitDebounceRef.current);
+      emitDebounceRef.current = null;
+    }
+    emitChanges();
   }, [emitChanges]);
 
   // Hoist handler/data refs into state so ReactFlow sees unchanged node objects when nothing relevant changed.
@@ -678,13 +790,29 @@ export default function DesignerFlow({
       if (emitDebounceRef.current) {
         clearTimeout(emitDebounceRef.current);
       }
+      if (fitViewRafRef.current !== null) {
+        cancelAnimationFrame(fitViewRafRef.current);
+        fitViewRafRef.current = null;
+      }
+      if (fitViewTimeoutRef.current) {
+        clearTimeout(fitViewTimeoutRef.current);
+        fitViewTimeoutRef.current = null;
+      }
+      if (alignRafRef.current !== null) {
+        cancelAnimationFrame(alignRafRef.current);
+        alignRafRef.current = null;
+      }
+      flushPendingEmit();
     };
-  }, []);
+  }, [flushPendingEmit]);
 
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance | null>(null);
   const fitFlowToView = useCallback(() => {
-    if (!reactFlowInstance) {
+    if (!reactFlowInstance || !nodes.length) {
+      return;
+    }
+    if (fitViewRafRef.current !== null) {
       return;
     }
     const nodeWithWidth = nodes.find((node) => node.width);
@@ -694,11 +822,28 @@ export default function DesignerFlow({
       padding,
       minZoom: 0.2,
     };
-    if (!nodes.length) {
-      return;
+    // Delay fitView to the next frame to avoid ResizeObserver loops while nodes mount/measure.
+    fitViewRafRef.current = window.requestAnimationFrame(() => {
+      fitViewRafRef.current = null;
+      try {
+        reactFlowInstance.fitView(viewOptions);
+      } catch {
+        // Swallow rare layout timing errors; the next change will try again.
+      }
+    });
+    // Fallback in case RAF is skipped (tab in background).
+    if (fitViewTimeoutRef.current) {
+      clearTimeout(fitViewTimeoutRef.current);
     }
-    reactFlowInstance.fitView(viewOptions);
-  }, [reactFlowInstance, nodes]);
+    fitViewTimeoutRef.current = setTimeout(() => {
+      fitViewTimeoutRef.current = null;
+      try {
+        reactFlowInstance.fitView(viewOptions);
+      } catch {
+        // Ignore; typically triggered only during tab throttling.
+      }
+    }, 50);
+  }, [nodes, reactFlowInstance]);
 
   useEffect(() => {
     if (!reactFlowInstance) {
@@ -710,6 +855,60 @@ export default function DesignerFlow({
     shouldAutoFitViewRef.current = false;
     fitFlowToView();
   }, [fitFlowToView, nodes, edges, reactFlowInstance]);
+
+  useEffect(() => {
+    const swallowResizeObserverError = (event: ErrorEvent) => {
+      const message =
+        event?.message || (event as any)?.error?.message || String(event);
+      if (
+        typeof message === "string" &&
+        message.includes("ResizeObserver loop")
+      ) {
+        // Prevent dev overlay noise for benign ResizeObserver timing loops that appear after fitView/layout.
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    };
+    const swallowResizeObserverRejection = (event: PromiseRejectionEvent) => {
+      const message = (event.reason as any)?.message ?? String(event.reason);
+      if (
+        typeof message === "string" &&
+        message.includes("ResizeObserver loop")
+      ) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    };
+    window.addEventListener("error", swallowResizeObserverError, true);
+    window.addEventListener(
+      "unhandledrejection",
+      swallowResizeObserverRejection,
+      true
+    );
+    // Chrome/FF dispatch a dedicated event for this condition; capture it to prevent overlay noise.
+    const swallowLoopErrorEvent = (event: Event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    };
+    window.addEventListener(
+      "resizeobserverlooperror" as any,
+      swallowLoopErrorEvent,
+      true
+    );
+    return () => {
+      window.removeEventListener("error", swallowResizeObserverError, true);
+      window.removeEventListener(
+        "unhandledrejection",
+        swallowResizeObserverRejection,
+        true
+      );
+      window.removeEventListener(
+        "resizeobserverlooperror" as any,
+        swallowLoopErrorEvent,
+        true
+      );
+    };
+  }, []);
 
   useEffect(() => {
     if (!reactFlowInstance) {
@@ -732,8 +931,8 @@ export default function DesignerFlow({
     }
   }, [isDragging]);
 
-  const handleMoveEnd = useCallback(
-    (_: ReactMouseEvent | undefined, nextViewport: Viewport) => {
+  const handleMoveEnd: OnMoveEnd = useCallback(
+    (_event, nextViewport: Viewport) => {
       // Keep zoom stable to optionally cull edges when zoomed out.
       setViewport(nextViewport);
     },
@@ -760,7 +959,6 @@ export default function DesignerFlow({
         onEdgesChange={onEdgesChange}
         onNodeDragStop={onNodeDragStop}
         onConnect={onConnect}
-        fitView
         onlyRenderVisibleElements
         onInit={setReactFlowInstance}
         onMoveEnd={handleMoveEnd}
