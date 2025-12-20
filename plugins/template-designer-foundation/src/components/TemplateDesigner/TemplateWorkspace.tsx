@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
   Button,
@@ -81,6 +81,8 @@ export const TemplateWorkspace = ({
   flowTopSlot,
   rightPanelSlot,
 }: TemplateWorkspaceProps) => {
+  const workspaceRef = useRef<HTMLDivElement | null>(null);
+  const [workspaceHeight, setWorkspaceHeight] = useState<number | null>(null);
   const theme = useTheme();
   const paletteMode =
     (theme.palette as { mode?: "light" | "dark" }).mode ??
@@ -146,11 +148,35 @@ export const TemplateWorkspace = ({
     [flushYamlDraft]
   );
 
+  const recalcWorkspaceHeight = useCallback(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const node = workspaceRef.current;
+    if (!node) {
+      return;
+    }
+    const rect = node.getBoundingClientRect();
+    const available = window.innerHeight - rect.top - 16;
+    setWorkspaceHeight(Math.max(available, 320));
+  }, []);
+
+  useEffect(() => {
+    recalcWorkspaceHeight();
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+    const handleResize = () => recalcWorkspaceHeight();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [recalcWorkspaceHeight]);
+
   return (
     <div
+      ref={workspaceRef}
       style={{
         position: "relative",
-        height: "100%",
+        height: workspaceHeight ? `${workspaceHeight}px` : "100vh",
         minHeight: 0,
       }}
     >
@@ -292,10 +318,18 @@ export const TemplateWorkspace = ({
                 display: "flex",
                 gap: 16,
                 minHeight: 0,
+                height: "100%",
               }}
             >
-              <div style={{ flex: showYaml ? 1.6 : 1, minWidth: 0 }}>
-                <div style={{ height: "100%" }}>
+              <div
+                style={{
+                  flex: showYaml ? 1.6 : 1,
+                  minWidth: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <div style={{ flex: 1, minHeight: 0 }}>
                   {flowTopSlot}
                   <DesignerFlow
                     steps={templateSteps}

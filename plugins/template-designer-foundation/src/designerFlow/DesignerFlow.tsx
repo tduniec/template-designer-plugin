@@ -21,6 +21,7 @@ import {
   ReactFlowInstance,
   NodeProps,
   NodeTypes,
+  Viewport,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import type {
@@ -44,6 +45,12 @@ import {
 } from "./model";
 import { createSequentialEdges } from "../utils/createSequentialEdges";
 import {
+  buildEdgeHashMap,
+  buildNodeHashMap,
+  mergeEdgesWithStability,
+  mergeNodesWithStability,
+} from "./utils/stableComparators";
+import {
   createHandleAddNode,
   createHandleRemoveNode,
   createHandleRemoveInputKey,
@@ -59,6 +66,23 @@ import {
   nodeDefaults as baseNodeDefaults,
 } from "../components/designerFlowConfig";
 import { useScaffolderActions } from "../api/useScaffolderActions";
+
+const EMPTY_EDGES: Edge[] = [];
+
+const shallowArrayEqual = (a?: string[], b?: string[]) => {
+  if (a === b) {
+    return true;
+  }
+  if (!a || !b || a.length !== b.length) {
+    return false;
+  }
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+  return true;
+};
 
 // Main orchestration component that renders and synchronizes the Designer flow.
 
@@ -94,6 +118,8 @@ export default function DesignerFlow({
   decorateEdges,
   nodeDefaults = baseNodeDefaults,
 }: DesignerFlowProps) {
+  const nodeDataHashRef = useRef<Record<string, string>>({});
+  const edgeDataHashRef = useRef<Record<string, string>>({});
   const scaffolderActionsCache = useScaffolderActions();
 
   const {
@@ -118,7 +144,9 @@ export default function DesignerFlow({
         scaffolderActionInputRequiredById,
       }
     );
-    return decorateNodes ? decorateNodes(built) : built;
+    const nodes = decorateNodes ? decorateNodes(built) : built;
+    nodeDataHashRef.current = buildNodeHashMap(nodes);
+    return nodes;
   }, [
     steps,
     normalizedParametersProp,
@@ -131,11 +159,15 @@ export default function DesignerFlow({
   ]);
 
   const [nodes, setNodes] = useNodesState(initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(() =>
-    decorateEdges
+  const initialEdges = useMemo(() => {
+    const edges = decorateEdges
       ? decorateEdges(createSequentialEdges(initialNodes), initialNodes)
-      : createSequentialEdges(initialNodes)
-  );
+      : createSequentialEdges(initialNodes);
+    edgeDataHashRef.current = buildEdgeHashMap(edges);
+    return edges;
+  }, [decorateEdges, initialNodes]);
+
+  const [edges, setEdges] = useState<Edge[]>(initialEdges);
 
   const modelHash = useMemo(
     () =>
@@ -172,6 +204,7 @@ export default function DesignerFlow({
   const isDraggingRef = useRef(false);
   const [isDragging, setIsDragging] = useState(false);
   const emitAfterDragRef = useRef(false);
+  const [viewport, setViewport] = useState<Viewport | null>(null);
 
   useEffect(() => {
     const isCacheChanged = cacheFingerprint !== lastCacheFingerprintRef.current;
@@ -198,12 +231,25 @@ export default function DesignerFlow({
     lastCacheFingerprintRef.current = cacheFingerprint;
     lastEmittedModelHashRef.current = modelHash;
 
-    setNodes(nextNodes);
-    setEdges(
-      decorateEdges
+    setNodes((currentNodes) => {
+      const merged = mergeNodesWithStability(
+        currentNodes,
+        nextNodes,
+        nodeDataHashRef
+      );
+      return merged;
+    });
+    setEdges((currentEdges) => {
+      const newEdges = decorateEdges
         ? decorateEdges(createSequentialEdges(nextNodes), nextNodes)
-        : createSequentialEdges(nextNodes)
-    );
+        : createSequentialEdges(nextNodes);
+      const merged = mergeEdgesWithStability(
+        currentEdges,
+        newEdges,
+        edgeDataHashRef
+      );
+      return merged;
+    });
     shouldAutoFitViewRef.current = true;
   }, [
     steps,
@@ -454,82 +500,162 @@ export default function DesignerFlow({
     }, 25);
   }, [emitChanges]);
 
-  const nodesWithHandlers = useMemo(
-    () =>
-      nodes.map((node) => {
-        if (node.type === "actionNode") {
-          const data = node.data as ActionNodeData;
-          return {
-            ...node,
-            data: {
-              ...data,
-              onAddNode: handleAddNode,
-              onRemoveNode: handleRemoveNode,
-              onUpdateField,
-              onUpdateInput,
-              onRemoveInputKey,
-              scaffolderActionIds,
-              scaffolderActionInputsById,
-              scaffolderActionOutputsById,
-              scaffolderActionInputRequiredById,
-              stepOutputReferences:
-                stepOutputReferencesByNode[node.id] ??
-                stepOutputReferencesByNode[node.id],
-            },
-          };
+  // Hoist handler/data refs into state so ReactFlow sees unchanged node objects when nothing relevant changed.
+  const ensureNodeDataStability = useCallback(
+    (node: Node): Node => {
+      if (node.type === "actionNode") {
+        const data = node.data as ActionNodeData;
+        const nextRefs =
+          stepOutputReferencesByNode[node.id] ?? data.stepOutputReferences;
+        const refsUnchanged = shallowArrayEqual(
+          data.stepOutputReferences,
+          nextRefs
+        );
+
+        const hasSameHandlers =
+          data.onAddNode === handleAddNode &&
+          data.onRemoveNode === handleRemoveNode &&
+          data.onUpdateField === onUpdateField &&
+          data.onUpdateInput === onUpdateInput &&
+          data.onRemoveInputKey === onRemoveInputKey;
+        const hasSameCaches =
+          data.scaffolderActionIds === scaffolderActionIds &&
+          data.scaffolderActionInputsById === scaffolderActionInputsById &&
+          data.scaffolderActionOutputsById === scaffolderActionOutputsById &&
+          data.scaffolderActionInputRequiredById ===
+            scaffolderActionInputRequiredById;
+
+        if (hasSameHandlers && hasSameCaches && refsUnchanged) {
+          return node;
         }
 
-        if (node.type === "outputNode") {
-          const data = node.data as OutputNodeData;
-          return {
-            ...node,
-            data: {
-              ...data,
-              onUpdateOutput,
-              onRemoveNode: handleRemoveNode,
-              onAddNode: handleAddNode,
-              stepOutputReferences:
-                stepOutputReferencesByNode[node.id] ??
-                stepOutputReferencesByNode[node.id],
-            },
-          };
+        return {
+          ...node,
+          data: {
+            ...data,
+            onAddNode: handleAddNode,
+            onRemoveNode: handleRemoveNode,
+            onUpdateField,
+            onUpdateInput,
+            onRemoveInputKey,
+            scaffolderActionIds,
+            scaffolderActionInputsById,
+            scaffolderActionOutputsById,
+            scaffolderActionInputRequiredById,
+            stepOutputReferences: refsUnchanged
+              ? data.stepOutputReferences
+              : nextRefs,
+          },
+        };
+      }
+
+      if (node.type === "outputNode") {
+        const data = node.data as OutputNodeData;
+        const nextRefs =
+          stepOutputReferencesByNode[node.id] ?? data.stepOutputReferences;
+        const refsUnchanged = shallowArrayEqual(
+          data.stepOutputReferences,
+          nextRefs
+        );
+        const hasSameHandlers =
+          data.onUpdateOutput === onUpdateOutput &&
+          data.onRemoveNode === handleRemoveNode &&
+          data.onAddNode === handleAddNode;
+
+        const hasSameCaches =
+          data.scaffolderActionIds === scaffolderActionIds &&
+          data.scaffolderActionInputsById === scaffolderActionInputsById &&
+          data.scaffolderActionOutputsById === scaffolderActionOutputsById &&
+          data.scaffolderActionInputRequiredById ===
+            scaffolderActionInputRequiredById;
+
+        if (hasSameHandlers && hasSameCaches && refsUnchanged) {
+          return node;
         }
 
-        if (node.type === "parametersNode") {
-          const data = node.data as ParametersNodeData;
-          return {
-            ...node,
-            data: {
-              ...data,
-              onUpdateSections,
-              onRemoveNode: handleRemoveNode,
-              onAddNode: handleAddNode,
-            },
-          };
+        return {
+          ...node,
+          data: {
+            ...data,
+            onUpdateOutput,
+            onRemoveNode: handleRemoveNode,
+            onAddNode: handleAddNode,
+            scaffolderActionIds,
+            scaffolderActionInputsById,
+            scaffolderActionOutputsById,
+            scaffolderActionInputRequiredById,
+            stepOutputReferences: refsUnchanged
+              ? data.stepOutputReferences
+              : nextRefs,
+          },
+        };
+      }
+
+      if (node.type === "parametersNode") {
+        const data = node.data as ParametersNodeData;
+        const hasSameHandlers =
+          data.onUpdateSections === onUpdateSections &&
+          data.onRemoveNode === handleRemoveNode &&
+          data.onAddNode === handleAddNode;
+        const hasSameCaches =
+          data.scaffolderActionIds === scaffolderActionIds &&
+          data.scaffolderActionInputsById === scaffolderActionInputsById &&
+          data.scaffolderActionOutputsById === scaffolderActionOutputsById &&
+          data.scaffolderActionInputRequiredById ===
+            scaffolderActionInputRequiredById;
+
+        if (hasSameHandlers && hasSameCaches) {
+          return node;
         }
 
-        return node;
-      }),
+        return {
+          ...node,
+          data: {
+            ...data,
+            onUpdateSections,
+            onRemoveNode: handleRemoveNode,
+            onAddNode: handleAddNode,
+            scaffolderActionIds,
+            scaffolderActionInputsById,
+            scaffolderActionOutputsById,
+            scaffolderActionInputRequiredById,
+          },
+        };
+      }
+
+      return node;
+    },
     [
-      nodes,
       handleAddNode,
       handleRemoveNode,
       onUpdateField,
       onUpdateInput,
       onRemoveInputKey,
+      onUpdateOutput,
+      onUpdateSections,
       scaffolderActionIds,
       scaffolderActionInputsById,
       scaffolderActionOutputsById,
       scaffolderActionInputRequiredById,
       stepOutputReferencesByNode,
-      onUpdateOutput,
-      onUpdateSections,
     ]
   );
 
   useEffect(() => {
-    emitChangesDeferred();
-  }, [nodesWithHandlers, emitChangesDeferred]);
+    setNodes((currentNodes) => {
+      let changed = false;
+      const nextNodes = currentNodes.map((node) => {
+        const updated = ensureNodeDataStability(node);
+        if (updated !== node) {
+          changed = true;
+        }
+        return updated;
+      });
+
+      // Returning the same array keeps ReactFlow nodes prop stable unless something truly changed.
+      return changed ? nextNodes : currentNodes;
+    });
+  }, [ensureNodeDataStability, setNodes]);
 
   useEffect(() => {
     emitChangesDeferred();
@@ -606,18 +732,38 @@ export default function DesignerFlow({
     }
   }, [isDragging]);
 
+  const handleMoveEnd = useCallback(
+    (_: ReactMouseEvent | undefined, nextViewport: Viewport) => {
+      // Keep zoom stable to optionally cull edges when zoomed out.
+      setViewport(nextViewport);
+    },
+    []
+  );
+
+  const shouldCullEdges =
+    edges.length > 300 && (viewport?.zoom ?? 1) < 0.3 && !isDragging;
+  const renderedEdges = useMemo(
+    () =>
+      shouldCullEdges
+        ? EMPTY_EDGES // Dropping edges when zoomed out keeps canvas responsive with huge graphs.
+        : edges,
+    [edges, shouldCullEdges]
+  );
+
   return (
     <div style={{ width: "100%", height: "100%", minHeight: "100%" }}>
       <ReactFlow
-        nodes={nodesWithHandlers}
-        edges={edges}
+        nodes={nodes}
+        edges={renderedEdges}
         nodeTypes={resolvedNodeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeDragStop={onNodeDragStop}
         onConnect={onConnect}
         fitView
+        onlyRenderVisibleElements
         onInit={setReactFlowInstance}
+        onMoveEnd={handleMoveEnd}
       />
     </div>
   );
