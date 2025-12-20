@@ -32,6 +32,7 @@ interface CreateHandleAddNodeOptions {
   scaffolderActionInputsById: Record<string, Record<string, unknown>>;
   scaffolderActionInputRequiredById: Record<string, string[]>;
   scaffolderActionOutputsById: Record<string, Record<string, unknown>>;
+  onNodeAdded?: (rfId: string) => void;
 }
 
 interface CreateHandleRemoveNodeOptions {
@@ -214,6 +215,7 @@ export const createHandleAddNode = (
         ...nodeDefaults,
       });
 
+      options.onNodeAdded?.(rfActionId);
       return composeAndAlign(parameterNodes, nextActions, outputNodes);
     });
   };

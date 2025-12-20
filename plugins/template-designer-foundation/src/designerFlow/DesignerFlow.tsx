@@ -23,6 +23,7 @@ import {
   NodeTypes,
   Viewport,
   OnMoveEnd,
+  OnMove,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import type {
@@ -70,6 +71,12 @@ import { useScaffolderActions } from "../api/useScaffolderActions";
 
 const EMPTY_EDGES: Edge[] = [];
 const EMIT_DEBOUNCE_MS = 1200; // Emit only after user pauses typing for a bit (more relaxed UX).
+const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+const VIEWPORT_TUNING = {
+  alignDebounceMs: 120, // Debounce view/align updates so typing isn't interrupted by layout thrash.
+  centerDurationMs: 280,
+  fitFallbackDelayMs: 50,
+};
 
 // Prevent benign ResizeObserver loop errors from bubbling to the dev overlay.
 if (
@@ -226,6 +233,9 @@ export default function DesignerFlow({
 
   const normalizedParametersProp = parameters ?? undefined;
   const normalizedOutputProp = output ?? null;
+  const pendingFocusNodeIdRef = useRef<string | null>(null);
+  const hasMountedRef = useRef(false);
+  const lastNodeCountRef = useRef(0);
 
   const initialNodes = useMemo(() => {
     const built = buildNodesFromModel(
@@ -259,6 +269,7 @@ export default function DesignerFlow({
       ? decorateEdges(createSequentialEdges(initialNodes), initialNodes)
       : createSequentialEdges(initialNodes);
     edgeDataHashRef.current = buildEdgeHashMap(edges);
+    lastNodeCountRef.current = initialNodes.length;
     return edges;
   }, [decorateEdges, initialNodes]);
 
@@ -294,16 +305,46 @@ export default function DesignerFlow({
   const lastEmittedModelHashRef = useRef<string | null>(null);
   const lastCacheFingerprintRef = useRef<string | null>(null);
   const nodeHeightsRef = useRef<Record<string, number>>({});
-  const shouldAutoFitViewRef = useRef(true);
+  const lastViewportRef = useRef<Viewport | null>(null);
   const emitDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isDraggingRef = useRef(false);
   const [isDragging, setIsDragging] = useState(false);
   const emitAfterDragRef = useRef(false);
-  const [viewport, setViewport] = useState<Viewport | null>(null);
+  const pendingInitialFitRef = useRef(true);
+  const userMovedViewportRef = useRef(false);
+  const layoutInitializedRef = useRef(false);
+  const [viewport, setViewport] = useState<Viewport | null>(() => {
+    const existing = lastViewportRef.current;
+    if (existing) {
+      return existing;
+    }
+    const fallback = { x: 0, y: 0, zoom: 1 };
+    lastViewportRef.current = fallback;
+    return fallback;
+  });
   const fitViewRafRef = useRef<number | null>(null);
   const fitViewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const alignRafRef = useRef<number | null>(null);
+  const alignDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const setViewportIfChanged = useCallback(
+    (next: Viewport | null) => {
+      if (!next) {
+        return;
+      }
+      const prev = lastViewportRef.current;
+      if (
+        prev &&
+        prev.x === next.x &&
+        prev.y === next.y &&
+        prev.zoom === next.zoom
+      ) {
+        return;
+      }
+      lastViewportRef.current = next;
+      setViewport(next);
+    },
+    []
+  );
   useEffect(() => {
     const isCacheChanged = cacheFingerprint !== lastCacheFingerprintRef.current;
 
@@ -324,6 +365,7 @@ export default function DesignerFlow({
     );
 
     const nextNodes = decorateNodes ? decorateNodes(builtNodes) : builtNodes;
+    const isInitialMount = !hasMountedRef.current;
 
     lastAppliedModelHashRef.current = modelHash;
     lastCacheFingerprintRef.current = cacheFingerprint;
@@ -348,7 +390,11 @@ export default function DesignerFlow({
       );
       return merged;
     });
-    shouldAutoFitViewRef.current = true;
+    hasMountedRef.current = true;
+    lastNodeCountRef.current = nextNodes.length;
+    if (isInitialMount) {
+      pendingInitialFitRef.current = true;
+    }
   }, [
     steps,
     normalizedParametersProp,
@@ -384,7 +430,9 @@ export default function DesignerFlow({
         return;
       }
       const previousHeight = nodeHeightsRef.current[node.id];
-      if (previousHeight !== measuredHeight) {
+      const heightDelta = Math.abs((previousHeight ?? measuredHeight) - measuredHeight);
+      if (heightDelta >= 1) {
+        // Ignore tiny size jitter; only react when node height meaningfully changes.
         nodeHeightsRef.current[node.id] = measuredHeight;
         hasMeasuredChange = true;
       }
@@ -400,11 +448,17 @@ export default function DesignerFlow({
       return;
     }
 
-    if (alignRafRef.current !== null) {
-      cancelAnimationFrame(alignRafRef.current);
+    if (!layoutInitializedRef.current) {
+      // Skip the first post-measure align to avoid initial jump; positions are already close to target.
+      layoutInitializedRef.current = true;
+      return;
     }
-    alignRafRef.current = window.requestAnimationFrame(() => {
-      alignRafRef.current = null;
+
+    if (alignDebounceRef.current) {
+      clearTimeout(alignDebounceRef.current);
+    }
+    alignDebounceRef.current = setTimeout(() => {
+      alignDebounceRef.current = null;
       setNodes((currentNodes) => {
         const alignedNodes = alignNodes(
           currentNodes,
@@ -424,7 +478,7 @@ export default function DesignerFlow({
 
         return positionsChanged ? alignedNodes : currentNodes;
       });
-    });
+    }, VIEWPORT_TUNING.alignDebounceMs);
   }, [nodes, setNodes]);
 
   const parameterReferences = useMemo(
@@ -543,6 +597,11 @@ export default function DesignerFlow({
         scaffolderActionInputsById,
         scaffolderActionInputRequiredById,
         scaffolderActionOutputsById,
+        onNodeAdded: (rfId: string) => {
+          pendingFocusNodeIdRef.current = rfId;
+          // Keep current zoom/viewport; focus will center on the new node.
+          pendingInitialFitRef.current = false;
+        },
       }),
     [
       scaffolderActionIds,
@@ -798,9 +857,8 @@ export default function DesignerFlow({
         clearTimeout(fitViewTimeoutRef.current);
         fitViewTimeoutRef.current = null;
       }
-      if (alignRafRef.current !== null) {
-        cancelAnimationFrame(alignRafRef.current);
-        alignRafRef.current = null;
+      if (alignDebounceRef.current) {
+        clearTimeout(alignDebounceRef.current);
       }
       flushPendingEmit();
     };
@@ -815,6 +873,10 @@ export default function DesignerFlow({
     if (fitViewRafRef.current !== null) {
       return;
     }
+    if (userMovedViewportRef.current && !pendingInitialFitRef.current) {
+      // Respect user navigation; don't snap back after they moved the camera.
+      return;
+    }
     const nodeWithWidth = nodes.find((node) => node.width);
     const nodeWidth = nodeWithWidth?.width ?? 760;
     const padding = Math.max((window.innerWidth - nodeWidth) / 2 - 24, 60);
@@ -827,6 +889,7 @@ export default function DesignerFlow({
       fitViewRafRef.current = null;
       try {
         reactFlowInstance.fitView(viewOptions);
+        setViewportIfChanged(reactFlowInstance.getViewport());
       } catch {
         // Swallow rare layout timing errors; the next change will try again.
       }
@@ -839,22 +902,26 @@ export default function DesignerFlow({
       fitViewTimeoutRef.current = null;
       try {
         reactFlowInstance.fitView(viewOptions);
+        setViewportIfChanged(reactFlowInstance.getViewport());
       } catch {
         // Ignore; typically triggered only during tab throttling.
       }
-    }, 50);
-  }, [nodes, reactFlowInstance]);
+    }, VIEWPORT_TUNING.fitFallbackDelayMs);
+  }, [nodes, reactFlowInstance, setViewportIfChanged]);
 
   useEffect(() => {
     if (!reactFlowInstance) {
       return;
     }
-    if (!shouldAutoFitViewRef.current) {
+    if (viewport === null) {
+      setViewportIfChanged(viewport);
+    }
+    if (!pendingInitialFitRef.current) {
       return;
     }
-    shouldAutoFitViewRef.current = false;
+    pendingInitialFitRef.current = false;
     fitFlowToView();
-  }, [fitFlowToView, nodes, edges, reactFlowInstance]);
+  }, [fitFlowToView, nodes, edges, reactFlowInstance, viewport, setViewportIfChanged]);
 
   useEffect(() => {
     const swallowResizeObserverError = (event: ErrorEvent) => {
@@ -934,9 +1001,17 @@ export default function DesignerFlow({
   const handleMoveEnd: OnMoveEnd = useCallback(
     (_event, nextViewport: Viewport) => {
       // Keep zoom stable to optionally cull edges when zoomed out.
-      setViewport(nextViewport);
+      setViewportIfChanged(nextViewport);
     },
-    []
+    [setViewportIfChanged]
+  );
+
+  const handleMove: OnMove = useCallback(
+    (_, nextViewport) => {
+      userMovedViewportRef.current = true;
+      setViewportIfChanged(nextViewport);
+    },
+    [setViewportIfChanged]
   );
 
   const shouldCullEdges =
@@ -949,16 +1024,55 @@ export default function DesignerFlow({
     [edges, shouldCullEdges]
   );
 
+  useEffect(() => {
+    if (!reactFlowInstance) {
+      return;
+    }
+    const pendingId = pendingFocusNodeIdRef.current;
+    if (!pendingId) {
+      return;
+    }
+    const target = nodes.find((node) => node.id === pendingId);
+    if (!target) {
+      return;
+    }
+    pendingFocusNodeIdRef.current = null;
+    const nodeCenterX = target.position.x + (target.width ?? 0) / 2;
+    const nodeCenterY = target.position.y + (target.height ?? 0) / 2;
+    const zoom = viewport?.zoom ?? lastViewportRef.current?.zoom ?? undefined;
+    try {
+      reactFlowInstance.setCenter(nodeCenterX, nodeCenterY, {
+        zoom,
+        duration: VIEWPORT_TUNING.centerDurationMs,
+        easing: easeOutCubic,
+      });
+      window.requestAnimationFrame(() => {
+        setViewportIfChanged(reactFlowInstance.getViewport());
+      });
+    } catch {
+      // ignore
+    }
+  }, [nodes, reactFlowInstance, viewport, setViewportIfChanged]);
+
   return (
     <div style={{ width: "100%", height: "100%", minHeight: "100%" }}>
       <ReactFlow
         nodes={nodes}
         edges={renderedEdges}
         nodeTypes={resolvedNodeTypes}
+        defaultViewport={
+          viewport ?? {
+            x: 0,
+            y: 0,
+            zoom: 1,
+          }
+        }
+        viewport={viewport ?? undefined}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeDragStop={onNodeDragStop}
         onConnect={onConnect}
+        onMove={handleMove}
         onlyRenderVisibleElements
         onInit={setReactFlowInstance}
         onMoveEnd={handleMoveEnd}
