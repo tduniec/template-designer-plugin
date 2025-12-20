@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
   Button,
@@ -81,6 +81,8 @@ export const TemplateWorkspace = ({
   flowTopSlot,
   rightPanelSlot,
 }: TemplateWorkspaceProps) => {
+  const workspaceRef = useRef<HTMLDivElement | null>(null);
+  const [workspaceHeight, setWorkspaceHeight] = useState<number | null>(null);
   const theme = useTheme();
   const paletteMode =
     (theme.palette as { mode?: "light" | "dark" }).mode ??
@@ -89,6 +91,25 @@ export const TemplateWorkspace = ({
   const yamlDraftRef = useRef(templateYaml);
   const templateYamlRef = useRef(templateYaml);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flowDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastGoodFlowModelRef = useRef<{
+    steps: TaskStep[];
+    parameters: TemplateParametersValue;
+    output?: ScaffolderTaskOutput;
+  }>({
+    steps: templateSteps,
+    parameters: templateParameters,
+    output: templateOutput,
+  });
+  const [debouncedFlowModel, setDebouncedFlowModel] = useState<{
+    steps: TaskStep[];
+    parameters: TemplateParametersValue;
+    output?: ScaffolderTaskOutput;
+  }>({
+    steps: templateSteps,
+    parameters: templateParameters,
+    output: templateOutput,
+  });
   const yamlExtensions = useMemo(() => [yaml()], []);
   const codeMirrorTheme = useMemo(
     () => createCodeMirrorTheme(theme, paletteMode),
@@ -116,14 +137,52 @@ export const TemplateWorkspace = ({
           onYamlChange(yamlDraftRef.current);
         }
         debounceRef.current = null;
-      }, 300);
+      }, 600); // Send YAML updates after user pauses; avoids live sync on every keystroke.
     },
     [onYamlChange]
   );
 
+  const flushFlowDebounce = useCallback(() => {
+    if (flowDebounceRef.current) {
+      clearTimeout(flowDebounceRef.current);
+      flowDebounceRef.current = null;
+    }
+    // Push latest parsable props immediately; used when user clicks out.
+    if (!yamlError) {
+      lastGoodFlowModelRef.current = {
+        steps: templateSteps,
+        parameters: templateParameters,
+        output: templateOutput,
+      };
+    }
+    setDebouncedFlowModel(lastGoodFlowModelRef.current);
+  }, [templateParameters, templateSteps, templateOutput, yamlError]);
+
   const handleYamlBlur = useCallback(() => {
     flushYamlDraft();
-  }, [flushYamlDraft]);
+    // Ensure pending graph updates flush when user leaves the editor.
+    flushFlowDebounce();
+  }, [flushFlowDebounce, flushYamlDraft]);
+
+  useEffect(() => {
+    // Keep the last good (parsable) model so YAML drafts with errors don't blank the canvas.
+    if (!yamlError) {
+      lastGoodFlowModelRef.current = {
+        steps: templateSteps,
+        parameters: templateParameters,
+        output: templateOutput,
+      };
+    }
+    if (flowDebounceRef.current) {
+      clearTimeout(flowDebounceRef.current);
+    }
+    // Debounce to avoid re-rendering the graph on every keystroke in YAML/editor.
+    flowDebounceRef.current = setTimeout(() => {
+      // If YAML is broken, keep showing the last good model instead of empty graph.
+      setDebouncedFlowModel(lastGoodFlowModelRef.current);
+      flowDebounceRef.current = null;
+    }, 400);
+  }, [templateParameters, templateSteps, templateOutput, yamlError]);
 
   useEffect(() => {
     yamlDraftRef.current = templateYaml;
@@ -141,17 +200,44 @@ export const TemplateWorkspace = ({
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
+      if (flowDebounceRef.current) {
+        clearTimeout(flowDebounceRef.current);
+      }
       flushYamlDraft();
     },
     [flushYamlDraft]
   );
 
+  const recalcWorkspaceHeight = useCallback(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const node = workspaceRef.current;
+    if (!node) {
+      return;
+    }
+    const rect = node.getBoundingClientRect();
+    const available = window.innerHeight - rect.top - 16;
+    setWorkspaceHeight(Math.max(available, 320));
+  }, []);
+
+  useEffect(() => {
+    recalcWorkspaceHeight();
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+    const handleResize = () => recalcWorkspaceHeight();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [recalcWorkspaceHeight]);
+
   return (
     <div
+      ref={workspaceRef}
       style={{
         position: "relative",
-        height: "calc(100vh - 160px)",
-        minHeight: "70vh",
+        height: workspaceHeight ? `${workspaceHeight}px` : "100vh",
+        minHeight: 0,
       }}
     >
       {isSyncing && (
@@ -292,15 +378,23 @@ export const TemplateWorkspace = ({
                 display: "flex",
                 gap: 16,
                 minHeight: 0,
+                height: "100%",
               }}
             >
-              <div style={{ flex: showYaml ? 1.6 : 1, minWidth: 0 }}>
-                <div style={{ height: "100%" }}>
+              <div
+                style={{
+                  flex: showYaml ? 1.6 : 1,
+                  minWidth: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <div style={{ flex: 1, minHeight: 0 }}>
                   {flowTopSlot}
                   <DesignerFlow
-                    steps={templateSteps}
-                    parameters={templateParameters}
-                    output={templateOutput}
+                    steps={debouncedFlowModel.steps}
+                    parameters={debouncedFlowModel.parameters}
+                    output={debouncedFlowModel.output}
                     onStepsChange={onStepsChange}
                     onParametersChange={onParametersChange}
                     onOutputChange={onOutputChange}

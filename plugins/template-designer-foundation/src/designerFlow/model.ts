@@ -222,4 +222,17 @@ export const collectStepOutputReferences = (
 };
 
 export const stableStringify = (value: unknown) =>
-  JSON.stringify(value, Object.keys(value as any).sort());
+  JSON.stringify(value, (_key, v) => {
+    if (Array.isArray(v)) {
+      return v;
+    }
+    if (v && typeof v === "object") {
+      return Object.keys(v as Record<string, unknown>)
+        .sort()
+        .reduce<Record<string, unknown>>((acc, k) => {
+          acc[k] = (v as Record<string, unknown>)[k];
+          return acc;
+        }, {});
+    }
+    return v;
+  });

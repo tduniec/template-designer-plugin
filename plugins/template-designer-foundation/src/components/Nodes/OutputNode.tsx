@@ -110,6 +110,10 @@ const TextRow = styled(Box)(({ theme }) => ({
 }));
 
 const OutputNodeComponent: React.FC<{ data: OutputNodeData }> = ({ data }) => {
+  if (process.env.NODE_ENV === "development") {
+    // eslint-disable-next-line no-console
+    console.debug("[DesignerFlow] render OutputNode", data.rfId);
+  }
   const theme = useTheme();
   const paletteMode = resolvePaletteMode(theme);
   const stopAll = createStopNodeInteraction();

@@ -68,6 +68,11 @@ const Header = styled(Box)(({ theme }) => {
 const ParametersNodeComponent: FC<{ data: ParametersNodeData }> = ({
   data,
 }) => {
+  if (process.env.NODE_ENV === "development") {
+    // Quick dev-only visibility into unnecessary renders per node.
+    // eslint-disable-next-line no-console
+    console.debug("[DesignerFlow] render ParametersNode", data.rfId);
+  }
   const theme = useTheme();
   const paletteMode = resolvePaletteMode(theme);
   const {
