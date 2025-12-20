@@ -17,12 +17,13 @@ jobs:
     if: github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork # Don't run on PRs from forks
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 1
       matrix:
         pkg:
-          - name: template-designer
-            path: plugins/template-designer
           - name: template-designer-foundation
             path: plugins/template-designer-foundation
+          - name: template-designer
+            path: plugins/template-designer
     steps:
       # Checkout PR head for PRs, main for push
       - name: Checkout PR head

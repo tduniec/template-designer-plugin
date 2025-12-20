@@ -71,7 +71,6 @@ import { useScaffolderActions } from "../api/useScaffolderActions";
 
 const EMPTY_EDGES: Edge[] = [];
 const EMIT_DEBOUNCE_MS = 1200; // Emit only after user pauses typing for a bit (more relaxed UX).
-const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 const VIEWPORT_TUNING = {
   alignDebounceMs: 120, // Debounce view/align updates so typing isn't interrupted by layout thrash.
   centerDurationMs: 280,
@@ -326,25 +325,22 @@ export default function DesignerFlow({
   const fitViewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const alignDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const setViewportIfChanged = useCallback(
-    (next: Viewport | null) => {
-      if (!next) {
-        return;
-      }
-      const prev = lastViewportRef.current;
-      if (
-        prev &&
-        prev.x === next.x &&
-        prev.y === next.y &&
-        prev.zoom === next.zoom
-      ) {
-        return;
-      }
-      lastViewportRef.current = next;
-      setViewport(next);
-    },
-    []
-  );
+  const setViewportIfChanged = useCallback((next: Viewport | null) => {
+    if (!next) {
+      return;
+    }
+    const prev = lastViewportRef.current;
+    if (
+      prev &&
+      prev.x === next.x &&
+      prev.y === next.y &&
+      prev.zoom === next.zoom
+    ) {
+      return;
+    }
+    lastViewportRef.current = next;
+    setViewport(next);
+  }, []);
   useEffect(() => {
     const isCacheChanged = cacheFingerprint !== lastCacheFingerprintRef.current;
 
@@ -430,7 +426,9 @@ export default function DesignerFlow({
         return;
       }
       const previousHeight = nodeHeightsRef.current[node.id];
-      const heightDelta = Math.abs((previousHeight ?? measuredHeight) - measuredHeight);
+      const heightDelta = Math.abs(
+        (previousHeight ?? measuredHeight) - measuredHeight
+      );
       if (heightDelta >= 1) {
         // Ignore tiny size jitter; only react when node height meaningfully changes.
         nodeHeightsRef.current[node.id] = measuredHeight;
@@ -921,7 +919,14 @@ export default function DesignerFlow({
     }
     pendingInitialFitRef.current = false;
     fitFlowToView();
-  }, [fitFlowToView, nodes, edges, reactFlowInstance, viewport, setViewportIfChanged]);
+  }, [
+    fitFlowToView,
+    nodes,
+    edges,
+    reactFlowInstance,
+    viewport,
+    setViewportIfChanged,
+  ]);
 
   useEffect(() => {
     const swallowResizeObserverError = (event: ErrorEvent) => {
@@ -1044,7 +1049,6 @@ export default function DesignerFlow({
       reactFlowInstance.setCenter(nodeCenterX, nodeCenterY, {
         zoom,
         duration: VIEWPORT_TUNING.centerDurationMs,
-        easing: easeOutCubic,
       });
       window.requestAnimationFrame(() => {
         setViewportIfChanged(reactFlowInstance.getViewport());
