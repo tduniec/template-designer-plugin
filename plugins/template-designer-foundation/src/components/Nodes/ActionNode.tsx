@@ -65,6 +65,11 @@ const DEFAULT_ACTION_OPTIONS = [
 
 const ActionNodeComponent: React.FC<{ data: ActionNodeData }> = ({ data }) => {
   const { rfId, step } = data;
+  if (process.env.NODE_ENV === "development") {
+    // Helps confirm rerender counts per node without shipping console noise to production.
+    // eslint-disable-next-line no-console
+    console.debug("[DesignerFlow] render ActionNode", rfId);
+  }
   const [newKey, setNewKey] = useState("");
   const [newVal, setNewVal] = useState("");
   const stepOutputReferences = data.stepOutputReferences ?? [];
