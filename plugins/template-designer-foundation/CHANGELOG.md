@@ -1,3 +1,10 @@
+## [0.1.1](https://github.com/tduniec/template-designer-plugin/compare/template-designer-foundation-v0.1.0...template-designer-foundation-v0.1.1) (2025-12-20)
+
+
+### Bug Fixes
+
+* **template-designer-foundation:** initial release ([1ddc9d7](https://github.com/tduniec/template-designer-plugin/commit/1ddc9d72f343ab944e706919788e244b8efcdb39))
+
 # [0.1.0](https://github.com/tduniec/template-designer-plugin/compare/template-designer-foundation-v0.0.1...template-designer-foundation-v0.1.0) (2025-12-20)
 
 
