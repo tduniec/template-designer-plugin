@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": ["src", "dev"],
+  "exclude": ["node_modules", "dist", "dist-types"],
+  "compilerOptions": {
+    "outDir": "../../dist-types/plugins/template-designer",
+    "rootDir": ".",
+    "baseUrl": "."
+  }
+}

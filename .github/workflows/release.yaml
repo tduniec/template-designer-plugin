@@ -8,14 +8,22 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
   issues: write
+  pull-requests: write
+  packages: write
 
 jobs:
   release:
     if: github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork # Don't run on PRs from forks
     runs-on: ubuntu-latest
-
+    strategy:
+      max-parallel: 1
+      matrix:
+        pkg:
+          - name: template-designer-foundation
+            path: plugins/template-designer-foundation
+          - name: template-designer
+            path: plugins/template-designer
     steps:
       # Checkout PR head for PRs, main for push
       - name: Checkout PR head
@@ -33,9 +41,11 @@ jobs:
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22
+          registry-url: https://registry.npmjs.org
+          scope: '@tduniec'
 
       - name: Cache Yarn 4 artifacts
         uses: actions/cache@v4
@@ -49,13 +59,30 @@ jobs:
           restore-keys: |
             yarn4-node-modules-${{ runner.os }}-node22-
             yarn4-node-modules-${{ runner.os }}-
-
+     
       - name: Install dependencies
         run: |
           yarn install --immutable
 
-      - name: Build the plugin package
+      - name: Semantic Release ${{ matrix.pkg.name }} (Dry Run)
+        if: github.event_name == 'pull_request'
+        working-directory: ${{ matrix.pkg.path }}
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          persist-credentials: false
+        run: |
+          # Pretend we're not in CI so semantic-release doesn't see refs/pull/.../merge
+          unset GITHUB_ACTIONS
+          unset CI
+
+          # Treat the PR branch as the release branch for this dry-run
+          npx semantic-release --no-ci --dry-run --branches $HEAD_REF
+
+      - name: Build the plugin ${{ matrix.pkg.name }} package
         if: github.event_name == 'push'
+        working-directory: ${{ matrix.pkg.path }}
         run: |
           yarn clean
           yarn tsc
@@ -69,22 +96,6 @@ jobs:
           app-id: ${{ vars.REPO_APP_ID }}
           private-key: ${{ secrets.REPO_APP_PRIVATE_KEY }}
 
-      # DRY RUN on PRs
-      - name: Semantic Release (Dry Run)
-        if: github.event_name == 'pull_request'
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          HEAD_REF: ${{ github.head_ref }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          persist-credentials: false
-        run: |
-          # Pretend we're not in CI so semantic-release doesn't see refs/pull/.../merge
-          unset GITHUB_ACTIONS
-          unset CI
-
-          # Treat the PR branch as the release branch for this dry-run
-          npx semantic-release --no-ci --dry-run --branches "$HEAD_REF"
-
       - name: Prepare NPM release config
         if: github.event_name == 'push'
         run: |
@@ -93,8 +104,9 @@ jobs:
           echo "npmPublishRegistry: https://registry.npmjs.org" >> .yarnrc.yml
 
       # REAL RELEASE on push to main
-      - name: Semantic Release
-        if: github.event_name == 'push'
+      - name: Semantic Release ${{ matrix.pkg.name }}
+        if: github.event_name == 'push' 
+        working-directory: ${{ matrix.pkg.path }}
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

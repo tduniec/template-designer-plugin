@@ -1,58 +1,28 @@
 {
-  "name": "@tduniec/plugin-template-designer",
-  "description": "Template Designer turns blank Backstage YAML into a storyboard-like canvas, guiding anyone through drag-and-drop scaffolder authoring before ever touching code. Rally non-experts, broadcast best practices, and accelerate template launches directly inside Backstage.",
-  "version": "0.3.7",
-  "license": "Apache-2.0",
-  "keywords": [
-    "backstage",
-    "scaffolder",
-    "template-designer",
-    "no-code",
-    "yaml",
-    "canvas"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/tduniec/template-designer-plugin.git",
-    "directory": "."
-  },
-  "exports": {
-    ".": "./src/index.ts",
-    "./alpha": "./src/alpha.tsx",
-    "./package.json": "./package.json"
-  },
-  "main": "dist/index.esm.js",
-  "types": "dist/index.d.ts",
-  "publishConfig": {
-    "access": "public",
-    "main": "dist/index.esm.js",
-    "types": "dist/index.d.ts"
-  },
-  "backstage": {
-    "role": "frontend-plugin",
-    "pluginId": "template-designer",
-    "pluginPackages": [
-      "@tduniec/plugin-template-designer"
-    ],
-    "features": {
-      "./alpha": "@backstage/FrontendPlugin"
-    }
-  },
+  "name": "root",
+  "version": "1.0.0",
   "sideEffects": false,
+  "workspaces": {
+    "packages": [
+      "plugins/*"
+    ]
+  },
   "scripts": {
-    "start": "backstage-cli package start",
-    "build": "backstage-cli package build",
-    "lint": "backstage-cli package lint",
-    "test": "backstage-cli package test",
-    "clean": "backstage-cli package clean",
-    "tsc": "tsc",
+    "start": "yarn workspace @tduniec/plugin-template-designer start",
+    "build": "yarn workspaces foreach -At run build",
+    "test": "yarn workspaces foreach -At run test",
+    "clean": "yarn workspaces foreach -At run clean",
+    "lint": "yarn workspaces foreach -At run lint",
+    "tsc": "yarn workspaces foreach -At run tsc",
     "tsc:full": "tsc --skipLibCheck false --incremental false",
     "lint:all": "backstage-cli repo lint",
-    "prettier:check": "prettier --check .",
+    "prettier": "yarn workspaces foreach -At run prettier:check",
+    "prettier:fix": "yarn workspaces foreach -At run prettier:fix",
+    "prettier:check": "yarn workspaces foreach -At run prettier:check",
     "prepack": "backstage-cli package prepack",
     "postpack": "backstage-cli package postpack",
-    "validate": "tsc && backstage-cli package lint && prettier --check .",
-    "validate:fix": "tsc && backstage-cli package lint --fix && prettier -w .",
+    "validate": "yarn workspaces foreach -At run tsc && backstage-cli package lint && prettier --check .",
+    "validate:fix": "yarn tsc && yarn lint && yarn prettier:fix",
     "validate:full": "tsc --skipLibCheck false --incremental false && backstage-cli repo lint && prettier --check .",
     "prepare": "husky"
   },
@@ -75,15 +45,6 @@
     "@material-ui/lab": "^4.0.0-alpha.61",
     "@xyflow/react": "^12.8.6",
     "yaml": "^2.8.1"
-  },
-  "peerDependencies": {
-    "@codemirror/lang-yaml": "^6.0.0",
-    "@codemirror/state": "^6.0.0",
-    "@codemirror/view": "^6.0.0",
-    "@uiw/react-codemirror": "^4.25.2",
-    "react": "^18.0.0",
-    "react-router-dom": "^6.23.0",
-    "react-use": "^17.2.4"
   },
   "devDependencies": {
     "@backstage/catalog-client": "backstage:^",
@@ -124,19 +85,5 @@
     "typescript": "~5.8.0",
     "webpack": "~5.96.0"
   },
-  "files": [
-    "dist"
-  ],
-  "packageManager": "yarn@4.10.3",
-  "typesVersions": {
-    "*": {
-      "alpha": [
-        "dist/alpha.d.ts"
-      ],
-      "package.json": [
-        "package.json"
-      ]
-    }
-  },
-  "module": "./dist/index.esm.js"
+  "packageManager": "yarn@4.10.3"
 }
