@@ -164,7 +164,7 @@ export const collectParameterReferences = (
   }
   return parameters.flatMap((param) =>
     Object.keys((param as any)?.properties ?? {}).map(
-      (propKey) => `parameters.${propKey}`
+      (propKey) => `\${{ parameters.${propKey} }}`
     )
   );
 };
@@ -173,52 +173,77 @@ export const collectStepOutputReferences = (
   nodes: Node[],
   parameterReferences: string[]
 ): Record<string, string[]> => {
-  const formatRef = (ref: string) => `\${{ ${ref} }}`;
+  const formatStepOutputProp = (stepId: string, prop: string) =>
+    `\${{ steps['${stepId}'].output.${prop} }}`;
 
-  const actionNodes = nodes.filter(
-    (node) => node.type === "actionNode"
-  ) as Node<ActionNodeData>[];
-  const outputNode = nodes.find((node) => node.type === "outputNode") as
-    | Node<OutputNodeData>
-    | undefined;
+  const referencesByNode: Record<string, string[]> = {};
+  const sortedNodes = [...nodes].sort((a, b) => a.position.y - b.position.y);
+  const accumulatedReferences: string[] = [...parameterReferences];
+  const accumulatedSet = new Set<string>(parameterReferences);
+  const outputKeysByStepId: Record<string, string[]> = {};
 
-  const references: Record<string, string[]> = {};
+  sortedNodes.forEach((node) => {
+    referencesByNode[node.id] = [...accumulatedReferences];
 
-  actionNodes.forEach((node, index) => {
-    const priorSteps = actionNodes
-      .slice(0, index)
-      .map((n) => n.data?.step?.id)
-      .filter(Boolean) as string[];
-    const priorStepRefs = priorSteps.map((id) =>
-      formatRef(`steps.${id}.output`)
-    );
-    const priorIds = priorSteps.map((id) => formatRef(`steps.${id}.id`));
-    const parameterRefs = parameterReferences.map((ref) => formatRef(ref));
-
-    const thisStepId = node.data?.step?.id;
-    if (!thisStepId) {
-      references[node.id] = [...parameterRefs, ...priorStepRefs, ...priorIds];
+    const data = node.data as Partial<ActionNodeData> | undefined;
+    if (!data || !data.step) {
       return;
     }
 
-    const outputRefs = [
-      formatRef(`steps.${thisStepId}.output`),
-      ...priorStepRefs,
-      ...parameterRefs,
-    ];
-    references[node.id] = Array.from(new Set(outputRefs));
+    const { step, scaffolderActionOutputsById } = data;
+    const stepId =
+      step && typeof step.id === "string" && step.id.trim().length > 0
+        ? step.id
+        : null;
+    const actionId =
+      step && typeof step.action === "string" && step.action.trim().length > 0
+        ? step.action
+        : null;
+
+    if (!stepId || !actionId) {
+      return;
+    }
+
+    const outputKeys = new Set<string>();
+    const schemaOutputs = scaffolderActionOutputsById?.[actionId];
+    if (schemaOutputs && typeof schemaOutputs === "object") {
+      // Prefer nested properties if present; otherwise use top-level keys.
+      const props =
+        (schemaOutputs as { properties?: Record<string, unknown> }).properties ??
+        schemaOutputs;
+      Object.keys(props ?? {}).forEach((key) => {
+        if (key) {
+          outputKeys.add(key);
+        }
+      });
+    }
+
+    const stepOutput = (step as { output?: Record<string, unknown> }).output;
+    if (stepOutput && typeof stepOutput === "object") {
+      Object.keys(stepOutput).forEach((key) => {
+        if (key) {
+          outputKeys.add(key);
+        }
+      });
+    }
+
+    if (outputKeys.size === 0) {
+      return;
+    }
+
+    outputKeysByStepId[stepId] = Array.from(outputKeys);
+
+    // Add per-key references from schema/output values (omit whole output object to avoid unusable suggestion).
+    outputKeys.forEach((outputKey) => {
+      const reference = formatStepOutputProp(stepId, outputKey);
+      if (!accumulatedSet.has(reference)) {
+        accumulatedSet.add(reference);
+        accumulatedReferences.push(reference);
+      }
+    });
   });
 
-  if (outputNode) {
-    const allSteps = actionNodes.map((n) => n.data?.step?.id).filter(Boolean);
-    const refs = [
-      ...allSteps.map((id) => formatRef(`steps.${id}.output`)),
-      ...parameterReferences.map((ref) => formatRef(ref)),
-    ];
-    references[outputNode.id] = Array.from(new Set(refs));
-  }
-
-  return references;
+  return referencesByNode;
 };
 
 export const stableStringify = (value: unknown) =>
