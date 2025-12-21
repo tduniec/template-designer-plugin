@@ -1,3 +1,11 @@
+## [0.4.1](https://github.com/tduniec/template-designer-plugin/compare/template-designer-v0.4.0...template-designer-v0.4.1) (2025-12-21)
+
+
+### Bug Fixes
+
+* **template-designer-foundation:** output notation change && node outputs render bringed back ([76bb9e8](https://github.com/tduniec/template-designer-plugin/commit/76bb9e8aedcfa5a152b9f66c5d29428c98bc84b5))
+* **template-designer-foundation:** parameterNodes alignement ([074dceb](https://github.com/tduniec/template-designer-plugin/commit/074dceb1be0fe9479540349564a8379b980df107))
+
 # [0.4.0](https://github.com/tduniec/template-designer-plugin/compare/template-designer-v0.3.7...template-designer-v0.4.0) (2025-12-20)
 
 
