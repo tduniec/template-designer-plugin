@@ -93,6 +93,10 @@ const estimateHeightByType = (node: Node): number | null => {
 };
 
 export const resolveNodeHeightForTracking = (node: Node): number | null => {
+  const dataHeight = parseNumericHeight((node.data as any)?.measuredHeight);
+  if (dataHeight !== null) {
+    return dataHeight;
+  }
   const explicit = parseNumericHeight(node?.measured?.height);
   if (explicit !== null) {
     return explicit;
@@ -109,13 +113,13 @@ export const alignNodes = (
   const actionNodes = nodes.filter((node) => node.type === "actionNode");
   const outputNode = nodes.find((node) => node.type === "outputNode");
 
-  let nextY = 0;
+  let nextY = parametersNode?.position?.y ?? 0;
   const aligned: Node[] = [];
 
   if (parametersNode) {
     aligned.push({
       ...parametersNode,
-      position: { x: fixedXPosition, y: 0 },
+      position: { x: fixedXPosition, y: nextY },
     });
     const height =
       resolveNodeHeightForTracking(parametersNode) ??
