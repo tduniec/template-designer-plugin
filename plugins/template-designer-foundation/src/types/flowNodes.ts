@@ -29,6 +29,8 @@ type BaseNodeData = {
   stepOutputReferences?: string[];
   onAddNode?: (config: AddNodeConfig) => void;
   onRemoveNode?: (rfId: string) => void;
+  /** DOM-measured height used to stabilize layout */
+  measuredHeight?: number;
 };
 
 export type ActionNodeData = BaseNodeData & {

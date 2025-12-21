@@ -343,6 +343,7 @@ export default function DesignerFlow({
   }, []);
   useEffect(() => {
     const isCacheChanged = cacheFingerprint !== lastCacheFingerprintRef.current;
+    const prevAppliedModelHash = lastAppliedModelHashRef.current;
 
     if (modelHash === lastAppliedModelHashRef.current && !isCacheChanged) {
       return;
@@ -362,29 +363,30 @@ export default function DesignerFlow({
 
     const nextNodes = decorateNodes ? decorateNodes(builtNodes) : builtNodes;
     const isInitialMount = !hasMountedRef.current;
+    const shouldReplaceNodes =
+      prevAppliedModelHash !== modelHash || isInitialMount;
 
     lastAppliedModelHashRef.current = modelHash;
     lastCacheFingerprintRef.current = cacheFingerprint;
     lastEmittedModelHashRef.current = modelHash;
 
     setNodes((currentNodes) => {
-      const merged = mergeNodesWithStability(
-        currentNodes,
-        nextNodes,
-        nodeDataHashRef
-      );
-      return merged;
+      if (shouldReplaceNodes) {
+        nodeDataHashRef.current = buildNodeHashMap(nextNodes);
+        nodeHeightsRef.current = {};
+        return nextNodes;
+      }
+      return mergeNodesWithStability(currentNodes, nextNodes, nodeDataHashRef);
     });
     setEdges((currentEdges) => {
       const newEdges = decorateEdges
         ? decorateEdges(createSequentialEdges(nextNodes), nextNodes)
         : createSequentialEdges(nextNodes);
-      const merged = mergeEdgesWithStability(
-        currentEdges,
-        newEdges,
-        edgeDataHashRef
-      );
-      return merged;
+      if (shouldReplaceNodes) {
+        edgeDataHashRef.current = buildEdgeHashMap(newEdges);
+        return newEdges;
+      }
+      return mergeEdgesWithStability(currentEdges, newEdges, edgeDataHashRef);
     });
     hasMountedRef.current = true;
     lastNodeCountRef.current = nextNodes.length;
@@ -407,6 +409,12 @@ export default function DesignerFlow({
     setEdges,
   ]);
 
+  const lastParameterResizeRef = useRef<{
+    id: string;
+    prevHeight: number;
+    nextHeight: number;
+  } | null>(null);
+
   useEffect(() => {
     if (!nodes.length) {
       return;
@@ -418,6 +426,11 @@ export default function DesignerFlow({
 
     const activeNodeIds = new Set<string>();
     let hasMeasuredChange = false;
+    let parameterResize: {
+      id: string;
+      prevHeight: number;
+      nextHeight: number;
+    } | null = null;
 
     nodes.forEach((node) => {
       activeNodeIds.add(node.id);
@@ -426,13 +439,23 @@ export default function DesignerFlow({
         return;
       }
       const previousHeight = nodeHeightsRef.current[node.id];
-      const heightDelta = Math.abs(
-        (previousHeight ?? measuredHeight) - measuredHeight
-      );
+      const heightDelta =
+        previousHeight === undefined
+          ? Number.POSITIVE_INFINITY
+          : Math.abs(previousHeight - measuredHeight);
       if (heightDelta >= 1) {
-        // Ignore tiny size jitter; only react when node height meaningfully changes.
+        if (node.type === "parametersNode") {
+          parameterResize = {
+            id: node.id,
+            prevHeight: previousHeight ?? measuredHeight,
+            nextHeight: measuredHeight,
+          };
+        }
         nodeHeightsRef.current[node.id] = measuredHeight;
         hasMeasuredChange = true;
+      } else if (previousHeight === undefined) {
+        // Initialize tracking even if we consider the change too small to react to layout.
+        nodeHeightsRef.current[node.id] = measuredHeight;
       }
     });
 
@@ -452,14 +475,42 @@ export default function DesignerFlow({
       return;
     }
 
+    lastParameterResizeRef.current = parameterResize;
+
     if (alignDebounceRef.current) {
       clearTimeout(alignDebounceRef.current);
     }
     alignDebounceRef.current = setTimeout(() => {
       alignDebounceRef.current = null;
       setNodes((currentNodes) => {
+        const resize = lastParameterResizeRef.current;
+        const updated = currentNodes.map((node) => {
+          if (node.type !== "parametersNode") {
+            return node;
+          }
+          if (!resize || resize.id !== node.id) {
+            // Keep x locked even if there was no measured change.
+            return {
+              ...node,
+              position: { ...node.position, x: FIXED_X_POSITION },
+            };
+          }
+          const prevBottom = node.position.y + resize.prevHeight;
+          const nextY = Math.max(0, prevBottom - resize.nextHeight);
+          if (node.position.y === nextY) {
+            return {
+              ...node,
+              position: { ...node.position, x: FIXED_X_POSITION },
+            };
+          }
+          return {
+            ...node,
+            position: { x: FIXED_X_POSITION, y: nextY },
+          };
+        });
+
         const alignedNodes = alignNodes(
-          currentNodes,
+          updated,
           FIXED_X_POSITION,
           VERTICAL_SPACING
         );

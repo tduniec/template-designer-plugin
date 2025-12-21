@@ -209,8 +209,8 @@ export const collectStepOutputReferences = (
     if (schemaOutputs && typeof schemaOutputs === "object") {
       // Prefer nested properties if present; otherwise use top-level keys.
       const props =
-        (schemaOutputs as { properties?: Record<string, unknown> }).properties ??
-        schemaOutputs;
+        (schemaOutputs as { properties?: Record<string, unknown> })
+          .properties ?? schemaOutputs;
       Object.keys(props ?? {}).forEach((key) => {
         if (key) {
           outputKeys.add(key);
