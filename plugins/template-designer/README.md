@@ -1,13 +1,136 @@
-# template-designer
+# Backstage Template Designer Plugin
 
-Welcome to the template-designer plugin!
+**From YAML to Canvas — simplifying Backstage scaffolding**
 
-_This plugin was created through the Backstage CLI_
+Empowering the **Democratization of Templates** in Backstage 🚀  
+Visually **design, connect, and manage** your Backstage scaffolder templates through an **intuitive drag-and-drop interface** — all inside your Backstage instance.  
+No YAML complexity. No coding required. Just creativity. **We are breaking the glass!** templating in Backstage made easy! 🚀
 
-## Getting started
+## 🖼️ Preview
 
-Your plugin has been added to the example app in this repository, meaning you'll be able to access it by running `yarn start` in the root directory, and then navigating to [/template-designer](http://localhost:3000/template-designer).
+Checkout the video!
 
-You can also serve the plugin in isolation by running `yarn start` in the plugin directory.
-This method of serving the plugin provides quicker iteration speed and a faster startup and hot reloads.
-It is only meant for local development, and the setup for it can be found inside the [/dev](./dev) directory.
+[▶ Watch the PREVIEW on YouTube](https://youtu.be/Pwzlzvig4-c)
+
+## 🚀 Template Designer PRO (Early Access)
+
+Template Designer PRO is being built together with DX Labs for teams that need governance, validation, and enterprise support on top of the community edition. Compare Community vs PRO: https://www.dx-labs.com/template-designer#community
+
+[<img src="./docs/templateDesignerProBadge.png" alt="Template Designer PRO Early Access" />](https://www.dx-labs.com/template-designer#contact)
+
+Early Access gives you:
+- preview builds and private updates  
+- influence on the roadmap and feature priority  
+- early access discount after the trial period
+
+👉 **Request PRO access:** **[dx-labs.com/template-designer#contact](https://www.dx-labs.com/template-designer#contact)**
+(fast & free to join the waitlist)
+
+You'll be notified as soon as the first preview is ready.
+
+---
+
+## 🌟 Why “Democratization of Templates”?
+
+Backstage templates shouldn’t be just for developers.  
+The Template Designer makes **template creation accessible to everyone** — from DevOps engineers to product teams — enabling true **collaboration and transparency** in how your software templates are built and evolve.
+
+---
+
+## 🚀 Features
+
+- ⚡ **Drag & Drop Editing** — visually compose your Backstage scaffolder workflows.
+- 🧩 **Three Node Types**
+  - **Action Node** – represents a single scaffolder action.
+  - **Template Node** – groups multiple actions into a reusable unit.
+  - **Output Node** – defines exported values or pipeline results.
+- 💾 **Work with Files** — open existing template definitions or save your flow as a JSON file directly from the UI.
+- 🔄 **Live Flow Connections** — connect nodes with arrows to define execution order.
+- 💡 **Frontend-Only Plugin** — zero backend setup required.
+
+---
+
+## ⚙️ Installation
+
+From your Backstage root directory
+
+```bash
+yarn --cwd packages/app add @tduniec/plugin-template-designer
+```
+
+In packages/app/src/App.tsx:
+
+```tsx
+import { TemplateDesignerPage } from "@tduniec/plugin-template-designer";
+
+const routes = (
+  <FlatRoutes>
+    {/* other routes */}
+    <Route path="/template-designer" element={<TemplateDesignerPage />} />
+  </FlatRoutes>
+);
+```
+
+In `packages/app/src/components/Root/Root.tsx`:
+
+```tsx
+import { SidebarItem } from "@backstage/core-components";
+import { TemplateDesignerIcon } from "@tduniec/plugin-template-designer";
+
+<SidebarItem
+  icon={TemplateDesignerIcon}
+  to="template-designer"
+  text="Template Designer"
+/>;
+```
+
+## ⚙️ Usage
+
+Visit your local Backstage instance:
+
+http://localhost:3000/template-designer
+
+Create and connect nodes, adjust properties, and export your flow as a JSON file.
+You can also open an existing template file, modify it visually, and save your changes.
+
+## 💾 File Management
+
+Template Designer allows you to easily work with your Backstage scaffolder definitions:
+Open a template file (.json) – load an existing flow directly into the canvas.
+Edit visually – move nodes, adjust connections, rename actions.
+Save – export your template back to a .json file ready for scaffolder integration.
+
+_Template Designer can read your registered actions!_
+
+## 🧠 Tech Stack
+
+- React + TypeScript
+- React Flow
+- Backstage Core Components
+
+## 🛠️ Development
+
+To run locally during development:
+
+```bash
+yarn start
+```
+
+This runs a local Backstage app with hot reload support for your plugin.
+
+## ❤️ Contributing
+
+Template Designer is still fresh out of the oven, so rough edges and open questions are expected—and that’s part of the fun.  
+If you spot a bug, have an idea, or simply want to riff on better tooling for templates, please open an issue or PR.
+
+Help us push forward the Democratization of Templates in Backstage!
+Ideas, feedback, and PRs are all welcome.
+
+## 📄 License
+
+Apache-2.0 © 2025 — Created by [tduniec](https://github.com/tduniec)
+
+## 🌐 Roadmap
+
+TODO -> please help me gather your **[feedback](https://forms.gle/wqBtpNA3SrDoofgM8)** first!
+Take 2 minutes to fill up the **[survey](https://forms.gle/wqBtpNA3SrDoofgM8)**!
