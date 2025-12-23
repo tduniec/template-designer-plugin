@@ -1,3 +1,10 @@
+## [0.1.3](https://github.com/tduniec/template-designer-plugin/compare/template-designer-foundation-v0.1.2...template-designer-foundation-v0.1.3) (2025-12-23)
+
+
+### Bug Fixes
+
+* **template-designer:** README changes with release - dx-labs.com ([#59](https://github.com/tduniec/template-designer-plugin/issues/59)) ([9239226](https://github.com/tduniec/template-designer-plugin/commit/9239226633c11cca84d7b23f532ba41601e843f9))
+
 ## [0.1.2](https://github.com/tduniec/template-designer-plugin/compare/template-designer-foundation-v0.1.1...template-designer-foundation-v0.1.2) (2025-12-21)
 
 
