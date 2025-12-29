@@ -1,3 +1,10 @@
+## [0.1.4](https://github.com/tduniec/template-designer-plugin/compare/template-designer-foundation-v0.1.3...template-designer-foundation-v0.1.4) (2025-12-29)
+
+
+### Bug Fixes
+
+* **template-designer-foundation:** codemirror dependency ([#60](https://github.com/tduniec/template-designer-plugin/issues/60)) ([fff1581](https://github.com/tduniec/template-designer-plugin/commit/fff15818acc743a11c403301cda1be814bcc7611))
+
 ## [0.1.3](https://github.com/tduniec/template-designer-plugin/compare/template-designer-foundation-v0.1.2...template-designer-foundation-v0.1.3) (2025-12-23)
 
 
