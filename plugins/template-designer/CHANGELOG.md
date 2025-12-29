@@ -1,3 +1,10 @@
+## [0.4.3](https://github.com/tduniec/template-designer-plugin/compare/template-designer-v0.4.2...template-designer-v0.4.3) (2025-12-29)
+
+
+### Bug Fixes
+
+* **template-designer-foundation:** codemirror dependency ([#60](https://github.com/tduniec/template-designer-plugin/issues/60)) ([fff1581](https://github.com/tduniec/template-designer-plugin/commit/fff15818acc743a11c403301cda1be814bcc7611))
+
 ## [0.4.2](https://github.com/tduniec/template-designer-plugin/compare/template-designer-v0.4.1...template-designer-v0.4.2) (2025-12-23)
 
 
