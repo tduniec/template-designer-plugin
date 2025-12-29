@@ -6994,7 +6994,6 @@ __metadata:
     "@backstage/test-utils": "backstage:^"
     "@backstage/theme": "backstage:^"
     "@codemirror/lang-yaml": "npm:^6.1.2"
-    "@codemirror/state": "npm:6.5.2"
     "@codemirror/view": "npm:6.26.3"
     "@material-ui/core": "npm:^4.12.4"
     "@material-ui/icons": "npm:^4.11.3"
@@ -7018,6 +7017,7 @@ __metadata:
     "@backstage/plugin-scaffolder-common": "*"
     "@backstage/plugin-scaffolder-react": "*"
     "@backstage/theme": "*"
+    "@codemirror/state": 6.5.2
     "@material-ui/core": ^4.9.13 || ^4.12.4
     "@material-ui/icons": ^4.9.1 || ^4.11.3
     "@material-ui/lab": ^4.0.0-alpha.61
