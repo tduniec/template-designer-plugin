@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState, type ReactNode } from "react";
 import type { ChangeEvent } from "react";
 import { Handle, Position, NodeToolbar } from "@xyflow/react";
 import { styled, useTheme } from "@material-ui/core/styles";
@@ -189,7 +189,7 @@ const ActionNodeComponent: React.FC<{ data: ActionNodeData }> = ({ data }) => {
           <Typography variant="subtitle2" noWrap>
             {step?.name || "Unnamed Step"}
           </Typography>
-          {data.onRemoveNode && (
+          {(data.headerActionsSlot || data.onRemoveNode) && (
             <Box
               style={{
                 display: "flex",
@@ -198,21 +198,36 @@ const ActionNodeComponent: React.FC<{ data: ActionNodeData }> = ({ data }) => {
                 color: theme.palette.text.secondary,
               }}
             >
-              {isConfirmingDelete && (
-                <Typography variant="caption" color="error">
-                  Click again to delete
-                </Typography>
-              )}
-              <IconButton
-                size="small"
-                onClick={handleDeleteNode}
-                onPointerDown={(e) => e.stopPropagation()}
-                aria-label="Remove action"
-                color={isConfirmingDelete ? "secondary" : "default"}
-                className="nodrag nowheel"
-              >
-                <DeleteOutlineIcon fontSize="small" />
-              </IconButton>
+              {data.headerActionsSlot ? (
+                <Box
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: theme.spacing(0.5),
+                  }}
+                >
+                  {data.headerActionsSlot as ReactNode}
+                </Box>
+              ) : null}
+              {data.onRemoveNode ? (
+                <>
+                  {isConfirmingDelete && (
+                    <Typography variant="caption" color="error">
+                      Click again to delete
+                    </Typography>
+                  )}
+                  <IconButton
+                    size="small"
+                    onClick={handleDeleteNode}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    aria-label="Remove action"
+                    color={isConfirmingDelete ? "secondary" : "default"}
+                    className="nodrag nowheel"
+                  >
+                    <DeleteOutlineIcon fontSize="small" />
+                  </IconButton>
+                </>
+              ) : null}
             </Box>
           )}
         </Box>
