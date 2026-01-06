@@ -42,6 +42,8 @@ export type ActionNodeData = BaseNodeData & {
   onRemoveInputKey?: (rfId: string, key: string) => void;
   /** Optional slot to inject additional icons/actions into the header. */
   headerActionsSlot?: ReactNode;
+  /** Optional slot to render custom UI above the key/value input grid. */
+  inputsLeadingSlot?: ReactNode;
 };
 
 export type OutputNodeData = BaseNodeData & {

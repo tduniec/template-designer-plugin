@@ -231,7 +231,9 @@ const ActionNodeComponent: React.FC<{ data: ActionNodeData }> = ({ data }) => {
             </Box>
           )}
         </Box>
-
+        {data.inputsLeadingSlot ? (
+          <Box sx={{ mb: 1 }}>{data.inputsLeadingSlot as ReactNode}</Box>
+        ) : null}
         <Typography variant="caption" color="textSecondary">
           Action
         </Typography>
@@ -335,6 +337,7 @@ const ActionNodeComponent: React.FC<{ data: ActionNodeData }> = ({ data }) => {
       </Typography>
 
       <Box sx={{ display: "grid", mt: 0.5 }}>
+
         {inputEntries.length === 0 && (
           <Box
             sx={{
