@@ -125,11 +125,30 @@ export const buildNodesFromModel = (
   );
 };
 
+const normalizeStepOrder = (step: TaskStep): TaskStep => {
+  // Keep existing values intact; only adjusts insertion order for export.
+  const { if: stepIf, each: stepEach, ...rest } = step as Record<string, any>;
+  const ordered: Record<string, any> = {};
+  if (stepIf !== undefined) {
+    ordered.if = stepIf;
+  }
+  if (stepEach !== undefined) {
+    ordered.each = stepEach;
+  }
+  // Preserve all other fields in their existing relative order.
+  Object.keys(rest).forEach((key) => {
+    ordered[key] = rest[key];
+  });
+  return ordered as TaskStep;
+};
+
 export const extractStepsFromNodes = (nodes: Node[]): TaskStep[] => {
   const actionNodes = nodes.filter(
     (node) => node.type === "actionNode"
   ) as Node<ActionNodeData>[];
-  return actionNodes.map((node) => cloneStep(node.data.step));
+  return actionNodes.map((node) =>
+    normalizeStepOrder(cloneStep(node.data.step))
+  );
 };
 
 export const extractParametersFromNodes = (
