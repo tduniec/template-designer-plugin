@@ -10,7 +10,10 @@ import {
 import { useTheme } from "@material-ui/core/styles";
 import CodeMirror from "@uiw/react-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
-import { createCodeMirrorTheme } from "./codemirrorTheme";
+import {
+  TEMPLATE_DESIGNER_CM_CLASS,
+  createCodeMirrorTheme,
+} from "./codemirrorTheme";
 import type {
   ScaffolderTaskOutput,
   TaskStep,
@@ -397,7 +400,7 @@ export const TemplateWorkspace = ({
             >
               <div
                 style={{
-                  flex: showYaml ? 1.6 : 1,
+                  flex: showYaml ? 1 : 1,
                   minWidth: 0,
                   display: "flex",
                   flexDirection: "column",
@@ -462,6 +465,7 @@ export const TemplateWorkspace = ({
                           value={templateYaml}
                           extensions={yamlExtensions}
                           theme={codeMirrorTheme}
+                          className={TEMPLATE_DESIGNER_CM_CLASS}
                           height="100%"
                           onChange={handleYamlChange}
                           onBlur={handleYamlBlur}
