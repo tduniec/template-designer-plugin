@@ -48,6 +48,7 @@ type TemplateWorkspaceProps = {
   actionNodeComponent?: DesignerFlowProps["actionNodeComponent"];
   outputNodeComponent?: DesignerFlowProps["outputNodeComponent"];
   headerActionsSlot?: ReactNode;
+  primaryActionsSlot?: ReactNode;
   flowTopSlot?: ReactNode;
   rightPanelSlot?: ReactNode;
 };
@@ -78,6 +79,7 @@ export const TemplateWorkspace = ({
   actionNodeComponent = ActionNode as DesignerFlowProps["actionNodeComponent"],
   outputNodeComponent = OutputNode as DesignerFlowProps["outputNodeComponent"],
   headerActionsSlot,
+  primaryActionsSlot,
   flowTopSlot,
   rightPanelSlot,
 }: TemplateWorkspaceProps) => {
@@ -325,6 +327,18 @@ export const TemplateWorkspace = ({
                 >
                   Load different file
                 </Button>
+                {primaryActionsSlot ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    {primaryActionsSlot}
+                  </div>
+                ) : null}
               </div>
               <div
                 style={{
