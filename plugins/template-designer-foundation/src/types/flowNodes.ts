@@ -2,6 +2,7 @@ import type {
   ScaffolderTaskOutput,
   TaskStep,
 } from "@backstage/plugin-scaffolder-common";
+import type { ReactNode } from "react";
 import type { TemplateParametersValue } from "./templateParameters";
 
 export type DesignerNodeType = "parametersNode" | "actionNode" | "outputNode";
@@ -39,6 +40,8 @@ export type ActionNodeData = BaseNodeData & {
   onUpdateField?: (rfId: string, field: keyof TaskStep, value: string) => void;
   onUpdateInput?: (rfId: string, key: string, value: unknown) => void;
   onRemoveInputKey?: (rfId: string, key: string) => void;
+  /** Optional slot to inject additional icons/actions into the header. */
+  headerActionsSlot?: ReactNode;
 };
 
 export type OutputNodeData = BaseNodeData & {
