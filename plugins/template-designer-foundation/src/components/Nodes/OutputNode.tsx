@@ -118,7 +118,7 @@ const OutputNodeComponent: React.FC<{ data: OutputNodeData }> = ({ data }) => {
   const paletteMode = resolvePaletteMode(theme);
   const stopAll = createStopNodeInteraction();
   const {
-    stepOutputReferences,
+    // stepOutputReferences,
     referenceOptions,
     links,
     textEntries,
