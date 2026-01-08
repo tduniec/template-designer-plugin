@@ -337,7 +337,6 @@ const ActionNodeComponent: React.FC<{ data: ActionNodeData }> = ({ data }) => {
       </Typography>
 
       <Box sx={{ display: "grid", mt: 0.5 }}>
-
         {inputEntries.length === 0 && (
           <Box
             sx={{

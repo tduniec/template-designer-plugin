@@ -72,7 +72,6 @@ import {
   nodeDefaults as baseNodeDefaults,
 } from "../components/designerFlowConfig";
 import { useScaffolderActions } from "../api/useScaffolderActions";
-import { color } from "@uiw/react-codemirror";
 
 const EMPTY_EDGES: Edge[] = [];
 const EMIT_DEBOUNCE_MS = 1200; // Emit only after user pauses typing for a bit (more relaxed UX).
@@ -892,6 +891,7 @@ export default function DesignerFlow({
   }, [emitChangesDeferred, modelHash, nodes]);
 
   useEffect(() => {
+    const alignTimeout = alignDebounceRef.current;
     return () => {
       if (emitDebounceRef.current) {
         clearTimeout(emitDebounceRef.current);
@@ -904,8 +904,8 @@ export default function DesignerFlow({
         clearTimeout(fitViewTimeoutRef.current);
         fitViewTimeoutRef.current = null;
       }
-      if (alignDebounceRef.current) {
-        clearTimeout(alignDebounceRef.current);
+      if (alignTimeout) {
+        clearTimeout(alignTimeout);
       }
       flushPendingEmit();
     };
@@ -1151,13 +1151,13 @@ export default function DesignerFlow({
           display="flex"
           flexDirection="column"
           alignItems="flex-end"
-       >
+        >
           <Button
             size="small"
             variant="contained"
             color="primary"
             onClick={() => setMiniMapVisible((prev) => !prev)}
-            style={{ padding: "2px 8px", minWidth: 0, width: "60px"   }}
+            style={{ padding: "2px 8px", minWidth: 0, width: "60px" }}
           >
             {miniMapVisible ? "Hide" : "Map"}
           </Button>
@@ -1172,8 +1172,8 @@ export default function DesignerFlow({
                 border: "1px solid rgba(0,0,0,0.12)",
                 boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
                 marginTop: 4,
-                right: '-15px',
-                bottom: '20px'
+                right: "-15px",
+                bottom: "20px",
               }}
               maskColor="rgba(0,0,0,0.06)"
             />
