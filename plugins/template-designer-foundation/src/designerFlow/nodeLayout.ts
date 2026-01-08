@@ -115,11 +115,15 @@ export const alignNodes = (
 
   let nextY = parametersNode?.position?.y ?? 0;
   const aligned: Node[] = [];
+  const animatedStyle = {
+    transition: "transform 260ms ease-out",
+  };
 
   if (parametersNode) {
     aligned.push({
       ...parametersNode,
       position: { x: fixedXPosition, y: nextY },
+      style: { ...(parametersNode.style ?? {}), ...animatedStyle },
     });
     const height =
       resolveNodeHeightForTracking(parametersNode) ??
@@ -132,6 +136,7 @@ export const alignNodes = (
     aligned.push({
       ...node,
       position: { x: fixedXPosition, y: nextY },
+      style: { ...(node.style ?? {}), ...animatedStyle },
     });
     const height =
       resolveNodeHeightForTracking(node) ??
@@ -144,6 +149,7 @@ export const alignNodes = (
     aligned.push({
       ...outputNode,
       position: { x: fixedXPosition, y: nextY },
+      style: { ...(outputNode.style ?? {}), ...animatedStyle },
     });
   }
 

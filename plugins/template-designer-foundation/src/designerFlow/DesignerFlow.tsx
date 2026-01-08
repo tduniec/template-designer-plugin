@@ -6,6 +6,7 @@ import {
   useState,
   ComponentType,
   createElement,
+  useLayoutEffect,
 } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import {
@@ -73,7 +74,7 @@ const EMPTY_EDGES: Edge[] = [];
 const EMIT_DEBOUNCE_MS = 1200; // Emit only after user pauses typing for a bit (more relaxed UX).
 const VIEWPORT_TUNING = {
   alignDebounceMs: 120, // Debounce view/align updates so typing isn't interrupted by layout thrash.
-  centerDurationMs: 280,
+  centerDurationMs: 420,
   fitFallbackDelayMs: 50,
 };
 
@@ -415,7 +416,7 @@ export default function DesignerFlow({
     nextHeight: number;
   } | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!nodes.length) {
       return;
     }
@@ -469,65 +470,54 @@ export default function DesignerFlow({
       return;
     }
 
-    if (!layoutInitializedRef.current) {
-      // Skip the first post-measure align to avoid initial jump; positions are already close to target.
-      layoutInitializedRef.current = true;
-      return;
-    }
-
     lastParameterResizeRef.current = parameterResize;
 
-    if (alignDebounceRef.current) {
-      clearTimeout(alignDebounceRef.current);
-    }
-    alignDebounceRef.current = setTimeout(() => {
-      alignDebounceRef.current = null;
-      setNodes((currentNodes) => {
-        const resize = lastParameterResizeRef.current;
-        const updated = currentNodes.map((node) => {
-          if (node.type !== "parametersNode") {
-            return node;
-          }
-          if (!resize || resize.id !== node.id) {
-            // Keep x locked even if there was no measured change.
-            return {
-              ...node,
-              position: { ...node.position, x: FIXED_X_POSITION },
-            };
-          }
-          const prevBottom = node.position.y + resize.prevHeight;
-          const nextY = Math.max(0, prevBottom - resize.nextHeight);
-          if (node.position.y === nextY) {
-            return {
-              ...node,
-              position: { ...node.position, x: FIXED_X_POSITION },
-            };
-          }
+    setNodes((currentNodes) => {
+      const resize = lastParameterResizeRef.current;
+      const updated = currentNodes.map((node) => {
+        if (node.type !== "parametersNode") {
+          return node;
+        }
+        if (!resize || resize.id !== node.id) {
+          // Keep x locked even if there was no measured change.
           return {
             ...node,
-            position: { x: FIXED_X_POSITION, y: nextY },
+            position: { ...node.position, x: FIXED_X_POSITION },
           };
-        });
-
-        const alignedNodes = alignNodes(
-          updated,
-          FIXED_X_POSITION,
-          VERTICAL_SPACING
-        );
-        const positionsChanged = alignedNodes.some((node, index) => {
-          const previousNode = currentNodes[index];
-          if (!previousNode) {
-            return true;
-          }
-          return (
-            node.position.x !== previousNode.position.x ||
-            node.position.y !== previousNode.position.y
-          );
-        });
-
-        return positionsChanged ? alignedNodes : currentNodes;
+        }
+        const prevBottom = node.position.y + resize.prevHeight;
+        const nextY = Math.max(0, prevBottom - resize.nextHeight);
+        if (node.position.y === nextY) {
+          return {
+            ...node,
+            position: { ...node.position, x: FIXED_X_POSITION },
+          };
+        }
+        return {
+          ...node,
+          position: { x: FIXED_X_POSITION, y: nextY },
+        };
       });
-    }, VIEWPORT_TUNING.alignDebounceMs);
+
+      const alignedNodes = alignNodes(
+        updated,
+        FIXED_X_POSITION,
+        VERTICAL_SPACING
+      );
+      const positionsChanged = alignedNodes.some((node, index) => {
+        const previousNode = currentNodes[index];
+        if (!previousNode) {
+          return true;
+        }
+        return (
+          node.position.x !== previousNode.position.x ||
+          node.position.y !== previousNode.position.y
+        );
+      });
+
+      return positionsChanged ? alignedNodes : currentNodes;
+    });
+    layoutInitializedRef.current = true;
   }, [nodes, setNodes]);
 
   const parameterReferences = useMemo(
