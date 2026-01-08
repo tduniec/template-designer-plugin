@@ -334,7 +334,7 @@ const OutputNodeComponent: React.FC<{ data: OutputNodeData }> = ({ data }) => {
                   size="small"
                   label="Content"
                   placeholder="Content"
-                  multiline
+                  // multiline
                   minRows={2}
                   inputProps={{
                     ...params.inputProps,
@@ -367,7 +367,7 @@ const OutputNodeComponent: React.FC<{ data: OutputNodeData }> = ({ data }) => {
         </Box>
       ))}
 
-      {stepOutputReferences.length > 0 && (
+      {/* {stepOutputReferences.length > 0 && (
         <Box sx={{ mt: 2 }}>
           <Typography variant="caption" color="textSecondary">
             Available step output references
@@ -383,7 +383,7 @@ const OutputNodeComponent: React.FC<{ data: OutputNodeData }> = ({ data }) => {
             ))}
           </Box>
         </Box>
-      )}
+      )} */}
 
       <NodeToolbar position={Position.Bottom}>
         <Button

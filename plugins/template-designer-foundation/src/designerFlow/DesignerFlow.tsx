@@ -25,7 +25,10 @@ import {
   Viewport,
   OnMoveEnd,
   OnMove,
+  MiniMap,
+  ReactFlowProvider,
 } from "@xyflow/react";
+import { Box, Button } from "@material-ui/core";
 import "@xyflow/react/dist/style.css";
 import type {
   ScaffolderTaskOutput,
@@ -69,6 +72,7 @@ import {
   nodeDefaults as baseNodeDefaults,
 } from "../components/designerFlowConfig";
 import { useScaffolderActions } from "../api/useScaffolderActions";
+import { color } from "@uiw/react-codemirror";
 
 const EMPTY_EDGES: Edge[] = [];
 const EMIT_DEBOUNCE_MS = 1200; // Emit only after user pauses typing for a bit (more relaxed UX).
@@ -190,6 +194,7 @@ const shallowArrayEqual = (a?: string[], b?: string[]) => {
 
 const FIXED_X_POSITION = FLOW_LAYOUT.fixedXPosition;
 const VERTICAL_SPACING = FLOW_LAYOUT.verticalSpacing;
+const HORIZONTAL_PAN_RANGE = 5000; // limit horizontal pan; graph is vertical so we keep it near the fixed X
 
 export type DesignerFlowProps = {
   steps?: TaskStep[];
@@ -201,6 +206,7 @@ export type DesignerFlowProps = {
   actionNodeComponent: ComponentType<{ data: ActionNodeData }>;
   parametersNodeComponent: ComponentType<{ data: ParametersNodeData }>;
   outputNodeComponent: ComponentType<{ data: OutputNodeData }>;
+  showMiniMap?: boolean;
   decorateNodes?: (nodes: Node[]) => Node[];
   decorateEdges?: (edges: Edge[], nodes: Node[]) => Edge[];
   nodeDefaults?: Partial<Node>;
@@ -216,6 +222,7 @@ export default function DesignerFlow({
   actionNodeComponent,
   parametersNodeComponent,
   outputNodeComponent,
+  showMiniMap = false,
   decorateNodes,
   decorateEdges,
   nodeDefaults = baseNodeDefaults,
@@ -322,6 +329,7 @@ export default function DesignerFlow({
     lastViewportRef.current = fallback;
     return fallback;
   });
+  const [miniMapVisible, setMiniMapVisible] = useState(showMiniMap);
   const fitViewRafRef = useRef<number | null>(null);
   const fitViewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const alignDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -918,7 +926,8 @@ export default function DesignerFlow({
     }
     const nodeWithWidth = nodes.find((node) => node.width);
     const nodeWidth = nodeWithWidth?.width ?? 760;
-    const padding = Math.max((window.innerWidth - nodeWidth) / 2 - 24, 60);
+    // tighter horizontal padding; graph is vertical so we don't need wide gutters
+    const padding = Math.max((window.innerWidth - nodeWidth) / 2 - 24, 24);
     const viewOptions = {
       padding,
       minZoom: 0.2,
@@ -1100,28 +1109,77 @@ export default function DesignerFlow({
   }, [nodes, reactFlowInstance, viewport, setViewportIfChanged]);
 
   return (
-    <div style={{ width: "100%", height: "100%", minHeight: "100%" }}>
-      <ReactFlow
-        nodes={nodes}
-        edges={renderedEdges}
-        nodeTypes={resolvedNodeTypes}
-        defaultViewport={
-          viewport ?? {
-            x: 0,
-            y: 0,
-            zoom: 1,
+    <ReactFlowProvider>
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          minHeight: "100%",
+          position: "relative",
+        }}
+      >
+        <ReactFlow
+          nodes={nodes}
+          edges={renderedEdges}
+          nodeTypes={resolvedNodeTypes}
+          defaultViewport={
+            viewport ?? {
+              x: 0,
+              y: 0,
+              zoom: 0.5,
+            }
           }
-        }
-        viewport={viewport ?? undefined}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onNodeDragStop={onNodeDragStop}
-        onConnect={onConnect}
-        onMove={handleMove}
-        onlyRenderVisibleElements
-        onInit={setReactFlowInstance}
-        onMoveEnd={handleMoveEnd}
-      />
-    </div>
+          viewport={viewport ?? undefined}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onNodeDragStop={onNodeDragStop}
+          onConnect={onConnect}
+          onMove={handleMove}
+          translateExtent={[
+            [FIXED_X_POSITION - HORIZONTAL_PAN_RANGE, -10000],
+            [FIXED_X_POSITION + HORIZONTAL_PAN_RANGE, 10000000],
+          ]}
+          onlyRenderVisibleElements
+          onInit={setReactFlowInstance}
+          onMoveEnd={handleMoveEnd}
+          minZoom={0.1}
+        />
+        <Box
+          position="absolute"
+          right={0}
+          bottom={0}
+          display="flex"
+          flexDirection="column"
+          alignItems="flex-end"
+       >
+          <Button
+            size="small"
+            variant="contained"
+            color="primary"
+            onClick={() => setMiniMapVisible((prev) => !prev)}
+            style={{ padding: "2px 8px", minWidth: 0, width: "60px"   }}
+          >
+            {miniMapVisible ? "Hide" : "Map"}
+          </Button>
+          {miniMapVisible ? (
+            <MiniMap
+              pannable
+              zoomable
+              style={{
+                background: "rgba(255,255,255,0.9)",
+                width: 140,
+                height: 96,
+                border: "1px solid rgba(0,0,0,0.12)",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+                marginTop: 4,
+                right: '-15px',
+                bottom: '20px'
+              }}
+              maskColor="rgba(0,0,0,0.06)"
+            />
+          ) : null}
+        </Box>
+      </div>
+    </ReactFlowProvider>
   );
 }
