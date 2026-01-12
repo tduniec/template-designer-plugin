@@ -1,3 +1,10 @@
+## [0.1.7](https://github.com/tduniec/template-designer-plugin/compare/template-designer-foundation-v0.1.6...template-designer-foundation-v0.1.7) (2026-01-12)
+
+
+### Bug Fixes
+
+* **template-designer-foundation:** adjustments for workspaces ([1143a50](https://github.com/tduniec/template-designer-plugin/commit/1143a50826842af450ae9f13feb39ee39574ba48))
+
 ## [0.1.6](https://github.com/tduniec/template-designer-plugin/compare/template-designer-foundation-v0.1.5...template-designer-foundation-v0.1.6) (2026-01-08)
 
 
