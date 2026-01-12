@@ -1,6 +1,6 @@
 import type { FC } from "react";
-import { Handle, NodeToolbar, Position, useReactFlow } from "@xyflow/react";
-import { memo, useLayoutEffect, useRef } from "react";
+import { Handle, NodeToolbar, Position } from "@xyflow/react";
+import { memo } from "react";
 import { alpha, styled, useTheme } from "@material-ui/core/styles";
 import { Box, Button, Chip, Typography } from "@material-ui/core";
 import SettingsIcon from "@material-ui/icons/Settings";
@@ -9,6 +9,7 @@ import type { ParametersNodeData } from "../../types/flowNodes";
 import { createStopNodeInteraction } from "./common/nodeInteraction";
 import { useParameterSectionsController } from "../../state/useParameterSections";
 import { ParameterTitlesNode } from "./ParameterTitlesNode";
+import { useNodeMeasuredHeight } from "./common/useNodeMeasuredHeight";
 
 const resolvePaletteMode = (theme: { palette: { type?: string } }) =>
   (theme.palette as { mode?: "light" | "dark" }).mode ??
@@ -75,9 +76,7 @@ const ParametersNodeComponent: FC<{ data: ParametersNodeData }> = ({
   }
   const theme = useTheme();
   const paletteMode = resolvePaletteMode(theme);
-  const cardRef = useRef<HTMLDivElement | null>(null);
-  const heightRef = useRef<number | null>(null);
-  const { setNodes } = useReactFlow();
+  const cardRef = useNodeMeasuredHeight(data.rfId, [data.sections]);
   const {
     sections,
     handleSectionUpdate,
@@ -89,44 +88,6 @@ const ParametersNodeComponent: FC<{ data: ParametersNodeData }> = ({
   } = useParameterSectionsController(data);
 
   const stopAll = createStopNodeInteraction();
-
-  useLayoutEffect(() => {
-    const element = cardRef.current;
-    if (!element) {
-      return undefined;
-    }
-    let raf: number | null = null;
-    const observer = new ResizeObserver(([entry]) => {
-      const nextHeight = entry.contentRect.height;
-      const previousHeight = heightRef.current ?? nextHeight;
-      if (Math.abs(previousHeight - nextHeight) < 1) {
-        return;
-      }
-      heightRef.current = nextHeight;
-      if (raf) {
-        cancelAnimationFrame(raf);
-      }
-      raf = requestAnimationFrame(() => {
-        setNodes((nodes) =>
-          nodes.map((node) =>
-            node.id === data.rfId
-              ? {
-                  ...node,
-                  data: { ...(node.data as any), measuredHeight: nextHeight },
-                }
-              : node
-          )
-        );
-      });
-    });
-    observer.observe(element);
-    return () => {
-      if (raf) {
-        cancelAnimationFrame(raf);
-      }
-      observer.disconnect();
-    };
-  }, [data.rfId, setNodes]);
 
   return (
     <div ref={cardRef}>

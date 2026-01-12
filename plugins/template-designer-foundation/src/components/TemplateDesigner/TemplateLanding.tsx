@@ -16,6 +16,12 @@ type TemplateLandingProps = {
   onOpenTemplatePicker: () => void;
   availableTemplates: TemplateEntityV1beta3[];
   selectCatalogTemplate: (selected: TemplateEntityV1beta3) => void;
+  loadCardOverride?: {
+    title: string;
+    description: string;
+    ctaLabel: string;
+    onClick: () => void;
+  };
 };
 
 export const TemplateLanding = ({
@@ -24,8 +30,16 @@ export const TemplateLanding = ({
   onOpenTemplatePicker,
   availableTemplates,
   selectCatalogTemplate,
+  loadCardOverride,
 }: TemplateLandingProps) => {
   const theme = useTheme();
+
+  const loadTitle = loadCardOverride?.title ?? "Load from file";
+  const loadDescription =
+    loadCardOverride?.description ??
+    "Import an existing template in YAML or JSON format and iterate in the visual designer.";
+  const loadCta = loadCardOverride?.ctaLabel ?? "Choose file";
+  const loadOnClick = loadCardOverride?.onClick ?? onOpenTemplatePicker;
 
   return (
     <Grid
@@ -79,10 +93,9 @@ export const TemplateLanding = ({
               }}
             >
               <Box>
-                <Typography variant="h6">Load from file</Typography>
+                <Typography variant="h6">{loadTitle}</Typography>
                 <Typography variant="body2" color="textSecondary">
-                  Import an existing template in YAML or JSON format and iterate
-                  in the visual designer.
+                  {loadDescription}
                 </Typography>
               </Box>
               <Box
@@ -94,9 +107,9 @@ export const TemplateLanding = ({
                 <Button
                   color="primary"
                   variant="outlined"
-                  onClick={onOpenTemplatePicker}
+                  onClick={loadOnClick}
                 >
-                  Choose file
+                  {loadCta}
                 </Button>
                 {loadError && (
                   <Typography

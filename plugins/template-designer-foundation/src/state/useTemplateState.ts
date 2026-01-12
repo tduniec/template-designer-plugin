@@ -58,6 +58,7 @@ export type TemplateState = {
   handleSaveTemplate: () => void;
   availableTemplates: TemplateEntityV1beta3[];
   selectCatalogTemplate: (selected: TemplateEntityV1beta3) => void;
+  markTemplateSaved?: () => void;
 };
 
 const parseTemplateYaml = (value: string) => {
@@ -747,6 +748,10 @@ export const useTemplateState = (): TemplateState => {
     templateSource,
   ]);
 
+  const markTemplateSaved = useCallback(() => {
+    setIsDirty(false);
+  }, []);
+
   useEffect(() => {
     catalogApi
       .getEntities({
@@ -796,5 +801,6 @@ export const useTemplateState = (): TemplateState => {
     handleSaveTemplate,
     availableTemplates,
     selectCatalogTemplate,
+    markTemplateSaved,
   };
 };

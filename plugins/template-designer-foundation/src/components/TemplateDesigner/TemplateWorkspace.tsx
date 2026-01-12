@@ -6,6 +6,8 @@ import {
   Paper,
   Typography,
   CircularProgress,
+  IconButton,
+  Tooltip,
 } from "@material-ui/core";
 import { useTheme } from "@material-ui/core/styles";
 import CodeMirror from "@uiw/react-codemirror";
@@ -24,6 +26,8 @@ import DesignerFlow, {
 } from "../../designerFlow/DesignerFlow";
 import { ActionNode } from "../Nodes/ActionNode";
 import { OutputNode } from "../Nodes/OutputNode";
+import ChevronLeft from "@material-ui/icons/ChevronLeft";
+import ChevronRight from "@material-ui/icons/ChevronRight";
 
 type TemplateWorkspaceProps = {
   templateSteps: TaskStep[];
@@ -54,6 +58,20 @@ type TemplateWorkspaceProps = {
   primaryActionsSlot?: ReactNode;
   flowTopSlot?: ReactNode;
   rightPanelSlot?: ReactNode;
+  leftSidebar?: ReactNode;
+  leftSidebarCollapsible?: boolean;
+  leftSidebarInitialExpanded?: boolean;
+  editorOverride?: {
+    value: string;
+    onChange: (value: string) => void;
+    onBlur?: () => void;
+    onSave?: () => void;
+    filePath?: string;
+    isDirty?: boolean;
+    isSaving?: boolean;
+  };
+  hideLoadFileButton?: boolean;
+  loadFileButtonLabel?: string;
 };
 
 export const TemplateWorkspace = ({
@@ -85,6 +103,12 @@ export const TemplateWorkspace = ({
   primaryActionsSlot,
   flowTopSlot,
   rightPanelSlot,
+  leftSidebar,
+  leftSidebarCollapsible = false,
+  leftSidebarInitialExpanded = true,
+  editorOverride,
+  hideLoadFileButton = false,
+  loadFileButtonLabel = "Load different file",
 }: TemplateWorkspaceProps) => {
   const workspaceRef = useRef<HTMLDivElement | null>(null);
   const [workspaceHeight, setWorkspaceHeight] = useState<number | null>(null);
@@ -168,6 +192,27 @@ export const TemplateWorkspace = ({
     // Ensure pending graph updates flush when user leaves the editor.
     flushFlowDebounce();
   }, [flushFlowDebounce, flushYamlDraft]);
+
+  const handleSaveClick = useCallback(() => {
+    // Push any pending editor changes before saving.
+    flushYamlDraft();
+    flushFlowDebounce();
+    if (editorOverride?.onSave) {
+      editorOverride.onSave();
+      return;
+    }
+    onSave();
+  }, [editorOverride, flushFlowDebounce, flushYamlDraft, onSave]);
+
+  const editorValue = editorOverride?.value ?? templateYaml;
+  const editorOnChange = editorOverride?.onChange ?? handleYamlChange;
+  const editorOnBlur = editorOverride?.onBlur ?? handleYamlBlur;
+  const hideFlow =
+    editorOverride?.filePath && !/\.ya?ml$/i.test(editorOverride.filePath);
+
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(
+    leftSidebarInitialExpanded
+  );
 
   useEffect(() => {
     // Keep the last good (parsable) model so YAML drafts with errors don't blank the canvas.
@@ -317,19 +362,21 @@ export const TemplateWorkspace = ({
                   color="primary"
                   variant="outlined"
                   size="small"
-                  onClick={onSave}
+                  onClick={handleSaveClick}
                   disabled={isSaving}
                 >
                   {saveButtonLabel}
                 </Button>
-                <Button
-                  color="primary"
-                  variant="outlined"
-                  size="small"
-                  onClick={onOpenTemplatePicker}
-                >
-                  Load different file
-                </Button>
+                {!hideLoadFileButton ? (
+                  <Button
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                    onClick={onOpenTemplatePicker}
+                  >
+                    {loadFileButtonLabel}
+                  </Button>
+                ) : null}
                 {primaryActionsSlot ? (
                   <div
                     style={{
@@ -377,6 +424,57 @@ export const TemplateWorkspace = ({
                 height: "100%",
               }}
             >
+              {leftSidebar ? (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "stretch",
+                    gap: 8,
+                  }}
+                >
+                  {isSidebarExpanded ? (
+                    <Paper
+                      elevation={1}
+                      style={{
+                        width: 280,
+                        minWidth: 240,
+                        maxWidth: 360,
+                        borderRadius: 8,
+                        overflow: "hidden",
+                        display: "flex",
+                        flexDirection: "column",
+                        position: "relative",
+                      }}
+                    >
+                      {leftSidebar}
+                    </Paper>
+                  ) : null}
+                  {leftSidebarCollapsible ? (
+                    <Tooltip
+                      title={
+                        isSidebarExpanded ? "Hide workspace" : "Show workspace"
+                      }
+                      placement="left"
+                    >
+                      <IconButton
+                        size="small"
+                        onClick={() =>
+                          setIsSidebarExpanded((expanded) => !expanded)
+                        }
+                        style={{
+                          border: `1px solid ${theme.palette.divider}`,
+                          height: 36,
+                          width: 36,
+                          borderRadius: "50%",
+                          alignSelf: "flex-start",
+                        }}
+                      >
+                        {isSidebarExpanded ? <ChevronLeft /> : <ChevronRight />}
+                      </IconButton>
+                    </Tooltip>
+                  ) : null}
+                </div>
+              ) : null}
               <div
                 style={{
                   flex: showYaml ? 1 : 1,
@@ -387,17 +485,34 @@ export const TemplateWorkspace = ({
               >
                 <div style={{ flex: 1, minHeight: 0 }}>
                   {flowTopSlot}
-                  <DesignerFlow
-                    steps={debouncedFlowModel.steps}
-                    parameters={debouncedFlowModel.parameters}
-                    output={debouncedFlowModel.output}
-                    onStepsChange={onStepsChange}
-                    onParametersChange={onParametersChange}
-                    onOutputChange={onOutputChange}
-                    actionNodeComponent={actionNodeComponent}
-                    parametersNodeComponent={parametersNodeComponent}
-                    outputNodeComponent={outputNodeComponent}
-                  />
+                  {hideFlow ? (
+                    <Paper
+                      variant="outlined"
+                      style={{
+                        padding: 16,
+                        height: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Typography variant="body2" color="textSecondary">
+                        Open a YAML scaffolder file to render the graph.
+                      </Typography>
+                    </Paper>
+                  ) : (
+                    <DesignerFlow
+                      steps={debouncedFlowModel.steps}
+                      parameters={debouncedFlowModel.parameters}
+                      output={debouncedFlowModel.output}
+                      onStepsChange={onStepsChange}
+                      onParametersChange={onParametersChange}
+                      onOutputChange={onOutputChange}
+                      actionNodeComponent={actionNodeComponent}
+                      parametersNodeComponent={parametersNodeComponent}
+                      outputNodeComponent={outputNodeComponent}
+                    />
+                  )}
                 </div>
               </div>
               {(showYaml || rightPanelSlot) && (
@@ -421,7 +536,42 @@ export const TemplateWorkspace = ({
                           fontSize: "0.875rem",
                         }}
                       >
-                        YAML Preview
+                        {editorOverride?.filePath
+                          ? `File: ${editorOverride.filePath}`
+                          : "YAML Preview"}
+                        {editorOverride?.isDirty ? (
+                          <span
+                            style={{
+                              marginLeft: 8,
+                              color: theme.palette.warning.main,
+                            }}
+                          >
+                            • Unsaved
+                          </span>
+                        ) : null}
+                        {editorOverride?.isSaving ? (
+                          <span
+                            style={{
+                              marginLeft: 8,
+                              color: theme.palette.text.secondary,
+                              fontSize: "0.75rem",
+                            }}
+                          >
+                            Saving...
+                          </span>
+                        ) : null}
+                        {editorOverride?.onSave ? (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="primary"
+                            style={{ marginLeft: 12 }}
+                            onClick={handleSaveClick}
+                            disabled={editorOverride.isSaving}
+                          >
+                            Save
+                          </Button>
+                        ) : null}
                       </div>
                       {yamlError && (
                         <div
@@ -441,13 +591,13 @@ export const TemplateWorkspace = ({
                       )}
                       <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
                         <CodeMirror
-                          value={templateYaml}
+                          value={editorValue}
                           extensions={yamlExtensions}
                           theme={codeMirrorTheme}
                           className={TEMPLATE_DESIGNER_CM_CLASS}
                           height="100%"
-                          onChange={handleYamlChange}
-                          onBlur={handleYamlBlur}
+                          onChange={editorOnChange}
+                          onBlur={editorOnBlur}
                         />
                       </div>
                     </>
