@@ -1,3 +1,17 @@
+## [0.4.4](https://github.com/tduniec/template-designer-plugin/compare/template-designer-v0.4.3...template-designer-v0.4.4) (2026-01-12)
+
+
+### Bug Fixes
+
+* **template-designer-foundation:** adjustments for workspaces ([1143a50](https://github.com/tduniec/template-designer-plugin/commit/1143a50826842af450ae9f13feb39ee39574ba48))
+* **template-designer-foundation:** animated rendering ([8d118d6](https://github.com/tduniec/template-designer-plugin/commit/8d118d63e657e4f2b3b1b44fd8e36f06936f873a))
+* **template-designer-foundation:** codemirror theme to remove conflicts ([73260de](https://github.com/tduniec/template-designer-plugin/commit/73260de3fc3d4375fb81970d2ee5f3252366b805))
+* **template-designer-foundation:** opening node for extension ([ff5540b](https://github.com/tduniec/template-designer-plugin/commit/ff5540b7da6537ef4901c8f5cd4b589981da249c))
+* **template-designer-foundation:** opening the header of actionNode for children ([27ce24f](https://github.com/tduniec/template-designer-plugin/commit/27ce24ffca23c3af504237c94b3aee569d6fb8dd))
+* **template-designer-foundation:** opening workspace to pass new buttons ([4ff5319](https://github.com/tduniec/template-designer-plugin/commit/4ff5319a73266018c1130b95139a48ba1d23085c))
+* **template-designer-foundation:** order in actionNode for if and each ([abe52dc](https://github.com/tduniec/template-designer-plugin/commit/abe52dc620dd5c9b027540b0f6e47f6aae67469d))
+* using new foundations ([a4e1a19](https://github.com/tduniec/template-designer-plugin/commit/a4e1a19927a59fb0ded8c9db83383215482cdb36))
+
 ## [0.4.3](https://github.com/tduniec/template-designer-plugin/compare/template-designer-v0.4.2...template-designer-v0.4.3) (2025-12-29)
 
 
