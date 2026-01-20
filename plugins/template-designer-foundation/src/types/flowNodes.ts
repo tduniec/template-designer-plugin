@@ -4,6 +4,10 @@ import type {
 } from "@backstage/plugin-scaffolder-common";
 import type { ReactNode } from "react";
 import type { TemplateParametersValue } from "./templateParameters";
+import type {
+  ParameterFormState,
+  ParameterNodeExtensions,
+} from "../parameters/extensions/types";
 
 export type DesignerNodeType = "parametersNode" | "actionNode" | "outputNode";
 
@@ -69,12 +73,15 @@ export type ParameterSectionDisplay = {
   description?: string;
   required?: string[];
   properties?: Record<string, Record<string, unknown>>;
+  dependencies?: Record<string, unknown>;
   fields: ParameterFieldDisplay[];
 };
 
 export type ParametersNodeData = BaseNodeData & {
   parameters: TemplateParametersValue;
   sections?: ParameterSectionDisplay[];
+  extensions?: ParameterNodeExtensions;
+  formState?: ParameterFormState;
   onUpdateSections?: (
     rfId: string,
     updater: (prev: ParameterSectionDisplay[]) => ParameterSectionDisplay[]

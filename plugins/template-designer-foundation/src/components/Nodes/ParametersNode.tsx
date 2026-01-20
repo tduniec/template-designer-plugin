@@ -130,6 +130,9 @@ const ParametersNodeComponent: FC<{ data: ParametersNodeData }> = ({
             onMoveSection={handleMoveSection}
             onAddField={handleAddField}
             onMoveField={handleMoveField}
+            extensions={data.extensions}
+            formState={data.formState}
+            nodeId={data.rfId}
           />
         </Box>
 

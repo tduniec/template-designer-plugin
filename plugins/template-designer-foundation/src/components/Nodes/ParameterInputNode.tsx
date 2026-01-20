@@ -3,7 +3,12 @@ import { useCallback, useMemo } from "react";
 import { alpha, styled, useTheme } from "@material-ui/core/styles";
 import {
   Box,
+  Divider,
+  FormControl,
   FormControlLabel,
+  InputLabel,
+  MenuItem,
+  Select,
   IconButton,
   Switch,
   TextField,
@@ -15,6 +20,10 @@ import AddIcon from "@material-ui/icons/Add";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
 import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
 import type { ParameterFieldDisplay } from "../../types/flowNodes";
+import type {
+  ParameterInputExtrasArgs,
+  ParameterNodeExtensions,
+} from "../../parameters/extensions/types";
 
 const resolvePaletteMode = (theme: { palette: { type?: string } }) =>
   (theme.palette as { mode?: "light" | "dark" }).mode ??
@@ -59,6 +68,10 @@ type ParameterInputProps = {
   field: ParameterFieldDisplay;
   index: number;
   totalCount: number;
+  extensions?: ParameterNodeExtensions;
+  formState?: ParameterInputExtrasArgs["formState"];
+  nodeId?: string;
+  isSelected?: boolean;
   onFieldUpdate?: (
     updater: (field: ParameterFieldDisplay) => ParameterFieldDisplay
   ) => void;
@@ -84,6 +97,10 @@ export const ParameterInputNode: FC<ParameterInputProps> = ({
   field,
   index,
   totalCount,
+  extensions,
+  formState,
+  nodeId,
+  isSelected,
   onFieldUpdate,
   onAddField,
   onMoveField,
@@ -105,18 +122,15 @@ export const ParameterInputNode: FC<ParameterInputProps> = ({
       : "";
 
   const schemaSummary = useMemo(() => {
-    if (!schema) {
-      return "any";
-    }
     const typeValue = schemaRecord.type;
-    if (Array.isArray(typeValue)) {
-      return typeValue.map(String).join(" | ");
+    if (Array.isArray(typeValue) && typeValue.length) {
+      return String(typeValue[0]);
     }
-    if (typeof typeValue === "string") {
+    if (typeof typeValue === "string" && typeValue.length) {
       return typeValue;
     }
-    return "any";
-  }, [schema, schemaRecord]);
+    return "string";
+  }, [schemaRecord]);
 
   const defaultString = useMemo(() => {
     if (defaultValue === undefined || defaultValue === null) {
@@ -175,6 +189,72 @@ export const ParameterInputNode: FC<ParameterInputProps> = ({
     event.stopPropagation();
     event.preventDefault();
   };
+
+  const handleTypeChange = (nextType: string) => {
+    updateField((current) => {
+      const prevSchema = (current.schema ?? {}) as Record<string, unknown>;
+      const next: Record<string, unknown> = { ...prevSchema, type: nextType };
+      if (nextType !== "object") {
+        delete next.properties;
+      } else if (!next.properties) {
+        next.properties = {};
+      }
+      if (
+        nextType !== "string" &&
+        nextType !== "number" &&
+        nextType !== "boolean"
+      ) {
+        delete next.enum;
+        delete next.default;
+      }
+      return {
+        ...current,
+        schema: next,
+      };
+    });
+  };
+
+  const renderInputExtras = extensions?.renderInputExtras;
+
+  const extrasArgs = useMemo<ParameterInputExtrasArgs | undefined>(() => {
+    if (!renderInputExtras) {
+      return undefined;
+    }
+    return {
+      fieldId: field.id,
+      fieldPath: [field.sectionId, field.fieldName].filter(
+        (part): part is string => Boolean(part)
+      ),
+      fieldModel: field,
+      schema,
+      formState,
+      onFieldChange: onFieldUpdate ? updateField : undefined,
+      nodeId,
+      isSelected,
+    };
+  }, [
+    field,
+    formState,
+    isSelected,
+    nodeId,
+    renderInputExtras,
+    schema,
+    onFieldUpdate,
+    updateField,
+  ]);
+
+  const extrasContent = useMemo(
+    () =>
+      renderInputExtras && extrasArgs
+        ? renderInputExtras(extrasArgs)
+        : undefined,
+    [extrasArgs, renderInputExtras]
+  );
+
+  const handleExtrasPointerDown = useCallback((event: SyntheticEvent) => {
+    // Keep ReactFlow node drag/selection stable when interacting with extensions.
+    event.stopPropagation();
+  }, []);
 
   return (
     <Card>
@@ -270,6 +350,7 @@ export const ParameterInputNode: FC<ParameterInputProps> = ({
       >
         <TextField
           label="Field name"
+          id={`${field.id}-name`}
           value={fieldName}
           size="small"
           variant="outlined"
@@ -281,8 +362,25 @@ export const ParameterInputNode: FC<ParameterInputProps> = ({
           }
           fullWidth
         />
+        <FormControl size="small" variant="outlined" fullWidth>
+          <InputLabel id={`param-type-${field.id}`}>Type</InputLabel>
+          <Select
+            labelId={`param-type-${field.id}`}
+            id={`${field.id}-type`}
+            value={schemaSummary}
+            label="Type"
+            className="nodrag nowheel"
+            onChange={(event) => handleTypeChange(event.target.value as string)}
+          >
+            <MenuItem value="string">string</MenuItem>
+            <MenuItem value="number">number</MenuItem>
+            <MenuItem value="boolean">boolean</MenuItem>
+            <MenuItem value="object">object</MenuItem>
+          </Select>
+        </FormControl>
         <TextField
           label="Title"
+          id={`${field.id}-title`}
           value={schemaTitle}
           size="small"
           variant="outlined"
@@ -293,6 +391,7 @@ export const ParameterInputNode: FC<ParameterInputProps> = ({
         />
         <TextField
           label="Description"
+          id={`${field.id}-description`}
           value={schemaDescription}
           size="small"
           variant="outlined"
@@ -307,6 +406,7 @@ export const ParameterInputNode: FC<ParameterInputProps> = ({
         />
         <TextField
           label="Default"
+          id={`${field.id}-default`}
           value={defaultString}
           size="small"
           variant="outlined"
@@ -346,6 +446,14 @@ export const ParameterInputNode: FC<ParameterInputProps> = ({
             Double-click text fields to edit in a modal.
           </Typography>
         </Box>
+        {extrasContent ? (
+          <Box mt={1.5}>
+            <Divider />
+            <Box mt={1} onPointerDown={handleExtrasPointerDown}>
+              {extrasContent}
+            </Box>
+          </Box>
+        ) : null}
       </Box>
     </Card>
   );

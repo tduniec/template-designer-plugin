@@ -17,6 +17,7 @@ const createSectionTemplate = (): ParameterSectionDisplay => {
     fields: [],
     properties: {},
     required: [],
+    dependencies: {},
   };
 };
 
