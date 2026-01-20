@@ -350,6 +350,7 @@ export const ParameterInputNode: FC<ParameterInputProps> = ({
       >
         <TextField
           label="Field name"
+          id={`${field.id}-name`}
           value={fieldName}
           size="small"
           variant="outlined"
@@ -365,6 +366,7 @@ export const ParameterInputNode: FC<ParameterInputProps> = ({
           <InputLabel id={`param-type-${field.id}`}>Type</InputLabel>
           <Select
             labelId={`param-type-${field.id}`}
+            id={`${field.id}-type`}
             value={schemaSummary}
             label="Type"
             className="nodrag nowheel"
@@ -378,6 +380,7 @@ export const ParameterInputNode: FC<ParameterInputProps> = ({
         </FormControl>
         <TextField
           label="Title"
+          id={`${field.id}-title`}
           value={schemaTitle}
           size="small"
           variant="outlined"
@@ -388,6 +391,7 @@ export const ParameterInputNode: FC<ParameterInputProps> = ({
         />
         <TextField
           label="Description"
+          id={`${field.id}-description`}
           value={schemaDescription}
           size="small"
           variant="outlined"
@@ -402,6 +406,7 @@ export const ParameterInputNode: FC<ParameterInputProps> = ({
         />
         <TextField
           label="Default"
+          id={`${field.id}-default`}
           value={defaultString}
           size="small"
           variant="outlined"
