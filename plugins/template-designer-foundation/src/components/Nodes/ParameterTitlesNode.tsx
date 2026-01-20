@@ -1,4 +1,5 @@
 import type { FC, SyntheticEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { alpha, styled, useTheme } from "@material-ui/core/styles";
 import {
   Box,
@@ -18,6 +19,11 @@ import type {
   ParameterFieldDisplay,
   ParameterSectionDisplay,
 } from "../../types/flowNodes";
+import type {
+  ParameterInputExtrasArgs,
+  ParameterSectionExtrasArgs,
+  ParameterNodeExtensions,
+} from "../../parameters/extensions/types";
 import { ParameterInputNode } from "./ParameterInputNode";
 
 const resolvePaletteMode = (theme: { palette: { type?: string } }) =>
@@ -105,6 +111,10 @@ type ParameterTitlesProps = {
     fieldId: string,
     direction: "up" | "down"
   ) => void;
+  extensions?: ParameterNodeExtensions;
+  formState?: ParameterInputExtrasArgs["formState"];
+  nodeId?: string;
+  isSelected?: boolean;
 };
 
 export const ParameterTitlesNode: FC<ParameterTitlesProps> = ({
@@ -115,10 +125,32 @@ export const ParameterTitlesNode: FC<ParameterTitlesProps> = ({
   onMoveSection,
   onAddField,
   onMoveField,
+  extensions,
+  formState,
+  nodeId,
+  isSelected,
 }) => {
   const theme = useTheme();
   const paletteMode = resolvePaletteMode(theme);
-  const safeSections = sections ?? [];
+  const safeSections = useMemo(() => sections ?? [], [sections]);
+  const [extrasOpen, setExtrasOpen] = useState<Record<string, boolean>>({});
+
+  // Auto-expand extras when dependencies are present from YAML.
+  useEffect(() => {
+    setExtrasOpen((prev) => {
+      const next = { ...prev };
+      safeSections.forEach((section) => {
+        const hasDeps =
+          section.dependencies &&
+          Object.keys(section.dependencies as Record<string, unknown>).length >
+            0;
+        if (hasDeps) {
+          next[section.id] = true;
+        }
+      });
+      return next;
+    });
+  }, [safeSections]);
 
   const handleSectionTitleChange = (sectionId: string, value: string) => {
     onSectionUpdate?.(sectionId, (section) => ({
@@ -145,6 +177,28 @@ export const ParameterTitlesNode: FC<ParameterTitlesProps> = ({
     updater: (field: ParameterFieldDisplay) => ParameterFieldDisplay
   ) => {
     onFieldUpdate?.(sectionId, fieldId, updater);
+  };
+
+  const renderSectionExtras = extensions?.renderSectionExtras;
+
+  const buildSectionExtras = (section: ParameterSectionDisplay) => {
+    if (!renderSectionExtras) {
+      return null;
+    }
+    const args: ParameterSectionExtrasArgs = {
+      section,
+      sections: safeSections,
+      formState,
+      nodeId,
+      onSectionChange: (updater) => {
+        onSectionUpdate?.(section.id, updater);
+      },
+      onAddField: onAddField
+        ? (sectionId: string, afterFieldId?: string) =>
+            onAddField(sectionId, afterFieldId)
+        : undefined,
+    };
+    return renderSectionExtras(args);
   };
 
   const preventDrag = (event: SyntheticEvent) => {
@@ -192,6 +246,10 @@ export const ParameterTitlesNode: FC<ParameterTitlesProps> = ({
 
       {safeSections.map((section, index) => {
         const fieldCount = section.fields?.length ?? 0;
+        const dependencyKeys = Object.keys(
+          (section.dependencies as Record<string, unknown>) ?? {}
+        );
+        const hasDependencies = dependencyKeys.length > 0;
         return (
           <Box key={section.id ?? index}>
             <SectionRow>
@@ -282,6 +340,13 @@ export const ParameterTitlesNode: FC<ParameterTitlesProps> = ({
                       : "No required fields"
                   }
                 />
+                {hasDependencies ? (
+                  <Chip
+                    size="small"
+                    color="secondary"
+                    label={`Dependencies: ${dependencyKeys.length}`}
+                  />
+                ) : null}
               </SectionMeta>
             </SectionRow>
 
@@ -293,6 +358,10 @@ export const ParameterTitlesNode: FC<ParameterTitlesProps> = ({
                     field={field}
                     index={fieldIndex}
                     totalCount={section.fields?.length ?? 0}
+                    extensions={extensions}
+                    formState={formState}
+                    nodeId={nodeId}
+                    isSelected={isSelected}
                     onFieldUpdate={(updater) =>
                       handleFieldUpdate(section.id, field.id, updater)
                     }
@@ -302,6 +371,28 @@ export const ParameterTitlesNode: FC<ParameterTitlesProps> = ({
                     }
                   />
                 ))}
+                {renderSectionExtras ? (
+                  <Box mt={1.5}>
+                    <Button
+                      size="small"
+                      onPointerDown={preventDrag}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setExtrasOpen((prev) => ({
+                          ...prev,
+                          [section.id]: !(prev[section.id] ?? false),
+                        }));
+                      }}
+                    >
+                      {extrasOpen[section.id] ?? false
+                        ? "Hide advanced"
+                        : "Advanced"}
+                    </Button>
+                    {extrasOpen[section.id] ?? false ? (
+                      <Box mt={1}>{buildSectionExtras(section)}</Box>
+                    ) : null}
+                  </Box>
+                ) : null}
               </FieldsGrid>
             ) : (
               <Box mt={1}>

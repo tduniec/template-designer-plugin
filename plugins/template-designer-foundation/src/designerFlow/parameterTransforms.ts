@@ -10,6 +10,7 @@ import type {
 
 type ParameterPropertySchema = Record<string, unknown>;
 type ParameterProperties = Record<string, ParameterPropertySchema>;
+type ParameterDependencies = Record<string, unknown>;
 
 const asString = (value: unknown): string | undefined =>
   typeof value === "string" ? value : undefined;
@@ -45,6 +46,15 @@ const cloneProperties = (
     string,
     Record<string, unknown>
   >;
+};
+
+const cloneDependencies = (
+  dependencies?: ParameterDependencies
+): ParameterDependencies | undefined => {
+  if (!dependencies || typeof dependencies !== "object") {
+    return undefined;
+  }
+  return JSON.parse(JSON.stringify(dependencies)) as ParameterDependencies;
 };
 
 const buildDefaultSchema = (fieldName: string): ParameterPropertySchema => ({
@@ -98,6 +108,7 @@ const sanitizeSection = (
   const sectionId = section.id ?? `section-${index}`;
   const properties = asSchemaRecord(section.properties);
   const required = asStringArray(section.required);
+  const dependencies = section.dependencies;
   const fields =
     section.fields
       ?.map((field, idx) => sanitizeField(field, sectionId, idx))
@@ -117,6 +128,7 @@ const sanitizeSection = (
     ...section,
     id: sectionId,
     properties: cloneProperties(properties),
+    dependencies: cloneDependencies(dependencies),
     required: required ?? [],
     fields: safeFields,
   };
@@ -146,6 +158,7 @@ export const normalizeParametersToSections = (
         description: asString((param as any).description),
         required: asStringArray((param as any).required),
         properties: asSchemaRecord((param as any).properties),
+        dependencies: cloneDependencies((param as any).dependencies),
         fields: [],
       },
       index
@@ -179,15 +192,28 @@ export const sectionsToParametersValue = (
           ?.filter((field) => field.required && field.fieldName)
           ?.map((field) => field.fieldName) ?? [];
 
+      const dependencies = cloneDependencies(section.dependencies) as
+        | Record<string, unknown>
+        | undefined;
+
       const defaultSectionTitle = `Section ${index + 1}`;
 
-      return {
-        id: section.id,
+      const output: TemplateParametersV1beta3 = {
         title: section.title ?? defaultSectionTitle,
         description: section.description,
-        properties: properties as unknown as Record<string, unknown>,
-        required,
-      } as TemplateParametersV1beta3;
+        properties: properties as TemplateParametersV1beta3["properties"],
+      };
+
+      if (dependencies && Object.keys(dependencies).length > 0) {
+        output.dependencies =
+          dependencies as TemplateParametersV1beta3["dependencies"];
+      }
+
+      if (required.length > 0) {
+        output.required = required;
+      }
+
+      return output;
     }
   );
 
