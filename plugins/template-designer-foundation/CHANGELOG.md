@@ -1,3 +1,10 @@
+## [0.1.8](https://github.com/tduniec/template-designer-plugin/compare/template-designer-foundation-v0.1.7...template-designer-foundation-v0.1.8) (2026-01-20)
+
+
+### Bug Fixes
+
+* **template-designer-foundation:** extedning form nodes for changes ([#63](https://github.com/tduniec/template-designer-plugin/issues/63)) ([d9585b7](https://github.com/tduniec/template-designer-plugin/commit/d9585b774bb5e6029fa158c7969f0d7f67f6dd32))
+
 ## [0.1.7](https://github.com/tduniec/template-designer-plugin/compare/template-designer-foundation-v0.1.6...template-designer-foundation-v0.1.7) (2026-01-12)
 
 
