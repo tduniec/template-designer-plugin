@@ -1,3 +1,10 @@
+## [0.1.9](https://github.com/tduniec/template-designer-plugin/compare/template-designer-foundation-v0.1.8...template-designer-foundation-v0.1.9) (2026-01-25)
+
+
+### Bug Fixes
+
+* **template-designer-foundation:** strip empty coditionals ([#64](https://github.com/tduniec/template-designer-plugin/issues/64)) ([77e3931](https://github.com/tduniec/template-designer-plugin/commit/77e3931cb7519c6b33b4b65fa75a2dc43d8a8a9d))
+
 ## [0.1.8](https://github.com/tduniec/template-designer-plugin/compare/template-designer-foundation-v0.1.7...template-designer-foundation-v0.1.8) (2026-01-20)
 
 
