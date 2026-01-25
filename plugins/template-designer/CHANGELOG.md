@@ -1,3 +1,11 @@
+## [0.4.5](https://github.com/tduniec/template-designer-plugin/compare/template-designer-v0.4.4...template-designer-v0.4.5) (2026-01-25)
+
+
+### Bug Fixes
+
+* **template-designer-foundation:** extedning form nodes for changes ([#63](https://github.com/tduniec/template-designer-plugin/issues/63)) ([d9585b7](https://github.com/tduniec/template-designer-plugin/commit/d9585b774bb5e6029fa158c7969f0d7f67f6dd32))
+* **template-designer-foundation:** strip empty coditionals ([#64](https://github.com/tduniec/template-designer-plugin/issues/64)) ([77e3931](https://github.com/tduniec/template-designer-plugin/commit/77e3931cb7519c6b33b4b65fa75a2dc43d8a8a9d))
+
 ## [0.4.4](https://github.com/tduniec/template-designer-plugin/compare/template-designer-v0.4.3...template-designer-v0.4.4) (2026-01-12)
 
 
