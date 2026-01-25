@@ -142,15 +142,6 @@ const normalizeStepOrder = (step: TaskStep): TaskStep => {
   return ordered as TaskStep;
 };
 
-export const extractStepsFromNodes = (nodes: Node[]): TaskStep[] => {
-  const actionNodes = nodes.filter(
-    (node) => node.type === "actionNode"
-  ) as Node<ActionNodeData>[];
-  return actionNodes.map((node) =>
-    normalizeStepOrder(stripEmptyConditionals(cloneStep(node.data.step)))
-  );
-};
-
 const stripEmptyConditionals = (step: TaskStep): TaskStep => {
   const next = { ...step } as TaskStep;
   if (next.if === "" || next.if === undefined) {
@@ -160,6 +151,15 @@ const stripEmptyConditionals = (step: TaskStep): TaskStep => {
     delete (next as any).each;
   }
   return next;
+};
+
+export const extractStepsFromNodes = (nodes: Node[]): TaskStep[] => {
+  const actionNodes = nodes.filter(
+    (node) => node.type === "actionNode"
+  ) as Node<ActionNodeData>[];
+  return actionNodes.map((node) =>
+    normalizeStepOrder(stripEmptyConditionals(cloneStep(node.data.step)))
+  );
 };
 
 export const extractParametersFromNodes = (
