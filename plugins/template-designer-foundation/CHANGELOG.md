@@ -1,3 +1,10 @@
+## [0.1.10](https://github.com/tduniec/template-designer-plugin/compare/template-designer-foundation-v0.1.9...template-designer-foundation-v0.1.10) (2026-01-30)
+
+
+### Bug Fixes
+
+* **template-designer:** adding template-designer-pro banner ([#66](https://github.com/tduniec/template-designer-plugin/issues/66)) ([19a39af](https://github.com/tduniec/template-designer-plugin/commit/19a39af2a52312c52d044e5520dec2860335a01d))
+
 ## [0.1.9](https://github.com/tduniec/template-designer-plugin/compare/template-designer-foundation-v0.1.8...template-designer-foundation-v0.1.9) (2026-01-25)
 
 
