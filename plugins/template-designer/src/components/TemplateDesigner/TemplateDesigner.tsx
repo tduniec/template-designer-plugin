@@ -16,6 +16,7 @@ import {
   useFieldEditor,
 } from "@tduniec/plugin-template-designer-foundation";
 import { useTemplateState } from "@tduniec/plugin-template-designer-foundation";
+import { ProPromoBanner } from "./components/ProPromoBanner";
 
 export type TemplateDesignerProps = {
   FieldEditorComponent?: ComponentType<FieldEditorDialogProps>;
@@ -142,6 +143,7 @@ export const TemplateDesigner = ({
   );
 
   const ResolvedFieldEditor = FieldEditorComponent ?? FieldEditorDialog;
+  const showProPromo = Boolean(templateObject);
 
   return (
     <Page themeId="tool">
@@ -153,8 +155,20 @@ export const TemplateDesigner = ({
             before ever touching code. Rally non-experts, broadcast best
             practices, and accelerate template launches directly inside
             Backstage.
+            <br />
+            <strong>Try PRO:</strong> unlock playground, dry-run, and advanced
+            parameter nodes.{" "}
+            <a
+              href="https://dx-labs.com/template-designer"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Explore Template Designer PRO
+            </a>
           </SupportButton>
         </ContentHeader>
+
+        <ProPromoBanner show={showProPromo} />
 
         <input
           ref={fileInputRef}
