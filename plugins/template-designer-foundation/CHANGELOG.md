@@ -1,3 +1,10 @@
+## [0.1.11](https://github.com/tduniec/template-designer-plugin/compare/template-designer-foundation-v0.1.10...template-designer-foundation-v0.1.11) (2026-02-15)
+
+
+### Bug Fixes
+
+* fix doubleclick editor ([#67](https://github.com/tduniec/template-designer-plugin/issues/67)) ([587f573](https://github.com/tduniec/template-designer-plugin/commit/587f573af29e48f4d3f0e36312bdef3af6689cf8))
+
 ## [0.1.10](https://github.com/tduniec/template-designer-plugin/compare/template-designer-foundation-v0.1.9...template-designer-foundation-v0.1.10) (2026-01-30)
 
 
