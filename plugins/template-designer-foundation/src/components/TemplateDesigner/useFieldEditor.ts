@@ -97,7 +97,7 @@ export const useFieldEditor = () => {
           "password",
         ];
         const isTextual = !type || editableTypes.includes(type);
-        if (!isTextual || !target.value) {
+        if (!isTextual) {
           return;
         }
         event.stopPropagation();
@@ -107,8 +107,7 @@ export const useFieldEditor = () => {
       if (
         target instanceof HTMLTextAreaElement &&
         !target.readOnly &&
-        !target.disabled &&
-        target.value
+        !target.disabled
       ) {
         event.stopPropagation();
         openEditor(target);
