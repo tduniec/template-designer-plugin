@@ -192,11 +192,87 @@ export const collectParameterReferences = (
   if (!parameters || !Array.isArray(parameters)) {
     return [];
   }
-  return parameters.flatMap((param) =>
-    Object.keys((param as any)?.properties ?? {}).map(
-      (propKey) => `\${{ parameters.${propKey} }}`
-    )
-  );
+  const refs = new Set<string>();
+
+  const visit = (node: any) => {
+    if (!node) return;
+
+    if (Array.isArray(node)) {
+      node.forEach((item) => {
+        if (typeof item === "string" && item) {
+          refs.add(`\${{ parameters.${item} }}`);
+        } else {
+          visit(item);
+        }
+      });
+      return;
+    }
+
+    if (typeof node !== "object") return;
+
+    // pull keys from properties / required if present
+    const props = (node as any).properties as
+      | Record<string, unknown>
+      | undefined;
+    if (props) {
+      Object.keys(props).forEach((key) => {
+        if (key) refs.add(`\${{ parameters.${key} }}`);
+      });
+    } else {
+      // Fallback: the node itself may be a properties map.
+      Object.entries(node as Record<string, unknown>).forEach(([key, val]) => {
+        if (key && val && typeof val === "object") {
+          refs.add(`\${{ parameters.${key} }}`);
+        }
+      });
+    }
+    const sections = (node as any).sections as
+      | Array<Record<string, unknown>>
+      | undefined;
+    if (Array.isArray(sections)) {
+      sections.forEach((section) => {
+        const sectionProps = section?.properties as
+          | Record<string, unknown>
+          | undefined;
+        if (sectionProps) {
+          Object.keys(sectionProps).forEach((key) => {
+            if (key) refs.add(`\${{ parameters.${key} }}`);
+          });
+        }
+        const sectionRequired = section?.required as unknown;
+        if (Array.isArray(sectionRequired)) {
+          sectionRequired.forEach((item) => {
+            if (typeof item === "string" && item) {
+              refs.add(`\${{ parameters.${item} }}`);
+            }
+          });
+        }
+      });
+    }
+    const required = (node as any).required as unknown;
+    if (Array.isArray(required)) {
+      required.forEach((item) => {
+        if (typeof item === "string" && item) {
+          refs.add(`\${{ parameters.${item} }}`);
+        }
+      });
+    }
+
+    // traverse known branch containers
+    ["oneOf", "anyOf", "allOf", "if", "then", "else"].forEach((key) =>
+      visit((node as any)[key])
+    );
+  };
+
+  parameters.forEach((param) => {
+    visit((param as any)?.properties);
+    const deps = (param as any)?.dependencies;
+    if (deps && typeof deps === "object") {
+      Object.values(deps).forEach((depVal) => visit(depVal));
+    }
+  });
+
+  return Array.from(refs);
 };
 
 export const collectStepOutputReferences = (
