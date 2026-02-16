@@ -211,10 +211,42 @@ export const collectParameterReferences = (
     if (typeof node !== "object") return;
 
     // pull keys from properties / required if present
-    const props = (node as any).properties as Record<string, unknown> | undefined;
+    const props = (node as any).properties as
+      | Record<string, unknown>
+      | undefined;
     if (props) {
       Object.keys(props).forEach((key) => {
         if (key) refs.add(`\${{ parameters.${key} }}`);
+      });
+    } else {
+      // Fallback: the node itself may be a properties map.
+      Object.entries(node as Record<string, unknown>).forEach(([key, val]) => {
+        if (key && val && typeof val === "object") {
+          refs.add(`\${{ parameters.${key} }}`);
+        }
+      });
+    }
+    const sections = (node as any).sections as
+      | Array<Record<string, unknown>>
+      | undefined;
+    if (Array.isArray(sections)) {
+      sections.forEach((section) => {
+        const sectionProps = section?.properties as
+          | Record<string, unknown>
+          | undefined;
+        if (sectionProps) {
+          Object.keys(sectionProps).forEach((key) => {
+            if (key) refs.add(`\${{ parameters.${key} }}`);
+          });
+        }
+        const sectionRequired = section?.required as unknown;
+        if (Array.isArray(sectionRequired)) {
+          sectionRequired.forEach((item) => {
+            if (typeof item === "string" && item) {
+              refs.add(`\${{ parameters.${item} }}`);
+            }
+          });
+        }
       });
     }
     const required = (node as any).required as unknown;

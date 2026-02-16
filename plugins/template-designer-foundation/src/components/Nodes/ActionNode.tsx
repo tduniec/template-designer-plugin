@@ -115,6 +115,9 @@ const ActionNodeComponent: React.FC<{ data: ActionNodeData }> = ({ data }) => {
       ...(newKeyNormalizedType === "boolean" ? ["true", "false"] : []),
       ...newKeyEnumOptions,
       ...stepOutputReferences,
+      // add parameter references into suggestions (they are already in stepOutputReferences upstream,
+      // but keep this for safety when cache misses occur)
+      ...(data.stepOutputReferences ?? []),
     ])
   );
   const paletteMode =
@@ -408,7 +411,7 @@ const ActionNodeComponent: React.FC<{ data: ActionNodeData }> = ({ data }) => {
                   size="small"
                   value={displayValue}
                   onChange={(event) => handleStringChange(event.target.value)}
-                  placeholder="JSON value"
+                  placeholder="YAML value"
                   fullWidth
                   multiline
                   minRows={2}
@@ -556,7 +559,7 @@ const ActionNodeComponent: React.FC<{ data: ActionNodeData }> = ({ data }) => {
               size="small"
               value={newVal}
               onChange={(event) => setNewVal(event.target.value)}
-              placeholder="JSON value"
+              placeholder="YAML value"
               fullWidth
               multiline
               minRows={2}

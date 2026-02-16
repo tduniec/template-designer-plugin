@@ -1,3 +1,5 @@
+import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
+
 export type JsonSchemaProperty = Record<string, unknown>;
 
 export type NormalizedSchemaType =
@@ -67,7 +69,7 @@ export const coerceValueForType = (
   }
   if (type === "array" || type === "object") {
     try {
-      return JSON.parse(value);
+      return parseYaml(value);
     } catch {
       return value;
     }
@@ -84,7 +86,7 @@ export const stringifyValueForDisplay = (
   }
   if (type === "object" || type === "array") {
     try {
-      return JSON.stringify(value, null, 2);
+      return stringifyYaml(value).trimEnd();
     } catch {
       return String(value);
     }
