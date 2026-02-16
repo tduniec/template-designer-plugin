@@ -1,3 +1,10 @@
+## [0.4.8](https://github.com/tduniec/template-designer-plugin/compare/template-designer-v0.4.7...template-designer-v0.4.8) (2026-02-16)
+
+
+### Bug Fixes
+
+* suggestions in poper and textfields, parse template initialy as yaml ([#68](https://github.com/tduniec/template-designer-plugin/issues/68)) ([31d47d2](https://github.com/tduniec/template-designer-plugin/commit/31d47d2a037cdfb323d4311a5550964741111b27))
+
 ## [0.4.7](https://github.com/tduniec/template-designer-plugin/compare/template-designer-v0.4.6...template-designer-v0.4.7) (2026-02-15)
 
 
